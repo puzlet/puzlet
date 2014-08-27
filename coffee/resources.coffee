@@ -215,6 +215,12 @@ class Resources
 	
 	constructor: ->
 		@resources = []
+		@getPuzletPrefix()
+		
+	getPuzletPrefix: ->
+		@puzlet = "http://puzlet.org"
+		@puzletOrg = document.querySelectorAll("[src='#{@puzlet}/puzlet/js/puzlet.js']").length
+		@puzlet = "" unless @puzletOrg
 		
 	add: (resourceSpecs) ->
 		resourceSpecs = [resourceSpecs] unless resourceSpecs.length
@@ -234,6 +240,8 @@ class Resources
 				# Currently handles only one property.
 				url = v
 				fileExt = p
+		puzletResource = url.match("^/puzlet")?.length
+		url = @puzlet+url if puzletResource and @puzlet
 		spec = {url: url, fileExt: fileExt}
 		location = if url.indexOf("/") is -1 then "blab" else "ext"
 		spec.location = location  # Needed for coffee compiling

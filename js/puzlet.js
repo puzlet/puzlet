@@ -1582,7 +1582,16 @@
 
     function Resources() {
       this.resources = [];
+      this.getPuzletPrefix();
     }
+
+    Resources.prototype.getPuzletPrefix = function() {
+      this.puzlet = "http://puzlet.org";
+      this.puzletOrg = document.querySelectorAll("[src='" + this.puzlet + "/puzlet/js/puzlet.js']").length;
+      if (!this.puzletOrg) {
+        return this.puzlet = "";
+      }
+    };
 
     Resources.prototype.add = function(resourceSpecs) {
       var newResources, resource, spec, _i, _len;
@@ -1604,7 +1613,7 @@
     };
 
     Resources.prototype.createResource = function(spec) {
-      var fileExt, location, p, url, v, _ref, _ref1, _ref2;
+      var fileExt, location, p, puzletResource, url, v, _ref, _ref1, _ref2, _ref3;
       if (spec.url) {
         url = spec.url;
         fileExt = Resource.getFileExt(url);
@@ -1615,13 +1624,17 @@
           fileExt = p;
         }
       }
+      puzletResource = (_ref = url.match("^/puzlet")) != null ? _ref.length : void 0;
+      if (puzletResource && this.puzlet) {
+        url = this.puzlet + url;
+      }
       spec = {
         url: url,
         fileExt: fileExt
       };
       location = url.indexOf("/") === -1 ? "blab" : "ext";
       spec.location = location;
-      spec.gistSource = (_ref = (_ref1 = this.gistFiles) != null ? (_ref2 = _ref1[url]) != null ? _ref2.content : void 0 : void 0) != null ? _ref : null;
+      spec.gistSource = (_ref1 = (_ref2 = this.gistFiles) != null ? (_ref3 = _ref2[url]) != null ? _ref3.content : void 0 : void 0) != null ? _ref1 : null;
       if (this.resourceTypes[fileExt]) {
         return new this.resourceTypes[fileExt][location](spec);
       } else {
@@ -3381,7 +3394,6 @@
       this.render = render;
       this.done = done;
       this.resources = new Resources;
-      this.getPuzletPrefix();
       this.loadCoreResources(function() {
         return _this.loadGitHub(function() {
           return _this.loadResourceList(function() {
@@ -3403,15 +3415,6 @@
       return this.resources.loadUnloaded(function() {
         return typeof callback === "function" ? callback() : void 0;
       });
-    };
-
-    Loader.prototype.getPuzletPrefix = function() {
-      this.puzletPrefix = "http://puzlet.org";
-      this.puzletOrg = document.querySelectorAll("[src='" + this.puzletPrefix + "/puzlet/js/puzlet.js']").length;
-      if (!this.puzletOrg) {
-        this.puzletPrefix = "";
-      }
-      return console.log("puzlet", this.puzletPrefix);
     };
 
     Loader.prototype.loadGitHub = function(callback) {
