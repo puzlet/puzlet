@@ -3381,6 +3381,7 @@
       this.render = render;
       this.done = done;
       this.resources = new Resources;
+      this.getPuzletPrefix();
       this.loadCoreResources(function() {
         return _this.loadGitHub(function() {
           return _this.loadResourceList(function() {
@@ -3400,12 +3401,17 @@
       var _this = this;
       this.resources.add(this.coreResources);
       return this.resources.loadUnloaded(function() {
-        var puzletScriptUrl;
-        puzletScriptUrl = $("script[src*='puzlet.js']");
-        _this.puzletOrg = puzletScriptUrl.length && $(puzletScriptUrl[0]).attr("src").indexOf("http://puzlet.org") !== -1;
-        console.log("puzlet.org", puzletScriptUrl, _this.puzletOrg);
         return typeof callback === "function" ? callback() : void 0;
       });
+    };
+
+    Loader.prototype.getPuzletPrefix = function() {
+      this.puzletPrefix = "http://puzlet.org";
+      this.puzletOrg = document.querySelectorAll("[src='" + this.puzletPrefix + "/puzlet/js/puzlet.js']").length;
+      if (!this.puzletOrg) {
+        this.puzletPrefix = "";
+      }
+      return console.log("puzlet", this.puzletPrefix);
     };
 
     Loader.prototype.loadGitHub = function(callback) {
