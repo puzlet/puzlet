@@ -58,7 +58,11 @@ class Loader
 	# Dynamically load and run jQuery and Wiky.
 	loadCoreResources: (callback) ->
 		@resources.add @coreResources
-		@resources.loadUnloaded callback
+		@resources.loadUnloaded =>
+			puzletScriptUrl = $("script[src*='puzlet.js']")
+			@puzletOrg = puzletScriptUrl.length and $(puzletScriptUrl[0]).attr("src").indexOf("http://puzlet.org") isnt -1
+			console.log "puzlet.org", puzletScriptUrl, @puzletOrg
+			callback?()
 		
 	# Initiate GitHub object and load Gist files - these override blab files.
 	loadGitHub: (callback) ->

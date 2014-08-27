@@ -3397,8 +3397,15 @@
     }
 
     Loader.prototype.loadCoreResources = function(callback) {
+      var _this = this;
       this.resources.add(this.coreResources);
-      return this.resources.loadUnloaded(callback);
+      return this.resources.loadUnloaded(function() {
+        var puzletScriptUrl;
+        puzletScriptUrl = $("script[src*='puzlet.js']");
+        _this.puzletOrg = puzletScriptUrl.length && $(puzletScriptUrl[0]).attr("src").indexOf("http://puzlet.org") !== -1;
+        console.log("puzlet.org", puzletScriptUrl, _this.puzletOrg);
+        return typeof callback === "function" ? callback() : void 0;
+      });
     };
 
     Loader.prototype.loadGitHub = function(callback) {
