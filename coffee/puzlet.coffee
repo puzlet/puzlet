@@ -164,7 +164,7 @@ class FavIcon
 		icon = $ "<link>"
 			rel: "icon"
 			type: "image/png"
-			href: "/puzlet/images/favicon.ico"
+			href: "http://puzlet.org/puzlet/images/favicon.ico"
 		$(document.head).append icon
 
 
