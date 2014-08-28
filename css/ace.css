@@ -9,6 +9,7 @@
 /* This style needs to be added dynamically as <style> element to work properly - see coffeelab.coffee  */
 .ace-tm .ace_gutter {
 	color: #aaa;
+	background: #f8f8f8;
 }
 
 /* This style needs to be added dynamically as <style> element to work properly - see coffeelab.coffee  */

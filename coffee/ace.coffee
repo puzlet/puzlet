@@ -304,53 +304,25 @@ class Ace.Languages
 		return name for name, language of Ace.Languages.list when language.ext is ext
 	
 
+Ace.path = "http://static.puzlet.com/ace5"
+#Ace.path = "http://static.puzlet.com/ace4"
+#Ace.path = "/puzlet/js/ace4"  # ace5
+# Ace.path = "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3"
 
 class Ace.Resources
 	
-	###
 	main: [
-		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"}
+		{url: "#{Ace.path}/ace.js"}
 	]
 	
 	modes: [
-		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-html.js"}
-		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-css.js"}
-		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-javascript.js"}
-		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-coffee.js"}
-		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-python.js"}
-		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-matlab.js"}
-		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-latex.js"}
-	]
-	###
-	
-	###
-	main: [
-		{url: "http://static.puzlet.com/ace4/ace.js"}
-	]
-	
-	modes: [
-		{url: "http://static.puzlet.com/ace4/mode-html.js"}
-		{url: "http://static.puzlet.com/ace4/mode-css.js"}
-		{url: "http://static.puzlet.com/ace4/mode-javascript.js"}
-		{url: "http://static.puzlet.com/ace4/mode-coffee.js"}
-		{url: "http://static.puzlet.com/ace4/mode-python.js"}
-		{url: "http://static.puzlet.com/ace4/mode-matlab.js"}
-		{url: "http://static.puzlet.com/ace4/mode-latex.js"}
-	]
-	###
-	
-	main: [
-		{url: "/puzlet/js/ace4/ace.js"}
-	]
-	
-	modes: [
-		{url: "/puzlet/js/ace4/mode-html.js"}
-		{url: "/puzlet/js/ace4/mode-css.js"}
-		{url: "/puzlet/js/ace4/mode-javascript.js"}
-		{url: "/puzlet/js/ace4/mode-coffee.js"}
-		{url: "/puzlet/js/ace4/mode-python.js"}
-		{url: "/puzlet/js/ace4/mode-matlab.js"}
-		{url: "/puzlet/js/ace4/mode-latex.js"}
+		{url: "#{Ace.path}/mode-html.js"}
+		{url: "#{Ace.path}/mode-css.js"}
+		{url: "#{Ace.path}/mode-javascript.js"}
+		{url: "#{Ace.path}/mode-coffee.js"}
+		{url: "#{Ace.path}/mode-python.js"}
+		{url: "#{Ace.path}/mode-matlab.js"}
+		{url: "#{Ace.path}/mode-latex.js"}
 	]
 	
 	styles: [
@@ -358,7 +330,35 @@ class Ace.Resources
 	]
 	
 	constructor: (load, loaded) ->
-		load @main, => load @modes, => load @styles, loaded
+		load @main, => load @modes, => load @styles, =>
+			@customStyles()
+			#setTimeout (=> @customStyles()), 5000
+			loaded?()
+	
+	customStyles: ->
+		# These styles don't work if added via ace.css.
+		custom = $ "<style>"
+			type: "text/css"
+			id: "puzlet_ace_custom_styles"
+			html: """
+			.ace-tm {
+				background: #f4f4f4;;
+			}
+			.ace-tm .ace_gutter {
+				color: #aaa;
+				background: #f8f8f8;
+			}
+			.ace_gutter-cell {
+				padding-left: 15px;
+				background: #eee;
+			}
+			.ace-tm .ace_print_margin {
+				background: #f0f0f0;
+			}
+			"""
+			
+		head = document.getElementsByTagName('head')[0]  # Doesn't work with jQuery.
+		head.appendChild custom[0]
 
 
 #--- Ace custom rendering: comments and function links ---# 

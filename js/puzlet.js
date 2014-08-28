@@ -3000,60 +3000,31 @@
 
   })();
 
-  Ace.Resources = (function() {
-    /*
-    	main: [
-    		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"}
-    	]
-    	
-    	modes: [
-    		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-html.js"}
-    		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-css.js"}
-    		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-javascript.js"}
-    		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-coffee.js"}
-    		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-python.js"}
-    		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-matlab.js"}
-    		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-latex.js"}
-    	]
-    */
+  Ace.path = "http://static.puzlet.com/ace5";
 
-    /*
-    	main: [
-    		{url: "http://static.puzlet.com/ace4/ace.js"}
-    	]
-    	
-    	modes: [
-    		{url: "http://static.puzlet.com/ace4/mode-html.js"}
-    		{url: "http://static.puzlet.com/ace4/mode-css.js"}
-    		{url: "http://static.puzlet.com/ace4/mode-javascript.js"}
-    		{url: "http://static.puzlet.com/ace4/mode-coffee.js"}
-    		{url: "http://static.puzlet.com/ace4/mode-python.js"}
-    		{url: "http://static.puzlet.com/ace4/mode-matlab.js"}
-    		{url: "http://static.puzlet.com/ace4/mode-latex.js"}
-    	]
-    */
+  Ace.Resources = (function() {
 
     Resources.prototype.main = [
       {
-        url: "/puzlet/js/ace4/ace.js"
+        url: "" + Ace.path + "/ace.js"
       }
     ];
 
     Resources.prototype.modes = [
       {
-        url: "/puzlet/js/ace4/mode-html.js"
+        url: "" + Ace.path + "/mode-html.js"
       }, {
-        url: "/puzlet/js/ace4/mode-css.js"
+        url: "" + Ace.path + "/mode-css.js"
       }, {
-        url: "/puzlet/js/ace4/mode-javascript.js"
+        url: "" + Ace.path + "/mode-javascript.js"
       }, {
-        url: "/puzlet/js/ace4/mode-coffee.js"
+        url: "" + Ace.path + "/mode-coffee.js"
       }, {
-        url: "/puzlet/js/ace4/mode-python.js"
+        url: "" + Ace.path + "/mode-python.js"
       }, {
-        url: "/puzlet/js/ace4/mode-matlab.js"
+        url: "" + Ace.path + "/mode-matlab.js"
       }, {
-        url: "/puzlet/js/ace4/mode-latex.js"
+        url: "" + Ace.path + "/mode-latex.js"
       }
     ];
 
@@ -3067,10 +3038,24 @@
       var _this = this;
       load(this.main, function() {
         return load(_this.modes, function() {
-          return load(_this.styles, loaded);
+          return load(_this.styles, function() {
+            _this.customStyles();
+            return typeof loaded === "function" ? loaded() : void 0;
+          });
         });
       });
     }
+
+    Resources.prototype.customStyles = function() {
+      var custom, head;
+      custom = $("<style>", {
+        type: "text/css",
+        id: "puzlet_ace_custom_styles",
+        html: ".ace-tm {\n	background: #f4f4f4;;\n}\n.ace-tm .ace_gutter {\n	color: #aaa;\n	background: #f8f8f8;\n}\n.ace_gutter-cell {\n	padding-left: 15px;\n	background: #eee;\n}\n.ace-tm .ace_print_margin {\n	background: #f0f0f0;\n}"
+      });
+      head = document.getElementsByTagName('head')[0];
+      return head.appendChild(custom[0]);
+    };
 
     return Resources;
 
