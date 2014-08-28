@@ -2699,7 +2699,7 @@
         e.preventDefault();
         return $(document.body).prepend("TEST");
       };
-      return this.container[0].addEventListener('touchmove', cb, false);
+      return document.body.addEventListener('touchmove', cb, false);
     };
 
     Editor.prototype.initMode = function() {
