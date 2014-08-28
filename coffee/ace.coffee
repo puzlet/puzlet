@@ -102,10 +102,10 @@ class Ace.Editor
 		@outer.append @editorContainer
 		@container.append @outer
 		
-		cb = (e) ->
+		cb = (e) =>
 			e.preventDefault()
-			alert "start"
-		document.body.addEventListener('touchmove', cb, false)
+			console.log "start"
+		@container[0].addEventListener('touchmove', cb, false)
 		
 		#$(document.body).on("swiperight", => alert("hello"))
 	

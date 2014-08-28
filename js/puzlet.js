@@ -2680,7 +2680,8 @@
     }
 
     Editor.prototype.initContainer = function() {
-      var cb;
+      var cb,
+        _this = this;
       this.container = this.spec.container;
       this.container.addClass("code_node_container");
       this.container.addClass("tex2jax_ignore");
@@ -2696,9 +2697,9 @@
       this.container.append(this.outer);
       cb = function(e) {
         e.preventDefault();
-        return alert("start");
+        return console.log("start");
       };
-      return document.body.addEventListener('touchmove', cb, false);
+      return this.container[0].addEventListener('touchmove', cb, false);
     };
 
     Editor.prototype.initMode = function() {
