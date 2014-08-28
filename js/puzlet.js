@@ -2712,10 +2712,12 @@
         };
       };
       start = function(evt) {
-        return down = pos(evt);
+        down = pos(evt);
+        return document.body.prepend("DOWN.");
       };
       move = function(evt) {
         var d, up;
+        document.body.prepend("MOVE.");
         if (!down) {
           return;
         }
@@ -2724,6 +2726,7 @@
           x: up.x - down.x,
           y: up.y - down.y
         };
+        document.body.prepend("[" + d.x + ", " + d.y + "].");
         if (Math.abs(d.x) > Math.abs(d.y) && d.x > 0) {
           if (typeof callback === "function") {
             callback();
