@@ -2680,7 +2680,8 @@
     }
 
     Editor.prototype.initContainer = function() {
-      var _this = this;
+      var cb,
+        _this = this;
       this.container = this.spec.container;
       this.container.addClass("code_node_container");
       this.container.addClass("tex2jax_ignore");
@@ -2694,6 +2695,11 @@
       });
       this.outer.append(this.editorContainer);
       this.container.append(this.outer);
+      cb = function(e) {
+        e.preventDefault();
+        return console.log("start");
+      };
+      this.container[0].addEventListener('touchmove', cb, false);
       return $(document.body).on("swiperight", function() {
         return alert("hello");
       });
@@ -3407,8 +3413,6 @@
         url: "/puzlet/js/jquery.cookie.js"
       }, {
         url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js"
-      }, {
-        url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"
       }
     ];
 

@@ -51,7 +51,7 @@ class Loader
 		{url: "/puzlet/js/compile.js"}
 		{url: "/puzlet/js/jquery.cookie.js"}
 		{url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js"}
-		{url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"}
+		# {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"}
 	]
 	# {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.css"}
 	
