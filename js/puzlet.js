@@ -2670,7 +2670,7 @@
       this.id = this.idPrefix + this.filename;
       this.initContainer();
       this.onSwipe(function() {
-        return document.body.prepend("TEST.");
+        return $(document.body).prepend("TEST.");
       });
       this.editor = ace.edit(this.id);
       this.initMode();
@@ -2705,6 +2705,7 @@
       down = null;
       pos = function(evt) {
         var t;
+        console.log(evt);
         t = evt.touches[0];
         return {
           x: t.clientX,
@@ -2713,11 +2714,11 @@
       };
       start = function(evt) {
         down = pos(evt);
-        return document.body.prepend("DOWN.");
+        return $(document.body).prepend("DOWN.");
       };
       move = function(evt) {
         var d, up;
-        document.body.prepend("MOVE.");
+        $(document.body).prepend("MOVE.");
         if (!down) {
           return;
         }
@@ -2726,7 +2727,7 @@
           x: up.x - down.x,
           y: up.y - down.y
         };
-        document.body.prepend("[" + d.x + ", " + d.y + "].");
+        $(document.body).prepend("[" + d.x + ", " + d.y + "].");
         if (Math.abs(d.x) > Math.abs(d.y) && d.x > 0) {
           if (typeof callback === "function") {
             callback();

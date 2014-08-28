@@ -70,7 +70,7 @@ class Ace.Editor
 		
 		@initContainer()
 		@onSwipe =>
-			(document.body).prepend "TEST."
+			$(document.body).prepend "TEST."
 		
 		@editor = ace.edit @id
 		
@@ -118,20 +118,24 @@ class Ace.Editor
 		# Right swipe
 		down = null
 		pos = (evt) ->
+			console.log evt
+			#t = evt
 			t = evt.touches[0]
 			{x: t.clientX, y: t.clientY}
 		start = (evt) ->
 			down = pos(evt)
-			(document.body).prepend "DOWN."
+			$(document.body).prepend "DOWN."
 		move = (evt) ->
-			(document.body).prepend "MOVE."
+			$(document.body).prepend "MOVE."
 			return unless down
 			up = pos(evt)
 			d = {x: up.x-down.x, y: up.y-down.y}
-			(document.body).prepend("[#{d.x}, #{d.y}].")
+			$(document.body).prepend("[#{d.x}, #{d.y}].")
 			callback?() if Math.abs(d.x)>Math.abs(d.y) and d.x>0
 			down = null
 		listener = (e, f) => @editorContainer[0].addEventListener(e, f, false)
+		#listener "mousedown", start
+		#listener "mousemove", move
 		listener "touchstart", start
 		listener "touchmove", move
 	
