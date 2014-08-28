@@ -102,9 +102,12 @@ class Ace.Editor
 		@outer.append @editorContainer
 		@container.append @outer
 		
+		t = null
 		cb = (e) =>
 			e.preventDefault()
-			$(document.body).prepend "TEST"
+			clearTimeout(t) if t
+			t = setTimeout (=> $(document.body).prepend "TEST"), 100
+			#$(document.body).prepend "TEST"
 		@editorContainer[0].addEventListener('touchmove', cb, false)
 		
 		#$(document.body).on("swiperight", => alert("hello"))

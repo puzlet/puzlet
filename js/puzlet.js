@@ -2680,7 +2680,7 @@
     }
 
     Editor.prototype.initContainer = function() {
-      var cb,
+      var cb, t,
         _this = this;
       this.container = this.spec.container;
       this.container.addClass("code_node_container");
@@ -2695,9 +2695,15 @@
       });
       this.outer.append(this.editorContainer);
       this.container.append(this.outer);
+      t = null;
       cb = function(e) {
         e.preventDefault();
-        return $(document.body).prepend("TEST");
+        if (t) {
+          clearTimeout(t);
+        }
+        return t = setTimeout((function() {
+          return $(document.body).prepend("TEST");
+        }), 100);
       };
       return this.editorContainer[0].addEventListener('touchmove', cb, false);
     };
