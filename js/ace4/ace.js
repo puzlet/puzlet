@@ -235,6 +235,9 @@ ace.define('ace/lib/fixoldbrowsers', ['require', 'exports', 'module' , 'ace/lib/
 require("./regexp");
 require("./es5-shim");
 
+require("ace/edit_session").EditSession.prototype.$useWorker=false
+
+
 });
  
 ace.define('ace/lib/regexp', ['require', 'exports', 'module' ], function(require, exports, module) {
