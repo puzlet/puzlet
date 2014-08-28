@@ -304,6 +304,21 @@ class Ace.Languages
 class Ace.Resources
 	
 	main: [
+		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"}
+	]
+	
+	modes: [
+		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-html.js"}
+		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-css.js"}
+		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-javascript.js"}
+		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-coffee.js"}
+		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-python.js"}
+		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-matlab.js"}
+		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-latex.js"}
+	]
+	
+	###
+	main: [
 		{url: "http://static.puzlet.com/ace4/ace.js"}
 	]
 	
@@ -316,6 +331,7 @@ class Ace.Resources
 		{url: "http://static.puzlet.com/ace4/mode-matlab.js"}
 		{url: "http://static.puzlet.com/ace4/mode-latex.js"}
 	]
+	###
 	
 	###
 	main: [

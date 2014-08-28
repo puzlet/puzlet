@@ -2998,27 +2998,44 @@
 
     Resources.prototype.main = [
       {
-        url: "http://static.puzlet.com/ace4/ace.js"
+        url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"
       }
     ];
 
     Resources.prototype.modes = [
       {
-        url: "http://static.puzlet.com/ace4/mode-html.js"
+        url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-html.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-css.js"
+        url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-css.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-javascript.js"
+        url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-javascript.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-coffee.js"
+        url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-coffee.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-python.js"
+        url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-python.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-matlab.js"
+        url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-matlab.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-latex.js"
+        url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-latex.js"
       }
     ];
+
+    /*
+    	main: [
+    		{url: "http://static.puzlet.com/ace4/ace.js"}
+    	]
+    	
+    	modes: [
+    		{url: "http://static.puzlet.com/ace4/mode-html.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-css.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-javascript.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-coffee.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-python.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-matlab.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-latex.js"}
+    	]
+    */
+
 
     /*
     	main: [
