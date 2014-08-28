@@ -2663,12 +2663,18 @@
     Editor.prototype.idPrefix = "ace_editor_";
 
     function Editor(spec) {
+      var host, useWorkers;
       this.spec = spec;
       this.filename = this.spec.filename;
       this.lang = this.spec.lang;
       this.id = this.idPrefix + this.filename;
       this.initContainer();
       this.editor = ace.edit(this.id);
+      host = window.location.hostname;
+      useWorkers = host === "localhost" || host === "puzlet.org";
+      if (!useWorkers) {
+        this.session().setUseWorker(false);
+      }
       this.initMode();
       this.initRenderer();
       this.initFont();
@@ -3011,46 +3017,45 @@
     	]
     */
 
+    /*
+    	main: [
+    		{url: "http://static.puzlet.com/ace4/ace.js"}
+    	]
+    	
+    	modes: [
+    		{url: "http://static.puzlet.com/ace4/mode-html.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-css.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-javascript.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-coffee.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-python.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-matlab.js"}
+    		{url: "http://static.puzlet.com/ace4/mode-latex.js"}
+    	]
+    */
+
     Resources.prototype.main = [
       {
-        url: "http://static.puzlet.com/ace4/ace.js"
+        url: "/puzlet/js/ace4/ace.js"
       }
     ];
 
     Resources.prototype.modes = [
       {
-        url: "http://static.puzlet.com/ace4/mode-html.js"
+        url: "/puzlet/js/ace4/mode-html.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-css.js"
+        url: "/puzlet/js/ace4/mode-css.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-javascript.js"
+        url: "/puzlet/js/ace4/mode-javascript.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-coffee.js"
+        url: "/puzlet/js/ace4/mode-coffee.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-python.js"
+        url: "/puzlet/js/ace4/mode-python.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-matlab.js"
+        url: "/puzlet/js/ace4/mode-matlab.js"
       }, {
-        url: "http://static.puzlet.com/ace4/mode-latex.js"
+        url: "/puzlet/js/ace4/mode-latex.js"
       }
     ];
-
-    /*
-    	main: [
-    		{url: "/puzlet/js/ace4/ace.js"}
-    	]
-    	
-    	modes: [
-    		{url: "/puzlet/js/ace4/mode-html.js"}
-    		{url: "/puzlet/js/ace4/mode-css.js"}
-    		{url: "/puzlet/js/ace4/mode-javascript.js"}
-    		{url: "/puzlet/js/ace4/mode-coffee.js"}
-    		{url: "/puzlet/js/ace4/mode-python.js"}
-    		{url: "/puzlet/js/ace4/mode-matlab.js"}
-    		{url: "/puzlet/js/ace4/mode-latex.js"}
-    	]
-    */
-
 
     Resources.prototype.styles = [
       {

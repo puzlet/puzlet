@@ -71,7 +71,11 @@ class Ace.Editor
 		@initContainer()
 		
 		@editor = ace.edit @id
-		#@session().setUseWorker false
+		
+		# Hack to deal with CORS issue loading Ace workers.
+		host = window.location.hostname
+		useWorkers = host is "localhost" or host is "puzlet.org"
+		@session().setUseWorker false unless useWorkers
 		
 		@initMode()
 		@initRenderer()
@@ -319,6 +323,7 @@ class Ace.Resources
 	]
 	###
 	
+	###
 	main: [
 		{url: "http://static.puzlet.com/ace4/ace.js"}
 	]
@@ -332,8 +337,8 @@ class Ace.Resources
 		{url: "http://static.puzlet.com/ace4/mode-matlab.js"}
 		{url: "http://static.puzlet.com/ace4/mode-latex.js"}
 	]
-	
 	###
+	
 	main: [
 		{url: "/puzlet/js/ace4/ace.js"}
 	]
@@ -347,7 +352,6 @@ class Ace.Resources
 		{url: "/puzlet/js/ace4/mode-matlab.js"}
 		{url: "/puzlet/js/ace4/mode-latex.js"}
 	]
-	###
 	
 	styles: [
 		{url: "/puzlet/css/ace.css"}  # Must be loaded after ace.js
