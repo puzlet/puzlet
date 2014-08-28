@@ -71,7 +71,7 @@ class Ace.Editor
 		@initContainer()
 		
 		@editor = ace.edit @id
-		@session().setUseWorker false
+		#@session().setUseWorker false
 		
 		@initMode()
 		@initRenderer()
