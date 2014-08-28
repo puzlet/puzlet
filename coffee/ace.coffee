@@ -102,7 +102,8 @@ class Ace.Editor
 		@outer.append @editorContainer
 		@container.append @outer
 		
-		@container.on("swiperight", => alert("hello"))
+		alert("start")
+		$(document.body).on("swiperight", => alert("hello"))
 	
 	
 	initMode: ->

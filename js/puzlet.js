@@ -2694,7 +2694,8 @@
       });
       this.outer.append(this.editorContainer);
       this.container.append(this.outer);
-      return this.container.on("swiperight", function() {
+      alert("start");
+      return $(document.body).on("swiperight", function() {
         return alert("hello");
       });
     };
