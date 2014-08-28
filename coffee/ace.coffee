@@ -69,8 +69,6 @@ class Ace.Editor
 		@id = @idPrefix + @filename
 		
 		@initContainer()
-		@onSwipe => @spec.update(@code())
-			#$(document.body).prepend "TEST."
 		
 		@editor = ace.edit @id
 		
@@ -88,6 +86,7 @@ class Ace.Editor
 		
 		@initChangeListeners()
 		@keyboardShortcuts()
+		@onSwipe => @spec.update(@code())
 		
 		new Ace.CustomRenderer this
 	
@@ -103,39 +102,21 @@ class Ace.Editor
 			"data-lang": "#{@lang}"
 		@outer.append @editorContainer
 		@container.append @outer
-		
-		#t = null
-		#cb = (e) =>
-			#e.preventDefault()
-		#	clearTimeout(t) if t
-		#	t = setTimeout (=> $(document.body).prepend "TEST"), 100
-			#$(document.body).prepend "TEST"
-		#@editorContainer[0].addEventListener('touchmove', cb, false)
-		
-		#$(document.body).on("swiperight", => alert("hello"))
 	
 	onSwipe: (callback) ->
 		# Right swipe
 		down = null
 		pos = (evt) ->
-			#console.log evt
-			#t = evt
 			t = evt.touches[0]
 			{x: t.clientX, y: t.clientY}
-		start = (evt) ->
-			down = pos(evt)
-			#$(document.body).prepend "DOWN."
+		start = (evt) -> down = pos(evt)
 		move = (evt) ->
-			#$(document.body).prepend "MOVE."
 			return unless down
 			up = pos(evt)
 			d = {x: up.x-down.x, y: up.y-down.y}
-			#$(document.body).prepend("[#{d.x}, #{d.y}].")
 			callback?() if Math.abs(d.x)>Math.abs(d.y) and d.x>0
 			down = null
 		listener = (e, f) => @editorContainer[0].addEventListener(e, f, false)
-		#listener "mousedown", start
-		#listener "mousemove", move
 		listener "touchstart", start
 		listener "touchmove", move
 	

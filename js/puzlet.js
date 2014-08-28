@@ -2669,9 +2669,6 @@
       this.lang = this.spec.lang;
       this.id = this.idPrefix + this.filename;
       this.initContainer();
-      this.onSwipe(function() {
-        return _this.spec.update(_this.code());
-      });
       this.editor = ace.edit(this.id);
       this.initMode();
       this.initRenderer();
@@ -2680,6 +2677,9 @@
       this.setEditable();
       this.initChangeListeners();
       this.keyboardShortcuts();
+      this.onSwipe(function() {
+        return _this.spec.update(_this.code());
+      });
       new Ace.CustomRenderer(this);
     }
 
