@@ -235,8 +235,7 @@ ace.define('ace/lib/fixoldbrowsers', ['require', 'exports', 'module' , 'ace/lib/
 require("./regexp");
 require("./es5-shim");
 
-require("ace/edit_session").EditSession.prototype.$useWorker=false
-
+//require("ace/edit_session").EditSession.prototype.$useWorker=false  // MVC 28/8/14
 
 });
  
