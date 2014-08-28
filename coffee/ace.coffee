@@ -304,9 +304,9 @@ class Ace.Languages
 		return name for name, language of Ace.Languages.list when language.ext is ext
 	
 
-Ace.path = "http://static.puzlet.com/ace5"
+Ace.path = "/puzlet/js/ace5"  # ace5
+#Ace.path = "http://static.puzlet.com/ace5"
 #Ace.path = "http://static.puzlet.com/ace4"
-#Ace.path = "/puzlet/js/ace4"  # ace5
 # Ace.path = "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3"
 
 class Ace.Resources

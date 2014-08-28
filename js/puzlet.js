@@ -2994,7 +2994,7 @@
 
   })();
 
-  Ace.path = "http://static.puzlet.com/ace5";
+  Ace.path = "/puzlet/js/ace5";
 
   Ace.Resources = (function() {
 
