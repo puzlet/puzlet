@@ -2994,7 +2994,7 @@
 
   })();
 
-  Ace.path = "/puzlet/js/ace5";
+  Ace.path = "http://ajaxorg.github.io/ace-builds/src-min-noconflict";
 
   Ace.Resources = (function() {
 
