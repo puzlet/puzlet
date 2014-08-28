@@ -221,6 +221,16 @@ a.menu:hover {
   line-height: normal;
 }
 
+/*
+.ui-tooltip {
+	background: #ccff99;
+	font-size: 20pt;
+	max-width: 400px;
+	line-height: 150%;
+	border-radius: 10px;
+}
+*/
+
 .ui-menu {
   width: 100px;
 }
@@ -798,13 +808,5 @@ a.menu:hover {
 	margin-bottom: 10px;
 	padding: 5px 10px 5px 20px;
 	border: 1px #555 solid;
-}
-
-.ui-tooltip {
-	background: #ccff99;
-	font-size: 20pt;
-	max-width: 400px;
-	line-height: 150%;
-	border-radius: 10px;
 }
 

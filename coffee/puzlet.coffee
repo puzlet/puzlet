@@ -8,6 +8,8 @@
 # coffee compile: do external first; then blabs.
 # superclass method: add tag to head?
 
+window.$pz = {}
+
 class Loader
 	
 	#--- Example resources.json ---
@@ -30,6 +32,7 @@ class Loader
 	
 	coreResources: [
 		{url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
+		{url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css"}
 		{url: "/puzlet/js/wiky.js", var: "Wiky"}
 		
 	]
@@ -47,7 +50,6 @@ class Loader
 		{url: "/puzlet/js/jquery.flot.min.js"}
 		{url: "/puzlet/js/compile.js"}
 		{url: "/puzlet/js/jquery.cookie.js"}
-		{url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css"}
 		{url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js"}
 	]
 	
@@ -140,9 +142,12 @@ class Page
 		@mainContainer() unless @container?
 		@container.append Wiky.toHtml(wikyHtml)
 		@pageTitle wikyHtml  # ZZZ should work only for first wikyHtml
+		#$(document).tooltip(css: {fontSize: "10pt"})
 		
 	ready: (@resources, @gistId) ->
 		new MathJaxProcessor  # ZZZ should be after all html rendered?
+		new Notes
+		$(document).tooltip(css: {fontSize: "10pt"})
 		new FavIcon
 		new GithubRibbon @container, @blab, @gistId
 		new SaveButton @container, -> $.event.trigger "saveGitHub"
@@ -241,8 +246,82 @@ class MathJaxProcessor
 		queue configElements
 
 
+#---------- Mouseovers ----------#
+
+class Notes
+	
+	constructor: ->
+		@processText((t) => @init t)
+		$(document).on "mathjaxPreConfig", =>
+			#MathJax.Hub.signal.Interest (message) ->
+			#	console.log "Hub", message
+			MathJax.Hub.Register.StartupHook "MathMenu Ready", =>
+				@processText((t) => @set t)
+			MathJax.Hub.Register.MessageHook "End Process", =>
+				@processText((t) => @set t)
+		$(document).on "htmlOutputUpdated", => @processText((t) => @init t)
+		
+	processText: (method) -> method($ txt) for txt in $ ".pz_text"
+	
+	init: (t) ->
+		if t.attr("title")?
+			t.removeAttr "title"
+			t.tooltip()
+			t.tooltip "destroy"
+		$pz.persistentTooltip t
+		t.attr title: @html(t)
+		
+	set: (t) ->
+		$pz.persistentTooltip t if not t.data("tooltipset")
+		t.tooltip "option", "content", @html(t)
+		
+	html: (t) ->
+		ref = t.attr "ref"
+		$("##{ref}").html()
+
+
+$pz.persistentTooltip = (widget) ->
+	
+	delay = 100
+	tId = null
+	
+	clear = -> if tId then clearTimeout tId
+	
+	set = ->
+		clear()
+		tId = setTimeout (-> widget.tooltip "close"), delay
+		
+	widget.tooltip()  # This is necessary to initialize tooltip for timeout.
+	
+	widget.on "tooltipopen", (event, ui) ->
+		setClose = ->
+			tipId = widget.attr "aria-describedBy"
+			tip = $ "#"+tipId
+			tip.on "click", (-> widget.tooltip "close")
+		setTimeout setClose, 100
+	
+	#clickAction = 
+	#setClick = ->
+	#	widget.click(-> 
+	#		widget.tooltip "close"
+			#widget.unbind()
+	#	)
+	#setTimeout setClick, 100
+	
+	widget.mouseenter ((evt) -> clear())
+	
+	widget.mouseleave ((evt) ->
+		evt.stopImmediatePropagation()
+		#return  # ZZZ DEBUG
+		set()
+		tipId = widget.attr "aria-describedBy"
+		tip = $ "#"+tipId                # Alt (broad): $ ".ui-tooltip-content" 
+		tip.on "mouseenter", (-> clear())
+		tip.on "mouseleave", (-> set())
+	)
+
+
 publicInterface = ->
-	window.$pz = {}
 	window.$blab = {}  # Exported interface.
 	window.console = {} unless window.console?
 	window.console.log = (->) unless window.console.log?
