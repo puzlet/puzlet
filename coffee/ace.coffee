@@ -104,7 +104,7 @@ class Ace.Editor
 		
 		cb = (e) =>
 			e.preventDefault()
-			console.log "start"
+			$(document.body).prepend "TEST"
 		@container[0].addEventListener('touchmove', cb, false)
 		
 		#$(document.body).on("swiperight", => alert("hello"))

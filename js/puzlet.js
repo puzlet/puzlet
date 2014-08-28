@@ -2697,7 +2697,7 @@
       this.container.append(this.outer);
       cb = function(e) {
         e.preventDefault();
-        return console.log("start");
+        return $(document.body).prepend("TEST");
       };
       return this.container[0].addEventListener('touchmove', cb, false);
     };
