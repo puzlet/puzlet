@@ -73,9 +73,9 @@ class Ace.Editor
 		@editor = ace.edit @id
 		
 		# Hack to deal with CORS issue loading Ace workers.
-		host = window.location.hostname
-		useWorkers = host is "localhost" or host is "puzlet.org"
-		@session().setUseWorker false unless useWorkers
+		#host = window.location.hostname
+		#useWorkers = host is "localhost" or host is "puzlet.org"
+		#@session().setUseWorker false unless useWorkers
 		
 		@initMode()
 		@initRenderer()

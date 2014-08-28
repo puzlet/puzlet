@@ -2663,18 +2663,12 @@
     Editor.prototype.idPrefix = "ace_editor_";
 
     function Editor(spec) {
-      var host, useWorkers;
       this.spec = spec;
       this.filename = this.spec.filename;
       this.lang = this.spec.lang;
       this.id = this.idPrefix + this.filename;
       this.initContainer();
       this.editor = ace.edit(this.id);
-      host = window.location.hostname;
-      useWorkers = host === "localhost" || host === "puzlet.org";
-      if (!useWorkers) {
-        this.session().setUseWorker(false);
-      }
       this.initMode();
       this.initRenderer();
       this.initFont();
