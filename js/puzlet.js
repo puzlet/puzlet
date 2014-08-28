@@ -2680,8 +2680,7 @@
     }
 
     Editor.prototype.initContainer = function() {
-      var cb,
-        _this = this;
+      var cb;
       this.container = this.spec.container;
       this.container.addClass("code_node_container");
       this.container.addClass("tex2jax_ignore");
@@ -2697,12 +2696,9 @@
       this.container.append(this.outer);
       cb = function(e) {
         e.preventDefault();
-        return console.log("start");
+        return alert("start");
       };
-      this.container[0].addEventListener('touchmove', cb, false);
-      return $(document.body).on("swiperight", function() {
-        return alert("hello");
-      });
+      return document.body.addEventListener('touchmove', cb, false);
     };
 
     Editor.prototype.initMode = function() {
