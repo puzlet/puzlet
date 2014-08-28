@@ -2669,6 +2669,7 @@
       this.id = this.idPrefix + this.filename;
       this.initContainer();
       this.editor = ace.edit(this.id);
+      this.session().setUseWorker(false);
       this.initMode();
       this.initRenderer();
       this.initFont();
