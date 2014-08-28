@@ -2998,27 +2998,44 @@
 
     Resources.prototype.main = [
       {
-        url: "/puzlet/js/ace4/ace.js"
+        url: "http://static.puzlet.com/ace4/ace.js"
       }
     ];
 
     Resources.prototype.modes = [
       {
-        url: "/puzlet/js/ace4/mode-html.js"
+        url: "http://static.puzlet.com/ace4/mode-html.js"
       }, {
-        url: "/puzlet/js/ace4/mode-css.js"
+        url: "http://static.puzlet.com/ace4/mode-css.js"
       }, {
-        url: "/puzlet/js/ace4/mode-javascript.js"
+        url: "http://static.puzlet.com/ace4/mode-javascript.js"
       }, {
-        url: "/puzlet/js/ace4/mode-coffee.js"
+        url: "http://static.puzlet.com/ace4/mode-coffee.js"
       }, {
-        url: "/puzlet/js/ace4/mode-python.js"
+        url: "http://static.puzlet.com/ace4/mode-python.js"
       }, {
-        url: "/puzlet/js/ace4/mode-matlab.js"
+        url: "http://static.puzlet.com/ace4/mode-matlab.js"
       }, {
-        url: "/puzlet/js/ace4/mode-latex.js"
+        url: "http://static.puzlet.com/ace4/mode-latex.js"
       }
     ];
+
+    /*
+    	main: [
+    		{url: "/puzlet/js/ace4/ace.js"}
+    	]
+    	
+    	modes: [
+    		{url: "/puzlet/js/ace4/mode-html.js"}
+    		{url: "/puzlet/js/ace4/mode-css.js"}
+    		{url: "/puzlet/js/ace4/mode-javascript.js"}
+    		{url: "/puzlet/js/ace4/mode-coffee.js"}
+    		{url: "/puzlet/js/ace4/mode-python.js"}
+    		{url: "/puzlet/js/ace4/mode-matlab.js"}
+    		{url: "/puzlet/js/ace4/mode-latex.js"}
+    	]
+    */
+
 
     Resources.prototype.styles = [
       {
