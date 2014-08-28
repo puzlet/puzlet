@@ -125,11 +125,11 @@ class Ace.Editor
 			return unless down
 			up = pos(evt)
 			d = {x: up.x-down.x, y: up.y-down.y}
-			callback?() if Math.abs(d.x) > Math.abs(d.y) and d.x>0
+			callback?() if Math.abs(d.x)>Math.abs(d.y) and d.x>0
 			down = null
-		
-		@editorContainer[0].addEventListener('touchstart', start, false)        
-		@editorContainer[0].addEventListener('touchmove', move, false)
+		listener = (e, f) => @editorContainer[0].addEventListener(e, f, false)
+		listener "touchstart", start
+		listener "touchmove", move
 	
 	initMode: ->
 		@editor.setTheme "ace/theme/textmate"

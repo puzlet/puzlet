@@ -2700,7 +2700,8 @@
     };
 
     Editor.prototype.onSwipe = function(callback) {
-      var down, move, pos, start;
+      var down, listener, move, pos, start,
+        _this = this;
       down = null;
       pos = function(evt) {
         var t;
@@ -2730,8 +2731,11 @@
         }
         return down = null;
       };
-      this.editorContainer[0].addEventListener('touchstart', start, false);
-      return this.editorContainer[0].addEventListener('touchmove', move, false);
+      listener = function(e, f) {
+        return _this.editorContainer[0].addEventListener(e, f, false);
+      };
+      listener("touchstart", start);
+      return listener("touchmove", move);
     };
 
     Editor.prototype.initMode = function() {
