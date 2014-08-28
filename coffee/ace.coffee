@@ -101,6 +101,8 @@ class Ace.Editor
 			"data-lang": "#{@lang}"
 		@outer.append @editorContainer
 		@container.append @outer
+		
+		@container.on("swiperight", => alert("hello"))
 	
 	
 	initMode: ->

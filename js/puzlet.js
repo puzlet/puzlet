@@ -2680,6 +2680,7 @@
     }
 
     Editor.prototype.initContainer = function() {
+      var _this = this;
       this.container = this.spec.container;
       this.container.addClass("code_node_container");
       this.container.addClass("tex2jax_ignore");
@@ -2692,7 +2693,10 @@
         "data-lang": "" + this.lang
       });
       this.outer.append(this.editorContainer);
-      return this.container.append(this.outer);
+      this.container.append(this.outer);
+      return this.container.on("swiperight", function() {
+        return alert("hello");
+      });
     };
 
     Editor.prototype.initMode = function() {
