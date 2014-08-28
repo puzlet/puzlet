@@ -303,6 +303,7 @@ class Ace.Languages
 
 class Ace.Resources
 	
+	###
 	main: [
 		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js"}
 	]
@@ -316,8 +317,8 @@ class Ace.Resources
 		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-matlab.js"}
 		{url: "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/mode-latex.js"}
 	]
-	
 	###
+	
 	main: [
 		{url: "http://static.puzlet.com/ace4/ace.js"}
 	]
@@ -331,7 +332,6 @@ class Ace.Resources
 		{url: "http://static.puzlet.com/ace4/mode-matlab.js"}
 		{url: "http://static.puzlet.com/ace4/mode-latex.js"}
 	]
-	###
 	
 	###
 	main: [
