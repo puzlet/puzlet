@@ -3554,11 +3554,6 @@
       this.gistId = gistId;
       new MathJaxProcessor;
       new Notes;
-      $(document).tooltip({
-        css: {
-          fontSize: "10pt"
-        }
-      });
       new FavIcon;
       new GithubRibbon(this.container, this.blab, this.gistId);
       return new SaveButton(this.container, function() {
@@ -3567,14 +3562,20 @@
     };
 
     Page.prototype.rerender = function() {
-      var html, _i, _len, _ref;
+      var html, resource, _i, _j, _len, _len1, _ref, _ref1;
       this.empty();
       _ref = this.resources.select("html");
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         html = _ref[_i];
         this.render(html.content);
       }
-      return $(document).trigger("htmlOutputUpdated");
+      this.resources.render();
+      _ref1 = this.resources.select("coffee");
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        resource = _ref1[_j];
+        resource.compile();
+      }
+      return $.event.trigger("htmlOutputUpdated");
     };
 
     Page.prototype.pageTitle = function(wikyHtml) {
@@ -3726,6 +3727,11 @@
         return _this.processText(function(t) {
           return _this.init(t);
         });
+      });
+      $(document).tooltip({
+        css: {
+          fontSize: "10pt"
+        }
       });
     }
 

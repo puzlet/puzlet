@@ -142,12 +142,10 @@ class Page
 		@mainContainer() unless @container?
 		@container.append Wiky.toHtml(wikyHtml)
 		@pageTitle wikyHtml  # ZZZ should work only for first wikyHtml
-		#$(document).tooltip(css: {fontSize: "10pt"})
 		
 	ready: (@resources, @gistId) ->
 		new MathJaxProcessor  # ZZZ should be after all html rendered?
 		new Notes
-		$(document).tooltip(css: {fontSize: "10pt"})
 		new FavIcon
 		new GithubRibbon @container, @blab, @gistId
 		new SaveButton @container, -> $.event.trigger "saveGitHub"
@@ -155,8 +153,10 @@ class Page
 	rerender: ->
 		@empty()
 		@render html.content for html in @resources.select("html")
-#		new Ace.Editors (url) => @resources.find url  # ZZZ bug?
-		$(document).trigger "htmlOutputUpdated"
+		# Note that page title not changed.
+		@resources.render()  # Render Ace editors
+		resource.compile() for resource in @resources.select "coffee"  # Compile and run all CoffeeScript
+		$.event.trigger "htmlOutputUpdated"
 	
 	pageTitle: (wikyHtml) ->
 		matches = wikyHtml.match /[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/
@@ -260,6 +260,7 @@ class Notes
 			MathJax.Hub.Register.MessageHook "End Process", =>
 				@processText((t) => @set t)
 		$(document).on "htmlOutputUpdated", => @processText((t) => @init t)
+		$(document).tooltip(css: {fontSize: "10pt"})  # ZZZ Use .css instead
 		
 	processText: (method) -> method($ txt) for txt in $ ".pz_text"
 	
