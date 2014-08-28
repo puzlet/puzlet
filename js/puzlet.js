@@ -2663,11 +2663,15 @@
     Editor.prototype.idPrefix = "ace_editor_";
 
     function Editor(spec) {
+      var _this = this;
       this.spec = spec;
       this.filename = this.spec.filename;
       this.lang = this.spec.lang;
       this.id = this.idPrefix + this.filename;
       this.initContainer();
+      this.onSwipe(function() {
+        return document.body.prepend("TEST.");
+      });
       this.editor = ace.edit(this.id);
       this.initMode();
       this.initRenderer();
@@ -2680,8 +2684,6 @@
     }
 
     Editor.prototype.initContainer = function() {
-      var cb, t,
-        _this = this;
       this.container = this.spec.container;
       this.container.addClass("code_node_container");
       this.container.addClass("tex2jax_ignore");
@@ -2694,18 +2696,42 @@
         "data-lang": "" + this.lang
       });
       this.outer.append(this.editorContainer);
-      this.container.append(this.outer);
-      t = null;
-      cb = function(e) {
-        e.preventDefault();
-        if (t) {
-          clearTimeout(t);
-        }
-        return t = setTimeout((function() {
-          return $(document.body).prepend("TEST");
-        }), 100);
+      return this.container.append(this.outer);
+    };
+
+    Editor.prototype.onSwipe = function(callback) {
+      var down, move, pos, start;
+      down = null;
+      pos = function(evt) {
+        var t;
+        t = evt.touches[0];
+        return {
+          x: t.clientX,
+          y: t.clientY
+        };
       };
-      return this.editorContainer[0].addEventListener('touchmove', cb, false);
+      start = function(evt) {
+        return down = pos(evt);
+      };
+      move = function(evt) {
+        var d, up;
+        if (!down) {
+          return;
+        }
+        up = pos(evt);
+        d = {
+          x: up.x - down.x,
+          y: up.y - down.y
+        };
+        if (Math.abs(d.x) > Math.abs(d.y) && d.x > 0) {
+          if (typeof callback === "function") {
+            callback();
+          }
+        }
+        return down = null;
+      };
+      this.editorContainer[0].addEventListener('touchstart', start, false);
+      return this.editorContainer[0].addEventListener('touchmove', move, false);
     };
 
     Editor.prototype.initMode = function() {

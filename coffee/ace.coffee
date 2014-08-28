@@ -69,6 +69,8 @@ class Ace.Editor
 		@id = @idPrefix + @filename
 		
 		@initContainer()
+		@onSwipe =>
+			(document.body).prepend "TEST."
 		
 		@editor = ace.edit @id
 		
@@ -102,16 +104,32 @@ class Ace.Editor
 		@outer.append @editorContainer
 		@container.append @outer
 		
-		t = null
-		cb = (e) =>
-			e.preventDefault()
-			clearTimeout(t) if t
-			t = setTimeout (=> $(document.body).prepend "TEST"), 100
+		#t = null
+		#cb = (e) =>
+			#e.preventDefault()
+		#	clearTimeout(t) if t
+		#	t = setTimeout (=> $(document.body).prepend "TEST"), 100
 			#$(document.body).prepend "TEST"
-		@editorContainer[0].addEventListener('touchmove', cb, false)
+		#@editorContainer[0].addEventListener('touchmove', cb, false)
 		
 		#$(document.body).on("swiperight", => alert("hello"))
 	
+	onSwipe: (callback) ->
+		# Right swipe
+		down = null
+		pos = (evt) ->
+			t = evt.touches[0]
+			{x: t.clientX, y: t.clientY}
+		start = (evt) -> down = pos(evt)
+		move = (evt) ->
+			return unless down
+			up = pos(evt)
+			d = {x: up.x-down.x, y: up.y-down.y}
+			callback?() if Math.abs(d.x) > Math.abs(d.y) and d.x>0
+			down = null
+		
+		@editorContainer[0].addEventListener('touchstart', start, false)        
+		@editorContainer[0].addEventListener('touchmove', move, false)
 	
 	initMode: ->
 		@editor.setTheme "ace/theme/textmate"
