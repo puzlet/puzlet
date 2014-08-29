@@ -16,12 +16,41 @@ class Resource
 			@content = @spec.gistSource
 			@postLoad callback
 			return
+		return if @loadForeign callback
 		success = (data) =>
 			@content = data
 			@postLoad callback
 		t = Date.now()
 		$.get(@url+"?t=#{t}", success, type)
-			
+		
+	loadForeign: (callback) ->
+		
+		$a = $ "<a>", href: @url
+		a = $a[0]
+		host = a.hostname
+		thisHost = window.location.hostname
+		return false if host is thisHost  # Same origin - not a foreign file
+		hostParts = host.split "."
+		isPuzlet = host is "puzlet.org"
+		isGitHub = hostParts.length is 3 and hostParts[1] is "github" and hostParts[2] is "io"
+		return false unless isPuzlet or isGitHub
+		# Later, how to support custom domain for github io?
+		
+		# Only for puzlet.org or owner.github.io
+		owner = if isPuzlet then "puzlet" else hostParts[0]
+		path = a.pathname
+		pathParts = path.split "/"
+		repo = pathParts[1]
+		file = pathParts[2]
+		
+		success = (data) =>
+			@content = atob(data.content)
+			@postLoad callback
+		apiUrl = "https://api.github.com/repos/#{owner}/#{repo}/contents/#{file}"
+		t = Date.now()
+		$.get(apiUrl+"?t=#{t}", success, "json")
+		true
+		
 	postLoad: (callback) ->
 		@loaded = true
 		callback?()

@@ -1204,12 +1204,48 @@
         this.postLoad(callback);
         return;
       }
+      if (this.loadForeign(callback)) {
+        return;
+      }
       success = function(data) {
         _this.content = data;
         return _this.postLoad(callback);
       };
       t = Date.now();
       return $.get(this.url + ("?t=" + t), success, type);
+    };
+
+    Resource.prototype.loadForeign = function(callback) {
+      var $a, a, apiUrl, file, host, hostParts, isGitHub, isPuzlet, owner, path, pathParts, repo, success, t, thisHost,
+        _this = this;
+      $a = $("<a>", {
+        href: this.url
+      });
+      a = $a[0];
+      host = a.hostname;
+      thisHost = window.location.hostname;
+      if (host === thisHost) {
+        return false;
+      }
+      hostParts = host.split(".");
+      isPuzlet = host === "puzlet.org";
+      isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";
+      if (!(isPuzlet || isGitHub)) {
+        return false;
+      }
+      owner = isPuzlet ? "puzlet" : hostParts[0];
+      path = a.pathname;
+      pathParts = path.split("/");
+      repo = pathParts[1];
+      file = pathParts[2];
+      success = function(data) {
+        _this.content = atob(data.content);
+        return _this.postLoad(callback);
+      };
+      apiUrl = "https://api.github.com/repos/" + owner + "/" + repo + "/contents/" + file;
+      t = Date.now();
+      $.get(apiUrl + ("?t=" + t), success, "json");
+      return true;
     };
 
     Resource.prototype.postLoad = function(callback) {
