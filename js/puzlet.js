@@ -1183,8 +1183,9 @@
   ResourceLocation = (function() {
 
     function ResourceLocation(url) {
-      var hostParts, pathParts;
-      this.url = url != null ? url : window.location;
+      var hasPath, hostParts, match;
+      this.url = url != null ? url : window.location.href;
+      console.log("URL", this.url);
       this.a = document.createElement("a");
       this.a.href = this.url;
       this.host = this.a.hostname;
@@ -1194,15 +1195,19 @@
       hostParts = this.host.split(".");
       this.isPuzlet = this.host === "puzlet.org";
       this.isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";
-      this.owner = this.isPuzlet ? "puzlet" : hostParts[0];
-      pathParts = this.path ? this.path.split("/") : [];
-      this.repo = pathParts.length > 0 ? pathParts[1] : null;
-      this.file = pathParts.length === 2 ? pathParts[2] : null;
-      this.fileExt = this.file ? (this.path.match(/\.[0-9a-z]+$/i))[0].slice(1) : null;
+      this.owner = this.isPuzlet ? "puzlet" : this.isGitHub ? hostParts[0] : null;
+      this.pathParts = this.path ? this.path.split("/") : [];
+      hasPath = this.pathParts.length;
+      this.repo = this.owner && hasPath ? this.pathParts[1] : null;
+      match = hasPath ? this.path.match(/\.[0-9a-z]+$/i) : null;
+      this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
+      this.file = this.fileExt ? this.pathParts.slice(-1)[0] : null;
       if (this.gistId) {
         this.source = "https://gist.github.com/" + this.gistId;
-      } else {
+      } else if (this.owner && this.repo) {
         this.source = "https://github.com/" + this.owner + "/" + this.repo;
+      } else {
+        this.source = this.url;
       }
     }
 
@@ -1228,6 +1233,8 @@
       this.spec = spec;
       this.url = this.spec.url;
       this["var"] = this.spec["var"];
+      this.location = new ResourceLocation(this.url);
+      console.log(this.location);
       this.fileExt = (_ref = this.spec.fileExt) != null ? _ref : Resource.getFileExt(this.url);
       this.loaded = false;
       this.head = document.head;

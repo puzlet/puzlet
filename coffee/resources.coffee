@@ -2,12 +2,12 @@ class ResourceLocation
 	
 	# This does not use jQuery. It can be used for before JQuery loaded.
 	
-	# Option: @url = window.location
-	
 	# ZZZ Handle localhost
 	# ZZZ Later, how to support custom domain for github io?
 	
-	constructor: (@url=window.location) ->
+	constructor: (@url=window.location.href) ->
+		
+		console.log "URL", @url
 		
 		# ZZZ dup code - see load foreign
 		@a = document.createElement "a"
@@ -23,20 +23,28 @@ class ResourceLocation
 		hostParts = @host.split "."
 		@isPuzlet = @host is "puzlet.org"  # Special case
 		@isGitHub = hostParts.length is 3 and hostParts[1] is "github" and hostParts[2] is "io"
-		@owner = if @isPuzlet then "puzlet" else hostParts[0]  # Only for puzlet.org or owner.github.io
+		@owner = if @isPuzlet then "puzlet" else if @isGitHub then hostParts[0] else null
+#		@owner = if @isPuzlet then "puzlet" else hostParts[0]  # Only for puzlet.org or owner.github.io
 		
 		# Repo and file
-		pathParts = if @path then @path.split "/" else []
-		@repo = if pathParts.length>0 then pathParts[1] else null
-		@file = if pathParts.length is 2 then pathParts[2] else null
-		@fileExt = if @file then (@path.match /\.[0-9a-z]+$/i)[0].slice(1) else null  # ZZZ dup code - match @file?
+		@pathParts = if @path then @path.split "/" else []
+		hasPath = @pathParts.length
+		@repo = if @owner and hasPath then @pathParts[1] else null
+		# ZZZ also need "subfolder" path
+		# ZZZ more robust way?
+		match = if hasPath then @path.match /\.[0-9a-z]+$/i else null  # ZZZ dup code
+		@fileExt = if match?.length then match[0].slice(1) else null
+		@file = if @fileExt then @pathParts[-1..][0] else null
 		
 		if @gistId
 			# Gist
 			@source = "https://gist.github.com/#{@gistId}"
-		else
+		else if @owner and @repo
 			# GitHub repo (or puzlet.org).
 			@source = "https://github.com/#{@owner}/#{@repo}"
+		else
+			# Regular URL - assume source at same location
+			@source = @url
 			
 		# ZZZ also handle github api path here?
 		
@@ -57,6 +65,8 @@ class Resource
 		# ZZZ option to pass string for url
 		@url = @spec.url
 		@var = @spec.var  # window variable name  # ZZZ needed here?
+		@location = new ResourceLocation @url
+		console.log @location
 		@fileExt = @spec.fileExt ? Resource.getFileExt @url
 		@loaded = false
 		@head = document.head
