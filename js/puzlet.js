@@ -1244,7 +1244,7 @@
       };
       apiUrl = "https://api.github.com/repos/" + owner + "/" + repo + "/contents/" + file;
       t = Date.now();
-      $.get(apiUrl + ("?t=" + t), success, "json");
+      $.get(apiUrl, success, "json");
       return true;
     };
 
