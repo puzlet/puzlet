@@ -1202,7 +1202,7 @@
       if (this.gistId) {
         this.source = "https://gist.github.com/" + this.gistId;
       } else {
-        this.source = "https://github.com/" + owner + "/" + this.repo;
+        this.source = "https://github.com/" + this.owner + "/" + this.repo;
       }
     }
 

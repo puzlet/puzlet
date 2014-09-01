@@ -36,7 +36,7 @@ class ResourceLocation
 			@source = "https://gist.github.com/#{@gistId}"
 		else
 			# GitHub repo (or puzlet.org).
-			@source = "https://github.com/#{owner}/#{@repo}"
+			@source = "https://github.com/#{@owner}/#{@repo}"
 			
 		# ZZZ also handle github api path here?
 		
