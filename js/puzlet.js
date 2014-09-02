@@ -3541,6 +3541,7 @@
       this.render = render;
       this.done = done;
       this.resources = new Resources(this.blabLocation);
+      $blab.resources = this.resources;
       this.loadCoreResources(function() {
         return _this.loadGitHub(function() {
           return _this.loadResourceList(function() {

@@ -289,7 +289,6 @@ class CoffeeResource extends Resource
 
 class JsonResource extends Resource
 
-
 class Resources
 	
 	# The resource type if based on:
