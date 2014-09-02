@@ -1689,8 +1689,8 @@
         }
       }
       puzletResource = (_ref = url.match("^/puzlet")) != null ? _ref.length : void 0;
-      if (puzletResource && this.puzlet) {
-        url = this.puzlet + url;
+      if (puzletResource) {
+        url = this.puzlet ? this.puzlet + url : "/puzlet" + url;
       }
       spec = {
         url: url,

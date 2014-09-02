@@ -315,7 +315,8 @@ class Resources
 				url = v
 				fileExt = p
 		puzletResource = url.match("^/puzlet")?.length
-		url = @puzlet+url if puzletResource and @puzlet
+		if puzletResource
+			url = if @puzlet then @puzlet+url else "/puzlet"+url
 		spec = {url: url, fileExt: fileExt}
 		location = if url.indexOf("/") is -1 then "blab" else "ext"  # ZZZ should be part of ResourceLocation
 		spec.location = location  # Needed for coffee compiling
