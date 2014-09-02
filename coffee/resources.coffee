@@ -22,17 +22,36 @@ class ResourceLocation
 		@pathParts = if @path then @path.split "/" else []
 		hasPath = @pathParts.length
 		
-		# Owner/organization
+		# Resource host type
 		@isLocalHost = @host is "localhost"
 		@isPuzlet = @host is "puzlet.org"
 		@isGitHub = hostParts.length is 3 and hostParts[1] is "github" and hostParts[2] is "io"
-		@owner = if @isLocalHost then @pathParts[1] else if @isPuzlet then "puzlet" else if @isGitHub then hostParts[0] else null
+		# Example: https://api.github.com/repos/OWNER/REPO/contents/FILE.EXT
+		@isGitHubApi = @host is "api.github.com" and @pathParts.length is 6 and @pathParts[1] is "repos" and @pathParts[4] is "contents"
+			
+		# Owner/organization
+		@owner = switch
+			when @isLocalHost and hasPath then @pathParts[1]
+			when @isPuzlet then "puzlet"
+			when @isGitHub then hostParts[0]
+			when @isGitHubApi and hasPath then @pathParts[2]
+			else null
 		
-		# Repo and file
-		hasRepo = hasPath and @owner #(@isLocalHost or @owner)
-		idx = if @isLocalHost then 2 else if @owner then 1 else null
-		@repo = if hasRepo then @pathParts[idx] else null
-		@subf = if hasRepo then @pathParts[(idx+1)..-2].join "/" else null
+		# Repo and subfolder path
+		@repo = null
+		@subf = null
+		if hasPath
+			repoIdx = switch
+				when @isLocalHost then 2
+				when (@isPuzlet or @isGitHub) then 1
+				when @isGitHubApi then 3
+				else null
+			if repoIdx
+				@repo = @pathParts[repoIdx]
+				pathIdx = repoIdx + (if @isGitHubApi then 2 else 1)
+				@subf = @pathParts[pathIdx..-2].join "/"
+		
+		# File and file extension
 		match = if hasPath then @path.match /\.[0-9a-z]+$/i else null  # ZZZ dup code - more robust way?
 		@fileExt = if match?.length then match[0].slice(1) else null
 		@file = if @fileExt then @pathParts[-1..][0] else null
@@ -87,6 +106,7 @@ class Resource
 		thisHost = window.location.hostname
 		if @location.host isnt thisHost and @location.apiUrl
 			# Foreign file - load via GitHub API.  Uses cache.
+			#console.log "foreign"
 			url = @location.apiUrl
 			type = "json"
 			process = (data) -> atob(data.content)
@@ -319,13 +339,15 @@ class Resources
 				# Currently handles only one property.
 				url = v
 				fileExt = p
+		#if spec.ghapi? then console.log "API: ", url
 		puzletResource = url.match("^/puzlet")?.length
 		if puzletResource
 			url = if @puzlet then @puzlet+url else "/puzlet"+url
 		spec = {url: url, fileExt: fileExt}
-		location = if url.indexOf("/") is -1 then "blab" else "ext"  # ZZZ should be part of ResourceLocation
-		spec.location = location  # Needed for coffee compiling
+		# ZZZ should be part of ResourceLocation
+		location = if url.indexOf("/") is -1 or url.indexOf("api.github.com") isnt -1 then "blab" else "ext"
 		spec.gistSource = @gistFiles?[url]?.content ? null
+		spec.location = location  # Needed for coffee compiling
 		if @resourceTypes[fileExt] then new @resourceTypes[fileExt][location](spec) else null
 		
 	load: (filter, loaded) ->

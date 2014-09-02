@@ -1183,7 +1183,7 @@
   ResourceLocation = (function() {
 
     function ResourceLocation(url) {
-      var branch, f, hasPath, hasRepo, hostParts, idx, match, s, _ref;
+      var branch, f, hasPath, hostParts, match, pathIdx, repoIdx, s, _ref;
       this.url = url != null ? url : window.location.href;
       this.a = document.createElement("a");
       this.a.href = this.url;
@@ -1197,11 +1197,42 @@
       this.isLocalHost = this.host === "localhost";
       this.isPuzlet = this.host === "puzlet.org";
       this.isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";
-      this.owner = this.isLocalHost ? this.pathParts[1] : this.isPuzlet ? "puzlet" : this.isGitHub ? hostParts[0] : null;
-      hasRepo = hasPath && this.owner;
-      idx = this.isLocalHost ? 2 : this.owner ? 1 : null;
-      this.repo = hasRepo ? this.pathParts[idx] : null;
-      this.subf = hasRepo ? this.pathParts.slice(idx + 1, -1).join("/") : null;
+      this.isGitHubApi = this.host === "api.github.com" && this.pathParts.length === 6 && this.pathParts[1] === "repos" && this.pathParts[4] === "contents";
+      this.owner = (function() {
+        switch (false) {
+          case !(this.isLocalHost && hasPath):
+            return this.pathParts[1];
+          case !this.isPuzlet:
+            return "puzlet";
+          case !this.isGitHub:
+            return hostParts[0];
+          case !(this.isGitHubApi && hasPath):
+            return this.pathParts[2];
+          default:
+            return null;
+        }
+      }).call(this);
+      this.repo = null;
+      this.subf = null;
+      if (hasPath) {
+        repoIdx = (function() {
+          switch (false) {
+            case !this.isLocalHost:
+              return 2;
+            case !(this.isPuzlet || this.isGitHub):
+              return 1;
+            case !this.isGitHubApi:
+              return 3;
+            default:
+              return null;
+          }
+        }).call(this);
+        if (repoIdx) {
+          this.repo = this.pathParts[repoIdx];
+          pathIdx = repoIdx + (this.isGitHubApi ? 2 : 1);
+          this.subf = this.pathParts.slice(pathIdx, -1).join("/");
+        }
+      }
       match = hasPath ? this.path.match(/\.[0-9a-z]+$/i) : null;
       this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
       this.file = this.fileExt ? this.pathParts.slice(-1)[0] : null;
@@ -1697,9 +1728,9 @@
         url: url,
         fileExt: fileExt
       };
-      location = url.indexOf("/") === -1 ? "blab" : "ext";
-      spec.location = location;
+      location = url.indexOf("/") === -1 || url.indexOf("api.github.com") !== -1 ? "blab" : "ext";
       spec.gistSource = (_ref1 = (_ref2 = this.gistFiles) != null ? (_ref3 = _ref2[url]) != null ? _ref3.content : void 0 : void 0) != null ? _ref1 : null;
+      spec.location = location;
       if (this.resourceTypes[fileExt]) {
         return new this.resourceTypes[fileExt][location](spec);
       } else {
