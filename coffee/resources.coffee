@@ -387,6 +387,9 @@ class Resources
 	find: (url) ->
 		return resource for resource in @resources when resource.url is url
 		return null
+		
+	getJSON: (url) ->
+		JSON.parse(@find(url).content)
 	
 	render: ->
 		resource.render() for resource in @resources

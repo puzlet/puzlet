@@ -1824,6 +1824,10 @@
       return null;
     };
 
+    Resources.prototype.getJSON = function(url) {
+      return JSON.parse(this.find(url).content);
+    };
+
     Resources.prototype.render = function() {
       var resource, _i, _len, _ref, _results;
       _ref = this.resources;
