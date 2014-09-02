@@ -51,7 +51,7 @@ class ResourceLocation
 			# Regular URL - assume source at same location.
 			@source = @url
 		
-		console.log "resource", this
+		#console.log "resource", this
 		
 	getGistId: ->
 		# ZZZ dup code - should really extend to get general URL params.

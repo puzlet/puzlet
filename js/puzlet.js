@@ -1216,7 +1216,6 @@
       } else {
         this.source = this.url;
       }
-      console.log("resource", this);
     }
 
     ResourceLocation.prototype.getGistId = function() {
