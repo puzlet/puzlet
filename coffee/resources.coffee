@@ -2,15 +2,12 @@ class ResourceLocation
 	
 	# This does not use jQuery. It can be used for before JQuery loaded.
 	
-	# ZZZ Handle localhost
-	# ZZZ also handle github api path here?
+	# ZZZ Handle localhost folder structure - so can resolve org/repo.
+	# ZZZ Handle github api path here.
 	# ZZZ Later, how to support custom domain for github io?
 	
 	constructor: (@url=window.location.href) ->
 		
-		#console.log "URL", @url
-		
-		# ZZZ dup code - see load foreign
 		@a = document.createElement "a"
 		@a.href = @url
 		
@@ -26,7 +23,6 @@ class ResourceLocation
 		@isPuzlet = @host is "puzlet.org"
 		@isGitHub = hostParts.length is 3 and hostParts[1] is "github" and hostParts[2] is "io"
 		@owner = if @isLocalHost or @isPuzlet then "puzlet" else if @isGitHub then hostParts[0] else null
-		# ZZZ Later: handle folder structure for localhost - so can resolve org/repo.
 		
 		# Repo and file
 		@pathParts = if @path then @path.split "/" else []
@@ -68,8 +64,7 @@ class Resource
 		@url = @spec.url
 		@var = @spec.var  # window variable name  # ZZZ needed here?
 		@location = new ResourceLocation @url
-		#console.log @location
-		@fileExt = @spec.fileExt ? Resource.getFileExt @url
+		@fileExt = @spec.fileExt ? Resource.getFileExt @url  # ZZZ use @location
 		@loaded = false
 		@head = document.head
 		@containers = new ResourceContainers this

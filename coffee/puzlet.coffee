@@ -1,13 +1,3 @@
-# TODO:
-# @var?
-# *** Option to reload => remove old resource?
-# BUG: multiple html nodes - all have same id
-# pageTitle: for first wiky only
-# CreateResource: null ok?
-# Support blab subfolder resources => can't just detect / in name.
-# coffee compile: do external first; then blabs.
-# superclass method: add tag to head?
-
 window.$pz = {}
 
 class Loader
