@@ -3605,7 +3605,7 @@
 
     Loader.prototype.loadScripts = function(callback) {
       var _this = this;
-      return this.resources.load(["js", "coffee", "py", "m"], function() {
+      return this.resources.load(["json", "js", "coffee", "py", "m"], function() {
         _this.compileCoffee(function(coffee) {
           return !coffee.hasEval();
         });

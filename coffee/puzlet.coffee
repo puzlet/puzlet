@@ -97,7 +97,7 @@ class Loader
 	# (Loading scripts after HTML/CSS improves html rendering speed.)
 	# Note: for large JS file (even 3rd party), put in repo without gh-pages (web page).
 	loadScripts: (callback) ->
-		@resources.load ["js", "coffee", "py", "m"], =>
+		@resources.load ["json", "js", "coffee", "py", "m"], =>
 			# Before Ace loaded, compile any CoffeeScript that has no assocaited eval box. 
 			@compileCoffee (coffee) -> not coffee.hasEval()
 			callback?()
