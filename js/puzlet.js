@@ -1836,7 +1836,7 @@
     CoffeeCompiler.prototype.compile = function(content) {
       var js;
       this.content = content;
-      console.log("Compile " + this.url + " - *NO* eval box");
+      console.log("Compile " + this.url);
       if (this.findScript()) {
         this.head.removeChild(this.element[0]);
       }
@@ -1869,7 +1869,7 @@
     CoffeeCompilerEval.prototype.compile = function(content) {
       var recompile;
       this.content = content;
-      console.log("Compile " + this.url + " for eval box");
+      console.log("Compile " + this.url + " (for eval box)");
       recompile = true;
       this.resultArray = this.evaluator.process(this.content, recompile);
       this.result = this.evaluator.stringify(this.resultArray);

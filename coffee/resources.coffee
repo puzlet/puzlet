@@ -385,7 +385,7 @@ class CoffeeCompiler
 	
 	compile: (@content) ->
 		# ZZZ should this be done via eval, rather than append to head?
-		console.log "Compile #{@url} - *NO* eval box"
+		console.log "Compile #{@url}"
 		@head.removeChild @element[0] if @findScript()
 		@element = $ "<script>",
 			type: "text/javascript"
@@ -408,7 +408,7 @@ class CoffeeCompilerEval
 	
 	compile: (@content) ->
 		# Eval node exists
-		console.log "Compile #{@url} for eval box"
+		console.log "Compile #{@url} (for eval box)"
 		recompile = true
 		@resultArray = @evaluator.process @content, recompile
 		@result = @evaluator.stringify @resultArray
