@@ -3,11 +3,12 @@ class ResourceLocation
 	# This does not use jQuery. It can be used for before JQuery loaded.
 	
 	# ZZZ Handle localhost
+	# ZZZ also handle github api path here?
 	# ZZZ Later, how to support custom domain for github io?
 	
 	constructor: (@url=window.location.href) ->
 		
-		console.log "URL", @url
+		#console.log "URL", @url
 		
 		# ZZZ dup code - see load foreign
 		@a = document.createElement "a"
@@ -21,32 +22,35 @@ class ResourceLocation
 		
 		# Owner or organization
 		hostParts = @host.split "."
-		@isPuzlet = @host is "puzlet.org"  # Special case
+		@isLocalHost = @host is "localhost"
+		@isPuzlet = @host is "puzlet.org"
 		@isGitHub = hostParts.length is 3 and hostParts[1] is "github" and hostParts[2] is "io"
-		@owner = if @isPuzlet then "puzlet" else if @isGitHub then hostParts[0] else null
-#		@owner = if @isPuzlet then "puzlet" else hostParts[0]  # Only for puzlet.org or owner.github.io
+		@owner = if @isLocalHost or @isPuzlet then "puzlet" else if @isGitHub then hostParts[0] else null
+		# ZZZ Later: handle folder structure for localhost - so can resolve org/repo.
 		
 		# Repo and file
 		@pathParts = if @path then @path.split "/" else []
 		hasPath = @pathParts.length
-		@repo = if @owner and hasPath then @pathParts[1] else null
-		# ZZZ also need "subfolder" path
-		# ZZZ more robust way?
-		match = if hasPath then @path.match /\.[0-9a-z]+$/i else null  # ZZZ dup code
+		hasRepo = hasPath and @owner #(@isLocalHost or @owner)
+		@repo = if hasRepo then @pathParts[1] else null
+		@subf = if hasRepo then @pathParts[2..-2].join "/" else null
+		match = if hasPath then @path.match /\.[0-9a-z]+$/i else null  # ZZZ dup code - more robust way?
 		@fileExt = if match?.length then match[0].slice(1) else null
 		@file = if @fileExt then @pathParts[-1..][0] else null
 		
 		if @gistId
 			# Gist
-			@source = "https://gist.github.com/#{@gistId}"
+			f = @file?.split "."
+			@source = "https://gist.github.com/#{@gistId}" + (if @file then "#file-#{f[0]}-#{f[1]}" else "")
 		else if @owner and @repo
 			# GitHub repo (or puzlet.org).
-			@source = "https://github.com/#{@owner}/#{@repo}"
+			s = if @subf then "/#{@subf}" else ""  # Subfolder path string
+			branch = "gh-pages"  # ZZZ bug: need to get branch - could be master or something else besides gh-pages.
+			@source = "https://github.com/#{@owner}/#{@repo}#{s}" + (if @file then "/blob/#{branch}/#{@file}" else "")
+			@apiUrl = "https://api.github.com/repos/#{@owner}/#{@repo}/contents" + (if @file then "/#{@file}" else "")
 		else
-			# Regular URL - assume source at same location
+			# Regular URL - assume source at same location.
 			@source = @url
-			
-		# ZZZ also handle github api path here?
 		
 	getGistId: ->
 		# ZZZ dup code - should really extend to get general URL params.
@@ -55,8 +59,6 @@ class ResourceLocation
 		h = @query.split "&"
 		p = h?[0].split "="
 		@gistId = if p.length and p[0] is "gist" then p[1] else null
-		
-		# If gist id, then need to get owner?
 
 
 class Resource
@@ -66,7 +68,7 @@ class Resource
 		@url = @spec.url
 		@var = @spec.var  # window variable name  # ZZZ needed here?
 		@location = new ResourceLocation @url
-		console.log @location
+		#console.log @location
 		@fileExt = @spec.fileExt ? Resource.getFileExt @url
 		@loaded = false
 		@head = document.head
@@ -75,45 +77,29 @@ class Resource
 	load: (callback, type="text") ->
 		# Default file load method.
 		# Uses jQuery.
+		
+		# Load Gist
 		if @spec.gistSource
 			@content = @spec.gistSource
 			@postLoad callback
 			return
-		return if @loadForeign callback
-		success = (data) =>
-			@content = data
-			@postLoad callback
-		t = Date.now()
-		$.get(@url+"?t=#{t}", success, type)
-		
-	loadForeign: (callback) ->
-		
-		$a = $ "<a>", href: @url
-		a = $a[0]
-		host = a.hostname
+			
 		thisHost = window.location.hostname
-		return false if host is thisHost  # Same origin - not a foreign file
-		hostParts = host.split "."
-		isPuzlet = host is "puzlet.org"
-		isGitHub = hostParts.length is 3 and hostParts[1] is "github" and hostParts[2] is "io"
-		return false unless isPuzlet or isGitHub
-		# Later, how to support custom domain for github io?
-		
-		# Only for puzlet.org or owner.github.io
-		owner = if isPuzlet then "puzlet" else hostParts[0]
-		path = a.pathname
-		pathParts = path.split "/"
-		repo = pathParts[1]
-		file = pathParts[2]
-		
+		if @location.host isnt thisHost and @location.apiUrl
+			# Foreign file - load via GitHub API.  Uses cache.
+			url = @location.apiUrl
+			type = "json"
+			process = (data) -> atob(data.content)
+		else
+			# Regular load.  Doesn't use cache.  type as specified in call.
+			url = @url+"?t=#{Date.now()}"
+			process = null
+			
 		success = (data) =>
-			@content = atob(data.content)
+			@content = if process then process(data) else data
 			@postLoad callback
-		apiUrl = "https://api.github.com/repos/#{owner}/#{repo}/contents/#{file}"
-		t = Date.now()
-		$.get(apiUrl, success, "json")  # Use cache
-#		$.get(apiUrl+"?t=#{t}", success, "json")
-		true
+				
+		$.get(url, success, type)
 		
 	postLoad: (callback) ->
 		@loaded = true
@@ -306,7 +292,7 @@ class Resources
 		py: {blab: Resource, ext: Resource}
 		m: {blab: Resource, ext: Resource}
 	
-	constructor: ->
+	constructor: (@blabLocation) ->
 		@resources = []
 		@getPuzletPrefix()
 		
@@ -336,7 +322,7 @@ class Resources
 		puzletResource = url.match("^/puzlet")?.length
 		url = @puzlet+url if puzletResource and @puzlet
 		spec = {url: url, fileExt: fileExt}
-		location = if url.indexOf("/") is -1 then "blab" else "ext"
+		location = if url.indexOf("/") is -1 then "blab" else "ext"  # ZZZ should be part of ResourceLocation
 		spec.location = location  # Needed for coffee compiling
 		spec.gistSource = @gistFiles?[url]?.content ? null
 		if @resourceTypes[fileExt] then new @resourceTypes[fileExt][location](spec) else null
@@ -534,9 +520,10 @@ class GitHub
 	api: "https://api.github.com/gists"
 	
 	constructor: (@resources) ->
-		@hostname = window.location.hostname
-		@blabId = window.location.pathname.split("/")[1]  # ZZZ better way?
-		@gistId = @getId()
+		@blabLocation = @resources.blabLocation
+		@hostname = @blabLocation.host
+		@blabId = @blabLocation.repo
+		@gistId = @blabLocation.gistId
 		@setCredentials()  # None initially
 		$(document).on "saveGitHub", =>
 			@resources.updateFromContainers()
@@ -701,13 +688,6 @@ class GitHub
 	redirect: ->
 		blabUrl = "/?gist=#{@gistId}"
 		window.location = blabUrl
-		
-	getId: ->
-		query = location.search.slice(1)
-		return null unless query
-		h = query.split "&"
-		p = h?[0].split "="
-		gist = if p.length and p[0] is "gist" then p[1] else null
 	
 	getRepoMembers: (callback) ->
 		$.ajax

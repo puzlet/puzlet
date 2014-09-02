@@ -1183,9 +1183,8 @@
   ResourceLocation = (function() {
 
     function ResourceLocation(url) {
-      var hasPath, hostParts, match;
+      var branch, f, hasPath, hasRepo, hostParts, match, s, _ref;
       this.url = url != null ? url : window.location.href;
-      console.log("URL", this.url);
       this.a = document.createElement("a");
       this.a.href = this.url;
       this.host = this.a.hostname;
@@ -1193,19 +1192,26 @@
       this.search = this.a.search;
       this.getGistId();
       hostParts = this.host.split(".");
+      this.isLocalHost = this.host === "localhost";
       this.isPuzlet = this.host === "puzlet.org";
       this.isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";
-      this.owner = this.isPuzlet ? "puzlet" : this.isGitHub ? hostParts[0] : null;
+      this.owner = this.isLocalHost || this.isPuzlet ? "puzlet" : this.isGitHub ? hostParts[0] : null;
       this.pathParts = this.path ? this.path.split("/") : [];
       hasPath = this.pathParts.length;
-      this.repo = this.owner && hasPath ? this.pathParts[1] : null;
+      hasRepo = hasPath && this.owner;
+      this.repo = hasRepo ? this.pathParts[1] : null;
+      this.subf = hasRepo ? this.pathParts.slice(2, -1).join("/") : null;
       match = hasPath ? this.path.match(/\.[0-9a-z]+$/i) : null;
       this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
       this.file = this.fileExt ? this.pathParts.slice(-1)[0] : null;
       if (this.gistId) {
-        this.source = "https://gist.github.com/" + this.gistId;
+        f = (_ref = this.file) != null ? _ref.split(".") : void 0;
+        this.source = ("https://gist.github.com/" + this.gistId) + (this.file ? "#file-" + f[0] + "-" + f[1] : "");
       } else if (this.owner && this.repo) {
-        this.source = "https://github.com/" + this.owner + "/" + this.repo;
+        s = this.subf ? "/" + this.subf : "";
+        branch = "gh-pages";
+        this.source = ("https://github.com/" + this.owner + "/" + this.repo + s) + (this.file ? "/blob/" + branch + "/" + this.file : "");
+        this.apiUrl = ("https://api.github.com/repos/" + this.owner + "/" + this.repo + "/contents") + (this.file ? "/" + this.file : "");
       } else {
         this.source = this.url;
       }
@@ -1234,7 +1240,6 @@
       this.url = this.spec.url;
       this["var"] = this.spec["var"];
       this.location = new ResourceLocation(this.url);
-      console.log(this.location);
       this.fileExt = (_ref = this.spec.fileExt) != null ? _ref : Resource.getFileExt(this.url);
       this.loaded = false;
       this.head = document.head;
@@ -1242,7 +1247,7 @@
     }
 
     Resource.prototype.load = function(callback, type) {
-      var success, t,
+      var process, success, thisHost, url,
         _this = this;
       if (type == null) {
         type = "text";
@@ -1252,48 +1257,22 @@
         this.postLoad(callback);
         return;
       }
-      if (this.loadForeign(callback)) {
-        return;
-      }
-      success = function(data) {
-        _this.content = data;
-        return _this.postLoad(callback);
-      };
-      t = Date.now();
-      return $.get(this.url + ("?t=" + t), success, type);
-    };
-
-    Resource.prototype.loadForeign = function(callback) {
-      var $a, a, apiUrl, file, host, hostParts, isGitHub, isPuzlet, owner, path, pathParts, repo, success, t, thisHost,
-        _this = this;
-      $a = $("<a>", {
-        href: this.url
-      });
-      a = $a[0];
-      host = a.hostname;
       thisHost = window.location.hostname;
-      if (host === thisHost) {
-        return false;
+      if (this.location.host !== thisHost && this.location.apiUrl) {
+        url = this.location.apiUrl;
+        type = "json";
+        process = function(data) {
+          return atob(data.content);
+        };
+      } else {
+        url = this.url + ("?t=" + (Date.now()));
+        process = null;
       }
-      hostParts = host.split(".");
-      isPuzlet = host === "puzlet.org";
-      isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";
-      if (!(isPuzlet || isGitHub)) {
-        return false;
-      }
-      owner = isPuzlet ? "puzlet" : hostParts[0];
-      path = a.pathname;
-      pathParts = path.split("/");
-      repo = pathParts[1];
-      file = pathParts[2];
       success = function(data) {
-        _this.content = atob(data.content);
+        _this.content = process ? process(data) : data;
         return _this.postLoad(callback);
       };
-      apiUrl = "https://api.github.com/repos/" + owner + "/" + repo + "/contents/" + file;
-      t = Date.now();
-      $.get(apiUrl, success, "json");
-      return true;
+      return $.get(url, success, type);
     };
 
     Resource.prototype.postLoad = function(callback) {
@@ -1664,7 +1643,8 @@
       }
     };
 
-    function Resources() {
+    function Resources(blabLocation) {
+      this.blabLocation = blabLocation;
       this.resources = [];
       this.getPuzletPrefix();
     }
@@ -2080,9 +2060,10 @@
     function GitHub(resources) {
       var _this = this;
       this.resources = resources;
-      this.hostname = window.location.hostname;
-      this.blabId = window.location.pathname.split("/")[1];
-      this.gistId = this.getId();
+      this.blabLocation = this.resources.blabLocation;
+      this.hostname = this.blabLocation.host;
+      this.blabId = this.blabLocation.repo;
+      this.gistId = this.blabLocation.gistId;
       this.setCredentials();
       $(document).on("saveGitHub", function() {
         _this.resources.updateFromContainers();
@@ -2340,17 +2321,6 @@
       var blabUrl;
       blabUrl = "/?gist=" + this.gistId;
       return window.location = blabUrl;
-    };
-
-    GitHub.prototype.getId = function() {
-      var gist, h, p, query;
-      query = location.search.slice(1);
-      if (!query) {
-        return null;
-      }
-      h = query.split("&");
-      p = h != null ? h[0].split("=") : void 0;
-      return gist = p.length && p[0] === "gist" ? p[1] : null;
     };
 
     GitHub.prototype.getRepoMembers = function(callback) {
@@ -3533,12 +3503,12 @@
       }
     ];
 
-    function Loader(blab, render, done) {
+    function Loader(blabLocation, render, done) {
       var _this = this;
-      this.blab = blab;
+      this.blabLocation = blabLocation;
       this.render = render;
       this.done = done;
-      this.resources = new Resources;
+      this.resources = new Resources(this.blabLocation);
       this.loadCoreResources(function() {
         return _this.loadGitHub(function() {
           return _this.loadResourceList(function() {
@@ -3648,8 +3618,8 @@
 
   Page = (function() {
 
-    function Page(blab) {
-      this.blab = blab;
+    function Page(blabLocation) {
+      this.blabLocation = blabLocation;
     }
 
     Page.prototype.mainContainer = function() {
@@ -3682,7 +3652,7 @@
       new MathJaxProcessor;
       new Notes;
       new FavIcon;
-      new GithubRibbon(this.container, this.blab, this.gistId);
+      new GithubRibbon(this.container, this.blabLocation.source);
       return new SaveButton(this.container, function() {
         return $.event.trigger("saveGitHub");
       });
@@ -3735,17 +3705,13 @@
 
   GithubRibbon = (function() {
 
-    function GithubRibbon(container, blab, gistId) {
-      var html, link, location, src,
+    function GithubRibbon(container, link) {
+      var html, src,
         _this = this;
       this.container = container;
-      this.blab = blab;
-      this.gistId = gistId;
-      location = new ResourceLocation;
-      console.log("location", location);
-      link = location.source;
+      this.link = link;
       src = "https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67";
-      html = "<a href=\"" + link + "\" id=\"ribbon\" style=\"opacity:0.2\">\n<img style=\"position: absolute; top: 0; right: 0; border: 0;\" src=\"" + src + "\" alt=\"Fork me on GitHub\" data-canonical-src=\"https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png\"></a>";
+      html = "<a href=\"" + this.link + "\" id=\"ribbon\" style=\"opacity:0.2\">\n<img style=\"position: absolute; top: 0; right: 0; border: 0;\" src=\"" + src + "\" alt=\"Fork me on GitHub\" data-canonical-src=\"https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png\"></a>";
       this.container.append(html);
       this.ribbon = $("#ribbon");
       setTimeout((function() {
@@ -3963,17 +3929,17 @@
   };
 
   init = function() {
-    var blab, loader, page, ready, render;
+    var blabLocation, loader, page, ready, render;
     publicInterface();
-    blab = window.location.pathname.split("/")[1];
-    page = new Page(blab);
+    blabLocation = new ResourceLocation;
+    page = new Page(blabLocation);
     render = function(wikyHtml) {
       return page.render(wikyHtml);
     };
     ready = function() {
       return page.ready(loader.resources, loader.github.id);
     };
-    loader = new Loader(blab, render, ready);
+    loader = new Loader(blabLocation, render, ready);
     return $pz.renderHtml = function() {
       return page.rerender();
     };

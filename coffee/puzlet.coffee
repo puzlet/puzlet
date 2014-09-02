@@ -55,8 +55,8 @@ class Loader
 	]
 	# {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.css"}
 	
-	constructor: (@blab, @render, @done) ->
-		@resources = new Resources
+	constructor: (@blabLocation, @render, @done) ->
+		@resources = new Resources @blabLocation
 		@loadCoreResources => @loadGitHub => @loadResourceList => @loadHtmlCss => @loadScripts => @loadAce => @done()
 	
 	# Dynamically load and run jQuery and Wiky.
@@ -128,7 +128,7 @@ class Loader
 
 class Page
 	
-	constructor: (@blab) ->
+	constructor: (@blabLocation) ->
 	
 	mainContainer: ->
 		return if @container?
@@ -149,7 +149,7 @@ class Page
 		new MathJaxProcessor  # ZZZ should be after all html rendered?
 		new Notes
 		new FavIcon
-		new GithubRibbon @container, @blab, @gistId
+		new GithubRibbon @container, @blabLocation.source
 		new SaveButton @container, -> $.event.trigger "saveGitHub"
 		
 	rerender: ->
@@ -177,16 +177,11 @@ class FavIcon
 
 class GithubRibbon
 	
-	constructor: (@container, @blab, @gistId) ->
+	constructor: (@container, @link) ->
 		
-		location = new ResourceLocation
-		console.log "location", location
-		link = location.source
-		
-		#link = if @gistId then "https://gist.github.com/#{@gistId}" else "https://github.com/puzlet/#{@blab}"
 		src = "https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
 		html = """
-			<a href="#{link}" id="ribbon" style="opacity:0.2">
+			<a href="#{@link}" id="ribbon" style="opacity:0.2">
 			<img style="position: absolute; top: 0; right: 0; border: 0;" src="#{src}" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
 		"""
 		@container.append(html)
@@ -338,12 +333,11 @@ publicInterface = ->
 
 init = ->
 	publicInterface()
-	blab = window.location.pathname.split("/")[1]  # ZZZ more robust way?
-	#return unless blab and blab isnt "puzlet.github.io"
-	page = new Page blab
+	blabLocation = new ResourceLocation  # For current page
+	page = new Page blabLocation
 	render = (wikyHtml) -> page.render wikyHtml
 	ready = -> page.ready loader.resources, loader.github.id
-	loader = new Loader blab, render, ready
+	loader = new Loader blabLocation, render, ready
 	$pz.renderHtml = -> page.rerender()  # ZZZ publicInterface?
 
 
