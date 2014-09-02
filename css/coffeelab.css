@@ -212,7 +212,7 @@ a.menu:hover {
 /*----------- Other -----------*/
 
 .ui-widget {
-  font-size: 9pt;  /* or 12pt? */
+  font-size: 12pt;  /* or 12pt? */
 }
 
 .ui-tooltip {
