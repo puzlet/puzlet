@@ -1183,7 +1183,7 @@
   ResourceLocation = (function() {
 
     function ResourceLocation(url) {
-      var branch, f, hasPath, hasRepo, hostParts, match, s, _ref;
+      var branch, f, hasPath, hasRepo, hostParts, idx, match, s, _ref;
       this.url = url != null ? url : window.location.href;
       this.a = document.createElement("a");
       this.a.href = this.url;
@@ -1192,15 +1192,16 @@
       this.search = this.a.search;
       this.getGistId();
       hostParts = this.host.split(".");
+      this.pathParts = this.path ? this.path.split("/") : [];
+      hasPath = this.pathParts.length;
       this.isLocalHost = this.host === "localhost";
       this.isPuzlet = this.host === "puzlet.org";
       this.isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";
-      this.owner = this.isLocalHost || this.isPuzlet ? "puzlet" : this.isGitHub ? hostParts[0] : null;
-      this.pathParts = this.path ? this.path.split("/") : [];
-      hasPath = this.pathParts.length;
+      this.owner = this.isLocalHost ? this.pathParts[1] : this.isPuzlet ? "puzlet" : this.isGitHub ? hostParts[0] : null;
       hasRepo = hasPath && this.owner;
-      this.repo = hasRepo ? this.pathParts[1] : null;
-      this.subf = hasRepo ? this.pathParts.slice(2, -1).join("/") : null;
+      idx = this.isLocalHost ? 2 : this.owner ? 1 : null;
+      this.repo = hasRepo ? this.pathParts[idx] : null;
+      this.subf = hasRepo ? this.pathParts.slice(idx + 1, -1).join("/") : null;
       match = hasPath ? this.path.match(/\.[0-9a-z]+$/i) : null;
       this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
       this.file = this.fileExt ? this.pathParts.slice(-1)[0] : null;
@@ -1215,6 +1216,7 @@
       } else {
         this.source = this.url;
       }
+      console.log("resource", this);
     }
 
     ResourceLocation.prototype.getGistId = function() {

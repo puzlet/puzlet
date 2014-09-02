@@ -17,19 +17,22 @@ class ResourceLocation
 		@search = @a.search 
 		@getGistId()
 		
-		# Owner or organization
+		# Decompose into parts
 		hostParts = @host.split "."
+		@pathParts = if @path then @path.split "/" else []
+		hasPath = @pathParts.length
+		
+		# Owner/organization
 		@isLocalHost = @host is "localhost"
 		@isPuzlet = @host is "puzlet.org"
 		@isGitHub = hostParts.length is 3 and hostParts[1] is "github" and hostParts[2] is "io"
-		@owner = if @isLocalHost or @isPuzlet then "puzlet" else if @isGitHub then hostParts[0] else null
+		@owner = if @isLocalHost then @pathParts[1] else if @isPuzlet then "puzlet" else if @isGitHub then hostParts[0] else null
 		
 		# Repo and file
-		@pathParts = if @path then @path.split "/" else []
-		hasPath = @pathParts.length
 		hasRepo = hasPath and @owner #(@isLocalHost or @owner)
-		@repo = if hasRepo then @pathParts[1] else null
-		@subf = if hasRepo then @pathParts[2..-2].join "/" else null
+		idx = if @isLocalHost then 2 else if @owner then 1 else null
+		@repo = if hasRepo then @pathParts[idx] else null
+		@subf = if hasRepo then @pathParts[(idx+1)..-2].join "/" else null
 		match = if hasPath then @path.match /\.[0-9a-z]+$/i else null  # ZZZ dup code - more robust way?
 		@fileExt = if match?.length then match[0].slice(1) else null
 		@file = if @fileExt then @pathParts[-1..][0] else null
@@ -47,6 +50,8 @@ class ResourceLocation
 		else
 			# Regular URL - assume source at same location.
 			@source = @url
+		
+		console.log "resource", this
 		
 	getGistId: ->
 		# ZZZ dup code - should really extend to get general URL params.
