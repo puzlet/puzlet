@@ -2,7 +2,6 @@ class ResourceLocation
 	
 	# This does not use jQuery. It can be used for before JQuery loaded.
 	
-	# ZZZ Handle localhost folder structure - so can resolve org/repo.
 	# ZZZ Handle github api path here.
 	# ZZZ Later, how to support custom domain for github io?
 	
@@ -290,11 +289,11 @@ class CoffeeResource extends Resource
 
 class JsonResource extends Resource
 
-class Resources
+class ResourceFactory
 	
 	# The resource type if based on:
 	#   * file extension (html, css, js, coffee, json, py, m)
-	#   * url path (in blab or external).
+	#   * url path (in blab or external or github api).
 	# Ajax-loaded resources:
 	#   * Any resource in current blab.
 	#   * html, coffee, json, py, m resources.
@@ -304,70 +303,93 @@ class Resources
 	#   * linked resources are appended to DOM as soon as they are loaded.
 	#   * ajax-loaded resources (js, css) are appended after all resources loaded (for call to load).
 	resourceTypes:
-		html: {blab: HtmlResource, ext: HtmlResource}
-		css: {blab: CssResourceInline, ext: CssResourceLinked}
-		js: {blab: JsResourceInline, ext: JsResourceLinked}
-		coffee: {blab: CoffeeResource, ext: CoffeeResource}
-		json: {blab: JsonResource, ext: JsonResource}
-		py: {blab: Resource, ext: Resource}
-		m: {blab: Resource, ext: Resource}
+		html: {all: HtmlResource}
+		css: {blab: CssResourceInline, ext: CssResourceLinked, api: CssResourceInline}
+		js: {blab: JsResourceInline, ext: JsResourceLinked, api: JsResourceInline}
+		coffee: {all: CoffeeResource}
+		json: {all: JsonResource}
+		py: {all: Resource}
+		m: {all: Resource}
 	
-	constructor: (@blabLocation) ->
-		@resources = []
-		@getPuzletPrefix()
+	constructor: (@blabLocation, @getGistSource) ->
+	
+	create: (spec) ->
 		
-	getPuzletPrefix: ->
-		@puzlet = "http://puzlet.org"
-		@puzletOrg = document.querySelectorAll("[src='#{@puzlet}/puzlet/js/puzlet.js']").length
-		@puzlet = "" unless @puzletOrg
+		return null if @checkExists spec
 		
-	add: (resourceSpecs) ->
-		resourceSpecs = [resourceSpecs] unless resourceSpecs.length
-		newResources = []
-		for spec in resourceSpecs
-			continue if @checkExists(spec)
-			resource = @createResource spec
-			newResources.push resource
-			@resources.push resource
-		if newResources.length is 1 then newResources[0] else newResources
+		spec = @normalizeSpec spec
 		
-	checkExists: (spec) ->
-		console.log "spec", spec
-		v = spec.var
-		vp = v?.split "."
-		# ZZZ need more robust way.
-		if vp?.length is 2
-			test = window[vp[0]][vp[1]]
-		else if v
-			test = window[v]
+		url = spec.url
+		fileExt = spec.fileExt
+		
+		# ZZZ should be part of ResourceLocation?
+		inBlab = url.indexOf("/") is -1
+		api = url.indexOf("api.github.com") isnt -1
+		location = if inBlab then "blab" else "ext"
+		
+		spec.gistSource = @getGistSource url
+		spec.location = location  # Needed for Gists (and coffee compiling?)
+		
+		resourceSubTypes = @resourceTypes[fileExt]
+		return null unless resourceSubTypes
+		if resourceSubTypes.all?
+			resource = new resourceSubTypes.all spec
 		else
-			test = false
-		if test 
-			console.log "Not loading #{v} - already exists"
-		test
-		
-	createResource: (spec) ->
-		v = null
+			subtype = switch
+				when inBlab then "blab"  # File in current blab
+				when api then "api"  # Use GitHub API
+				else "ext"  # External file
+			resource = new resourceSubTypes[subtype](spec)
+		resource
+	
+	checkExists: (spec) ->
+		v = spec.var
+		return false unless v
+		vars = v?.split "."
+		z = window
+		for x in vars
+			z = z[x]
+			return false unless z
+		console.log "Not loading #{v} - already exists"
+		true
+	
+	normalizeSpec: (spec) ->
 		if spec.url
 			url = spec.url
-			v = spec.var
 			fileExt = Resource.getFileExt url
 		else
 			for p, v of spec
 				# Currently handles only one property.
 				url = v
 				fileExt = p
-		#if spec.ghapi? then console.log "API: ", url
+		url = @modifyPuzletUrl url
+		spec = {url: url, fileExt: fileExt}
+	
+	modifyPuzletUrl: (url) ->
+		@puzletUrl ?= "http://puzlet.org"
+		@puzlet ?= if document.querySelectorAll("[src='#{@puzletUrl}/puzlet/js/puzlet.js']").length then @puzletUrl else null
 		puzletResource = url.match("^/puzlet")?.length
 		if puzletResource
 			url = if @puzlet then @puzlet+url else "/puzlet"+url
-		spec = {url: url, fileExt: fileExt, var: v}
-		# ZZZ should be part of ResourceLocation
-		location = if url.indexOf("/") is -1 or url.indexOf("api.github.com") isnt -1 then "blab" else "ext"
-		spec.gistSource = @gistFiles?[url]?.content ? null
-		spec.location = location  # Needed for coffee compiling
-		if @resourceTypes[fileExt] then new @resourceTypes[fileExt][location](spec) else null
-		
+		url
+
+
+class Resources
+	
+	constructor: (@blabLocation) ->
+		@resources = []
+		@factory = new ResourceFactory @blabLocation, (url) => @getGistSource url
+	
+	add: (resourceSpecs) ->
+		resourceSpecs = [resourceSpecs] unless resourceSpecs.length
+		newResources = []
+		for spec in resourceSpecs
+			resource = @factory.create spec
+			continue unless resource
+			newResources.push resource
+			@resources.push resource
+		if newResources.length is 1 then newResources[0] else newResources
+	
 	load: (filter, loaded) ->
 		# When are resources added to DOM?
 		#   * Linked resources: as soon as they are loaded.
@@ -414,6 +436,9 @@ class Resources
 		resource.render() for resource in @resources
 	
 	setGistResources: (@gistFiles) ->
+		
+	getGistSource: (url) ->
+		@gistFiles?[url]?.content ? null
 	
 	updateFromContainers: ->
 		for resource in @resources
