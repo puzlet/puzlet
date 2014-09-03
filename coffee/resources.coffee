@@ -262,6 +262,7 @@ class JsResourceLinked extends Resource
 		@script.setAttribute "type", "text/javascript"
 		@head.appendChild @script
 		@script.onload = => @postLoad callback
+		#@script.onerror = => console.log "Load error: #{@url}"
 		
 		t = Date.now()
 		# ZZZ need better way to handle caching
@@ -324,14 +325,32 @@ class Resources
 		resourceSpecs = [resourceSpecs] unless resourceSpecs.length
 		newResources = []
 		for spec in resourceSpecs
+			continue if @checkExists(spec)
 			resource = @createResource spec
 			newResources.push resource
 			@resources.push resource
 		if newResources.length is 1 then newResources[0] else newResources
 		
+	checkExists: (spec) ->
+		console.log "spec", spec
+		v = spec.var
+		vp = v?.split "."
+		# ZZZ need more robust way.
+		if vp?.length is 2
+			test = window[vp[0]][vp[1]]
+		else if v
+			test = window[v]
+		else
+			test = false
+		if test 
+			console.log "Not loading #{v} - already exists"
+		test
+		
 	createResource: (spec) ->
+		v = null
 		if spec.url
 			url = spec.url
+			v = spec.var
 			fileExt = Resource.getFileExt url
 		else
 			for p, v of spec
@@ -342,7 +361,7 @@ class Resources
 		puzletResource = url.match("^/puzlet")?.length
 		if puzletResource
 			url = if @puzlet then @puzlet+url else "/puzlet"+url
-		spec = {url: url, fileExt: fileExt}
+		spec = {url: url, fileExt: fileExt, var: v}
 		# ZZZ should be part of ResourceLocation
 		location = if url.indexOf("/") is -1 or url.indexOf("api.github.com") isnt -1 then "blab" else "ext"
 		spec.gistSource = @gistFiles?[url]?.content ? null

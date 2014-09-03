@@ -1697,6 +1697,9 @@
       newResources = [];
       for (_i = 0, _len = resourceSpecs.length; _i < _len; _i++) {
         spec = resourceSpecs[_i];
+        if (this.checkExists(spec)) {
+          continue;
+        }
         resource = this.createResource(spec);
         newResources.push(resource);
         this.resources.push(resource);
@@ -1708,10 +1711,30 @@
       }
     };
 
+    Resources.prototype.checkExists = function(spec) {
+      var test, v, vp;
+      console.log("spec", spec);
+      v = spec["var"];
+      vp = v != null ? v.split(".") : void 0;
+      if ((vp != null ? vp.length : void 0) === 2) {
+        test = window[vp[0]][vp[1]];
+      } else if (v) {
+        test = window[v];
+      } else {
+        test = false;
+      }
+      if (test) {
+        console.log("Not loading " + v + " - already exists");
+      }
+      return test;
+    };
+
     Resources.prototype.createResource = function(spec) {
       var fileExt, location, p, puzletResource, url, v, _ref, _ref1, _ref2, _ref3;
+      v = null;
       if (spec.url) {
         url = spec.url;
+        v = spec["var"];
         fileExt = Resource.getFileExt(url);
       } else {
         for (p in spec) {
@@ -1726,7 +1749,8 @@
       }
       spec = {
         url: url,
-        fileExt: fileExt
+        fileExt: fileExt,
+        "var": v
       };
       location = url.indexOf("/") === -1 || url.indexOf("api.github.com") !== -1 ? "blab" : "ext";
       spec.gistSource = (_ref1 = (_ref2 = this.gistFiles) != null ? (_ref3 = _ref2[url]) != null ? _ref3.content : void 0 : void 0) != null ? _ref1 : null;
@@ -3501,7 +3525,10 @@
 
     Loader.prototype.coreResources = [
       {
-        url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js",
+        url: "http://code.jquery.com/jquery-1.8.3.min.js",
+        "var": "jQuery"
+      }, {
+        url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css",
         "var": "jQuery"
       }, {
         url: "/puzlet/js/wiky.js",
@@ -3533,7 +3560,8 @@
       }, {
         url: "/puzlet/js/jquery.cookie.js"
       }, {
-        url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js"
+        url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js",
+        "var": "jQuery.ui"
       }
     ];
 
