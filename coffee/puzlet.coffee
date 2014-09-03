@@ -21,10 +21,10 @@ class Loader
 	###
 	
 	coreResources: [
-		{url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
-		# {url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
-		{url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
-		# {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css"}  # Alternative
+#		{url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
+		{url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
+#		{url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
+		{url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css"}  # Alternative
 		{url: "/puzlet/js/wiky.js", var: "Wiky"}
 	]
 	
@@ -41,8 +41,8 @@ class Loader
 		{url: "/puzlet/js/jquery.flot.min.js"}
 		{url: "/puzlet/js/compile.js"}
 		{url: "/puzlet/js/jquery.cookie.js"}
-		{url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js", var: "jQuery.ui"}
-		#		{url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"}   # Alternative
+#		{url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js", var: "jQuery.ui"}
+		{url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"}   # Alternative
 		# {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"}
 	]
 	# {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.css"}
