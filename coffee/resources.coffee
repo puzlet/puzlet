@@ -421,7 +421,7 @@ class Resources
 	find: (id) ->
 		# id can be resource id or resource url.  Tries to match resource id first.
 		f = (p) =>
-			return resource for resource in @resources when resource[p] is id
+			return r for r in @resources when r[p] is id
 			null
 		resource = f "id"
 		return resource if resource

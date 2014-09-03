@@ -1873,12 +1873,12 @@
       var f, resource,
         _this = this;
       f = function(p) {
-        var resource, _i, _len, _ref;
+        var r, _i, _len, _ref;
         _ref = _this.resources;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          resource = _ref[_i];
-          if (resource[p] === id) {
-            return resource;
+          r = _ref[_i];
+          if (r[p] === id) {
+            return r;
           }
         }
         return null;
