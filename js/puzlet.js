@@ -3501,10 +3501,8 @@
 
     Loader.prototype.coreResources = [
       {
-        url: "http://code.jquery.com/jquery-1.8.3.min.js",
+        url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js",
         "var": "jQuery"
-      }, {
-        url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css"
       }, {
         url: "/puzlet/js/wiky.js",
         "var": "Wiky"
