@@ -88,6 +88,7 @@ class Resource
 		@location = @spec.location ? new ResourceLocation @spec.url
 		@url = @location.url
 		@fileExt = @spec.fileExt ? @location.fileExt
+		@id = @spec.id
 		@loaded = false
 		@head = document.head
 		@containers = new ResourceContainers this
@@ -318,6 +319,7 @@ class ResourceFactory
 		fileExt ?= location.fileExt
 		
 		spec =
+			id: spec.id
 			location: location
 			fileExt: fileExt
 			gistSource: @getGistSource(url)
@@ -416,12 +418,21 @@ class Resources
 	filterFunction: (filter) ->
 		if typeof filter is "function" then filter else Resource.typeFilter(filter)
 		
-	find: (url) ->
-		return resource for resource in @resources when resource.url is url
-		return null
+	find: (id) ->
+		# id can be resource id or resource url.  Tries to match resource id first.
+		f = (p) =>
+			return resource for resource in @resources when resource[p] is id
+			null
+		resource = f "id"
+		return resource if resource
+		resource = f "url"
 		
-	getJSON: (url) ->
-		JSON.parse(@find(url).content)
+	getContent: (id) ->
+		# id can be resource id or resource url.  Tries to match resource id first.
+		resource = @find(id)
+		if resource then resouce.content else null
+	
+	getJSON: (id) -> @getContent id
 	
 	loadJSON: (url, callback) ->
 		resource = @find url

@@ -1273,6 +1273,7 @@
       this.location = (_ref = this.spec.location) != null ? _ref : new ResourceLocation(this.spec.url);
       this.url = this.location.url;
       this.fileExt = (_ref1 = this.spec.fileExt) != null ? _ref1 : this.location.fileExt;
+      this.id = this.spec.id;
       this.loaded = false;
       this.head = document.head;
       this.containers = new ResourceContainers(this);
@@ -1685,6 +1686,7 @@
         fileExt = location.fileExt;
       }
       spec = {
+        id: spec.id,
         location: location,
         fileExt: fileExt,
         gistSource: this.getGistSource(url)
@@ -1867,20 +1869,39 @@
       }
     };
 
-    Resources.prototype.find = function(url) {
-      var resource, _i, _len, _ref;
-      _ref = this.resources;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        resource = _ref[_i];
-        if (resource.url === url) {
-          return resource;
+    Resources.prototype.find = function(id) {
+      var f, resource,
+        _this = this;
+      f = function(p) {
+        var resource, _i, _len, _ref;
+        _ref = _this.resources;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          resource = _ref[_i];
+          if (resource[p] === id) {
+            return resource;
+          }
         }
+        return null;
+      };
+      resource = f("id");
+      if (resource) {
+        return resource;
       }
-      return null;
+      return resource = f("url");
     };
 
-    Resources.prototype.getJSON = function(url) {
-      return JSON.parse(this.find(url).content);
+    Resources.prototype.getContent = function(id) {
+      var resource;
+      resource = this.find(id);
+      if (resource) {
+        return resouce.content;
+      } else {
+        return null;
+      }
+    };
+
+    Resources.prototype.getJSON = function(id) {
+      return this.getContent(id);
     };
 
     Resources.prototype.loadJSON = function(url, callback) {
@@ -3626,6 +3647,10 @@
       $blab.resources = this.resources;
       $blab.loadJSON = function(url, callback) {
         return $blab.resources.loadJSON(url, callback);
+      };
+      $blab.resource = function(id) {
+        var _ref;
+        return (_ref = _this.resources.find(id)) != null ? _ref.content : void 0;
       };
       this.loadCoreResources(function() {
         return _this.loadGitHub(function() {
