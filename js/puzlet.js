@@ -1236,6 +1236,7 @@
       match = hasPath ? this.path.match(/\.[0-9a-z]+$/i) : null;
       this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
       this.file = this.fileExt ? this.pathParts.slice(-1)[0] : null;
+      this.inBlab = this.file && this.url.indexOf("/") === -1;
       if (this.gistId) {
         f = (_ref = this.file) != null ? _ref.split(".") : void 0;
         this.source = ("https://gist.github.com/" + this.gistId) + (this.file ? "#file-" + f[0] + "-" + f[1] : "");
@@ -1267,12 +1268,11 @@
   Resource = (function() {
 
     function Resource(spec) {
-      var _ref;
+      var _ref, _ref1;
       this.spec = spec;
-      this.url = this.spec.url;
-      this["var"] = this.spec["var"];
-      this.location = new ResourceLocation(this.url);
-      this.fileExt = (_ref = this.spec.fileExt) != null ? _ref : Resource.getFileExt(this.url);
+      this.location = (_ref = this.spec.location) != null ? _ref : new ResourceLocation(this.spec.url);
+      this.url = this.location.url;
+      this.fileExt = (_ref1 = this.spec.fileExt) != null ? _ref1 : this.location.fileExt;
       this.loaded = false;
       this.head = document.head;
       this.containers = new ResourceContainers(this);
@@ -1337,11 +1337,8 @@
       return this.containers.getEvalContainer();
     };
 
-    Resource.getFileExt = function(url) {
-      var a, fileExt;
-      a = document.createElement("a");
-      a.href = url;
-      return fileExt = (a.pathname.match(/\.[0-9a-z]+$/i))[0].slice(1);
+    Resource.prototype.inBlab = function() {
+      return this.location.inBlab;
     };
 
     Resource.typeFilter = function(types) {
@@ -1575,11 +1572,6 @@
     JsResourceLinked.prototype.load = function(callback) {
       var cache, t,
         _this = this;
-      if (this["var"] && window[this["var"]]) {
-        console.log("Already loaded", this.url);
-        return;
-      }
-      this.wait = true;
       this.script = document.createElement("script");
       this.script.setAttribute("type", "text/javascript");
       this.head.appendChild(this.script);
@@ -1678,36 +1670,43 @@
     }
 
     ResourceFactory.prototype.create = function(spec) {
-      var api, fileExt, inBlab, location, resource, resourceSubTypes, subtype, url;
+      var fileExt, location, resource, subTypes, subtype, url, _ref;
       if (this.checkExists(spec)) {
         return null;
       }
-      spec = this.normalizeSpec(spec);
-      url = spec.url;
-      fileExt = spec.fileExt;
-      inBlab = url.indexOf("/") === -1;
-      api = url.indexOf("api.github.com") !== -1;
-      location = inBlab ? "blab" : "ext";
-      spec.gistSource = this.getGistSource(url);
-      spec.location = location;
-      resourceSubTypes = this.resourceTypes[fileExt];
-      if (!resourceSubTypes) {
+      if (spec.url) {
+        url = spec.url;
+      } else {
+        _ref = this.extractUrl(spec), url = _ref.url, fileExt = _ref.fileExt;
+      }
+      url = this.modifyPuzletUrl(url);
+      location = new ResourceLocation(url);
+      if (fileExt == null) {
+        fileExt = location.fileExt;
+      }
+      spec = {
+        location: location,
+        fileExt: fileExt,
+        gistSource: this.getGistSource(url)
+      };
+      subTypes = this.resourceTypes[fileExt];
+      if (!subTypes) {
         return null;
       }
-      if (resourceSubTypes.all != null) {
-        resource = new resourceSubTypes.all(spec);
+      if (subTypes.all != null) {
+        resource = new subTypes.all(spec);
       } else {
         subtype = (function() {
           switch (false) {
-            case !inBlab:
+            case !location.inBlab:
               return "blab";
-            case !api:
+            case !location.isGitHubApi:
               return "api";
             default:
               return "ext";
           }
         })();
-        resource = new resourceSubTypes[subtype](spec);
+        resource = new subTypes[subtype](spec);
       }
       return resource;
     };
@@ -1731,34 +1730,26 @@
       return true;
     };
 
-    ResourceFactory.prototype.normalizeSpec = function(spec) {
+    ResourceFactory.prototype.extractUrl = function(spec) {
       var fileExt, p, url, v;
-      if (spec.url) {
-        url = spec.url;
-        fileExt = Resource.getFileExt(url);
-      } else {
-        for (p in spec) {
-          v = spec[p];
-          url = v;
-          fileExt = p;
-        }
+      for (p in spec) {
+        v = spec[p];
+        url = v;
+        fileExt = p;
       }
-      url = this.modifyPuzletUrl(url);
-      return spec = {
+      return {
         url: url,
         fileExt: fileExt
       };
     };
 
     ResourceFactory.prototype.modifyPuzletUrl = function(url) {
-      var puzletResource, _ref, _ref1, _ref2;
-      if ((_ref = this.puzletUrl) == null) {
-        this.puzletUrl = "http://puzlet.org";
+      var puzletResource, puzletUrl, _ref, _ref1;
+      puzletUrl = "http://puzlet.org";
+      if ((_ref = this.puzlet) == null) {
+        this.puzlet = document.querySelectorAll("[src='" + puzletUrl + "/puzlet/js/puzlet.js']").length ? puzletUrl : null;
       }
-      if ((_ref1 = this.puzlet) == null) {
-        this.puzlet = document.querySelectorAll("[src='" + this.puzletUrl + "/puzlet/js/puzlet.js']").length ? this.puzletUrl : null;
-      }
-      puzletResource = (_ref2 = url.match("^/puzlet")) != null ? _ref2.length : void 0;
+      puzletResource = (_ref1 = url.match("^/puzlet")) != null ? _ref1.length : void 0;
       if (puzletResource) {
         url = this.puzlet ? this.puzlet + url : "/puzlet" + url;
       }
@@ -1890,6 +1881,22 @@
 
     Resources.prototype.getJSON = function(url) {
       return JSON.parse(this.find(url).content);
+    };
+
+    Resources.prototype.loadJSON = function(url, callback) {
+      var resource;
+      resource = this.find(url);
+      if (resource == null) {
+        resource = this.add({
+          url: url
+        });
+      }
+      if (!resource) {
+        return null;
+      }
+      return resource.load((function() {
+        return typeof callback === "function" ? callback(resource.content) : void 0;
+      }), "json");
     };
 
     Resources.prototype.render = function() {
@@ -2239,7 +2246,7 @@
         _this = this;
       console.log("Save as Gist (" + (this.auth ? this.username : 'anonymous') + ")");
       resources = this.resources.select(function(resource) {
-        return resource.spec.location === "blab";
+        return resource.inBlab();
       });
       this.files = {};
       for (_i = 0, _len = resources.length; _i < _len; _i++) {
@@ -3617,6 +3624,9 @@
       this.done = done;
       this.resources = new Resources(this.blabLocation);
       $blab.resources = this.resources;
+      $blab.loadJSON = function(url, callback) {
+        return $blab.resources.loadJSON(url, callback);
+      };
       this.loadCoreResources(function() {
         return _this.loadGitHub(function() {
           return _this.loadResourceList(function() {

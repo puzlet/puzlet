@@ -54,6 +54,7 @@ class ResourceLocation
 		match = if hasPath then @path.match /\.[0-9a-z]+$/i else null  # ZZZ dup code - more robust way?
 		@fileExt = if match?.length then match[0].slice(1) else null
 		@file = if @fileExt then @pathParts[-1..][0] else null
+		@inBlab = @file and @url.indexOf("/") is -1
 		
 		if @gistId
 			# Gist
@@ -84,10 +85,9 @@ class Resource
 	
 	constructor: (@spec) ->
 		# ZZZ option to pass string for url
-		@url = @spec.url
-		@var = @spec.var  # window variable name  # ZZZ needed here?
-		@location = new ResourceLocation @url
-		@fileExt = @spec.fileExt ? Resource.getFileExt @url  # ZZZ use @location
+		@location = @spec.location ? new ResourceLocation @spec.url
+		@url = @location.url
+		@fileExt = @spec.fileExt ? @location.fileExt
 		@loaded = false
 		@head = document.head
 		@containers = new ResourceContainers this
@@ -117,7 +117,7 @@ class Resource
 		success = (data) =>
 			@content = if process then process(data) else data
 			@postLoad callback
-				
+			
 		$.get(url, success, type)
 		
 	postLoad: (callback) ->
@@ -138,10 +138,7 @@ class Resource
 	
 	getEvalContainer: -> @containers.getEvalContainer()
 	
-	@getFileExt: (url) ->
-		a = document.createElement "a"
-		a.href = url
-		fileExt = (a.pathname.match /\.[0-9a-z]+$/i)[0].slice(1)
+	inBlab: -> @location.inBlab
 	
 	@typeFilter: (types) ->
 		(resource) ->
@@ -252,11 +249,6 @@ class JsResourceInline extends ResourceInline
 class JsResourceLinked extends Resource
 	
 	load: (callback) ->
-		if @var and window[@var]
-			console.log "Already loaded", @url
-			# ZZZ postload?
-			return
-		@wait = true
 		@script = document.createElement "script"
 		@script.setAttribute "type", "text/javascript"
 		@head.appendChild @script
@@ -265,7 +257,7 @@ class JsResourceLinked extends Resource
 		
 		t = Date.now()
 		# ZZZ need better way to handle caching
-		cache = @url.indexOf("/puzlet/js") isnt -1 or @url.indexOf("http://") isnt -1
+		cache = @url.indexOf("/puzlet/js") isnt -1 or @url.indexOf("http://") isnt -1  # ZZZ use ResourceLocation
 		@script.setAttribute "src", @url+(if cache then "" else "?t=#{t}")
 		#@script.setAttribute "data-url", @url
 
@@ -317,29 +309,29 @@ class ResourceFactory
 		
 		return null if @checkExists spec
 		
-		spec = @normalizeSpec spec
+		if spec.url
+			url = spec.url
+		else
+			{url, fileExt} = @extractUrl spec
+		url = @modifyPuzletUrl url
+		location = new ResourceLocation url
+		fileExt ?= location.fileExt
 		
-		url = spec.url
-		fileExt = spec.fileExt
+		spec =
+			location: location
+			fileExt: fileExt
+			gistSource: @getGistSource(url)
 		
-		# ZZZ should be part of ResourceLocation?
-		inBlab = url.indexOf("/") is -1
-		api = url.indexOf("api.github.com") isnt -1
-		location = if inBlab then "blab" else "ext"
-		
-		spec.gistSource = @getGistSource url
-		spec.location = location  # Needed for Gists (and coffee compiling?)
-		
-		resourceSubTypes = @resourceTypes[fileExt]
-		return null unless resourceSubTypes
-		if resourceSubTypes.all?
-			resource = new resourceSubTypes.all spec
+		subTypes = @resourceTypes[fileExt]
+		return null unless subTypes
+		if subTypes.all?
+			resource = new subTypes.all spec
 		else
 			subtype = switch
-				when inBlab then "blab"  # File in current blab
-				when api then "api"  # Use GitHub API
+				when location.inBlab then "blab"  # File in current blab
+				when location.isGitHubApi then "api"  # Use GitHub API
 				else "ext"  # External file
-			resource = new resourceSubTypes[subtype](spec)
+			resource = new subTypes[subtype](spec)
 		resource
 	
 	checkExists: (spec) ->
@@ -353,21 +345,20 @@ class ResourceFactory
 		console.log "Not loading #{v} - already exists"
 		true
 	
-	normalizeSpec: (spec) ->
-		if spec.url
-			url = spec.url
-			fileExt = Resource.getFileExt url
-		else
-			for p, v of spec
-				# Currently handles only one property.
-				url = v
-				fileExt = p
-		url = @modifyPuzletUrl url
-		spec = {url: url, fileExt: fileExt}
+	extractUrl: (spec) ->
+		for p, v of spec
+			# Currently handles only one property.
+			url = v
+			fileExt = p
+		{url, fileExt}
 	
 	modifyPuzletUrl: (url) ->
-		@puzletUrl ?= "http://puzlet.org"
-		@puzlet ?= if document.querySelectorAll("[src='#{@puzletUrl}/puzlet/js/puzlet.js']").length then @puzletUrl else null
+		# resources.json can use shorthand /puzlet/...
+		# This function makes it:
+		#    http://puzlet.org/puzlet/... (on puzlet server) or
+		#    /puzlet/puzlet/... (local dev).
+		puzletUrl = "http://puzlet.org"
+		@puzlet ?= if document.querySelectorAll("[src='#{puzletUrl}/puzlet/js/puzlet.js']").length then puzletUrl else null
 		puzletResource = url.match("^/puzlet")?.length
 		if puzletResource
 			url = if @puzlet then @puzlet+url else "/puzlet"+url
@@ -431,6 +422,12 @@ class Resources
 		
 	getJSON: (url) ->
 		JSON.parse(@find(url).content)
+	
+	loadJSON: (url, callback) ->
+		resource = @find url
+		resource ?= @add {url: url}
+		return null unless resource
+		resource.load (-> callback?(resource.content)), "json"
 	
 	render: ->
 		resource.render() for resource in @resources
@@ -637,8 +634,7 @@ class GitHub
 		
 		console.log "Save as Gist (#{if @auth then @username else 'anonymous'})"
 		
-		resources = @resources.select (resource) ->
-			resource.spec.location is "blab"
+		resources = @resources.select (resource) -> resource.inBlab()
 		@files = {}
 		@files[resource.url] = {content: resource.content} for resource in resources
 		

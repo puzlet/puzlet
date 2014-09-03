@@ -50,6 +50,7 @@ class Loader
 	constructor: (@blabLocation, @render, @done) ->
 		@resources = new Resources @blabLocation
 		$blab.resources = @resources
+		$blab.loadJSON = (url, callback) -> $blab.resources.loadJSON(url, callback)
 		@loadCoreResources => @loadGitHub => @loadResourceList => @loadHtmlCss => @loadScripts => @loadAce => @done()
 	
 	# Dynamically load and run jQuery and Wiky.
