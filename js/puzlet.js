@@ -3629,6 +3629,8 @@
         url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js",
         "var": "jQuery"
       }, {
+        url: "/puzlet/js/google_analytics.js"
+      }, {
         url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css",
         "var": "jQuery"
       }, {

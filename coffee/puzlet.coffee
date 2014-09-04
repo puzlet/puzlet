@@ -23,6 +23,7 @@ class Loader
 	coreResources: [
 #		{url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
 		{url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
+		{url: "/puzlet/js/google_analytics.js"}
 #		{url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
 		{url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
 		{url: "/puzlet/js/wiky.js", var: "Wiky"}
