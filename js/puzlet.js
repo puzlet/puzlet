@@ -2893,7 +2893,7 @@
       this.initChangeListeners();
       this.keyboardShortcuts();
       this.onSwipe(function() {
-        return _this.spec.update(_this.code());
+        return _this.run();
       });
       new Ace.CustomRenderer(this);
     }
@@ -3119,6 +3119,13 @@
       return this.changeListeners.push(f);
     };
 
+    Editor.prototype.run = function() {
+      if (typeof _gaq !== "undefined" && _gaq !== null) {
+        _gaq.push(["_trackEvent", "runCoffee", "run", $blab.title]);
+      }
+      return this.spec.update(this.code());
+    };
+
     Editor.prototype.keyboardShortcuts = function() {
       var command,
         _this = this;
@@ -3133,7 +3140,10 @@
           sender: "editor"
         },
         exec: function(env, args, request) {
-          return _this.spec.update(_this.code());
+          if (typeof _gaq !== "undefined" && _gaq !== null) {
+            _gaq.push(["_trackEvent", "runCoffee", "run (key)"]);
+          }
+          return _this.run();
         }
       });
       return command({
@@ -3851,8 +3861,9 @@
       var matches;
       matches = wikyHtml.match(/[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/);
       if (matches != null ? matches.length : void 0) {
-        return document.title = matches[1];
+        $blab.title = matches[1];
       }
+      return document.title = $blab.title;
     };
 
     return Page;

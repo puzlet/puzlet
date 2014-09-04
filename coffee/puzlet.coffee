@@ -158,7 +158,9 @@ class Page
 	
 	pageTitle: (wikyHtml) ->
 		matches = wikyHtml.match /[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/
-		document.title = matches[1] if matches?.length
+		$blab.title = matches[1] if matches?.length
+		document.title = $blab.title
+		
 
 
 class FavIcon

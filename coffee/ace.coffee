@@ -86,7 +86,7 @@ class Ace.Editor
 		
 		@initChangeListeners()
 		@keyboardShortcuts()
-		@onSwipe => @spec.update(@code())
+		@onSwipe => @run() #@spec.update(@code())
 		
 		new Ace.CustomRenderer this
 	
@@ -258,6 +258,10 @@ class Ace.Editor
 		@changeListeners.push f
 	
 	
+	run: ->
+		_gaq?.push ["_trackEvent", "runCoffee", "run", $blab.title]
+		@spec.update(@code())
+	
 	keyboardShortcuts: ->
 		command = (o) => @editor.commands.addCommand o
 		command
@@ -267,8 +271,9 @@ class Ace.Editor
 				mac: "Shift-Return"
 				sender: "editor"
 			exec: (env, args, request) =>
+				_gaq?.push ["_trackEvent", "runCoffee", "run (key)", ]
 				#_gaq?.push ["_trackEvent", "runCoffee", "run (key)", $pz?.module.id]
-				@spec.update(@code())
+				@run()
 		command
 			name: "save"
 			bindKey:
