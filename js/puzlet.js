@@ -3867,11 +3867,12 @@
     };
 
     Page.prototype.pageTitle = function(wikyHtml) {
-      var matches;
-      matches = wikyHtml.match(/[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/);
-      if (matches != null ? matches.length : void 0) {
-        $blab.title = matches[1];
+      var headings;
+      headings = $(":header");
+      if (!headings.length) {
+        return;
       }
+      $blab.title = headings[0].innerHTML;
       return document.title = $blab.title;
     };
 

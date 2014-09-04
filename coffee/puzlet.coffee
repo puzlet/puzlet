@@ -162,8 +162,11 @@ class Page
 		$.event.trigger "htmlOutputUpdated"
 	
 	pageTitle: (wikyHtml) ->
-		matches = wikyHtml.match /[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/
-		$blab.title = matches[1] if matches?.length
+		headings = $ ":header"
+		return unless headings.length
+		$blab.title = headings[0].innerHTML
+		#matches = wikyHtml.match /[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/
+		#$blab.title = matches[1] if matches?.length
 		document.title = $blab.title
 		
 
