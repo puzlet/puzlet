@@ -125,6 +125,31 @@ class Loader
 class Page
 	
 	constructor: (@blabLocation) ->
+		@doneFirstHtml = false
+	
+	render: (wikyHtml) ->
+		@mainContainer() unless @container?
+		@container.append Wiky.toHtml(wikyHtml)
+		new PageTitle unless @doneFirstHtml
+		@doneFirstHtml = true
+		#@pageTitle wikyHtml  # ZZZ should work only for first wikyHtml
+		
+	ready: (@resources) ->
+		new MathJaxProcessor  # ZZZ should be after all html rendered?
+		new Notes
+		new FavIcon
+		new GithubRibbon @container, @blabLocation.source
+		new SaveButton @container, -> $.event.trigger "saveGitHub"
+		new GoogleAnalytics
+		
+	rerender: ->
+		@empty()
+		@doneFirstHtml = false
+		@render html.content for html in @resources.select("html")
+		# Note that page title not changed.
+		@resources.render()  # Render Ace editors
+		resource.compile() for resource in @resources.select "coffee"  # Compile and run all CoffeeScript
+		$.event.trigger "htmlOutputUpdated"
 	
 	mainContainer: ->
 		return if @container?
@@ -132,43 +157,28 @@ class Page
 		@container.hide()
 		$(document.body).append @container
 		@container.show()  # ZZZ should show only after all html rendered - need another event.
-		
-	empty: ->
-		@container.empty()
 	
-	render: (wikyHtml) ->
-		@mainContainer() unless @container?
-		@container.append Wiky.toHtml(wikyHtml)
-		@pageTitle wikyHtml  # ZZZ should work only for first wikyHtml
-		
-	ready: (@resources, @gistId) ->
-		new MathJaxProcessor  # ZZZ should be after all html rendered?
-		new Notes
-		new FavIcon
-		new GithubRibbon @container, @blabLocation.source
-		new SaveButton @container, -> $.event.trigger "saveGitHub"
-		
-		changed = false
-		$(document).on "codeNodeChanged", =>
-			_gaq?.push ["_trackEvent", "edit", "firstEdit", $blab.title] unless changed
-			changed = true
-		
-	rerender: ->
-		@empty()
-		@render html.content for html in @resources.select("html")
-		# Note that page title not changed.
-		@resources.render()  # Render Ace editors
-		resource.compile() for resource in @resources.select "coffee"  # Compile and run all CoffeeScript
-		$.event.trigger "htmlOutputUpdated"
-	
-	pageTitle: (wikyHtml) ->
-		headings = $ ":header"
-		return unless headings.length
-		$blab.title = headings[0].innerHTML
+	#pageTitle: (wikyHtml) ->
+	#	headings = $ ":header"
+	#	return unless headings.length
+	#	$blab.title = headings[0].innerHTML
 		#matches = wikyHtml.match /[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/
 		#$blab.title = matches[1] if matches?.length
-		document.title = $blab.title
+	#	document.title = $blab.title
+	
+	empty: ->
+		@container.empty()
 		
+	#googleAnalytics: ->
+		# ZZZ make this a class, and handle all google events via puzlet events.
+	#	changed = false
+	#	$(document).on "codeNodeChanged", =>
+	#		_gaq?.push ["_trackEvent", "edit", "firstEdit", $blab.title] unless changed
+	#		changed = true
+	#	$(document).on "runCode", =>
+	#		_gaq?.push ["_trackEvent", "runCoffee", "run", $blab.title]
+		# 	$.event.trigger "saveGitHub"
+
 
 
 class FavIcon
@@ -180,6 +190,16 @@ class FavIcon
 			href: "http://puzlet.org/puzlet/images/favicon.ico"
 		$(document.head).append icon
 
+
+class PageTitle
+	
+	constructor: ->
+		headings = $ ":header"
+		return unless headings.length
+		$blab.title = headings[0].innerHTML
+		#matches = wikyHtml.match /[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/
+		#$blab.title = matches[1] if matches?.length
+		document.title = $blab.title
 
 class GithubRibbon
 	
@@ -253,8 +273,20 @@ class MathJaxProcessor
 		queue configElements
 
 
-#---------- Mouseovers ----------#
-
+class GoogleAnalytics
+	
+	construct: ->
+		@codeChanged = false
+		@title = $blab.title
+		@track "codeNodeChanged", "edit", "firstEdit", @title, (=> not @codeChanged), (=> @codeChanged = true)
+		@track "runCode", "runCode", "run", @title
+		
+	track: (pzEvent, gCat, gEvent, gText, condition=(->true), callback) ->
+		$(document).on pzEvent, =>
+			_gaq?.push ["_trackEvent", gCat, gEvent, gText] if condition()
+			callback?()
+			
+# Mouseovers notes
 class Notes
 	
 	constructor: ->
@@ -342,7 +374,7 @@ init = ->
 	blabLocation = new ResourceLocation  # For current page
 	page = new Page blabLocation
 	render = (wikyHtml) -> page.render wikyHtml
-	ready = -> page.ready loader.resources, loader.github.id
+	ready = -> page.ready loader.resources
 	loader = new Loader blabLocation, render, ready
 	$pz.renderHtml = -> page.rerender()  # ZZZ publicInterface?
 
@@ -350,21 +382,4 @@ init = ->
 init()
 
 
-#=== Not used yet ===
-
-#=== RESOURCE EDITING IN BROWSER ===
-
-#--- Viewing/editing/running code in blab page ---
-# Code of any file in *current* blab can be viewed in page, by inserting <div> code in main.html (or any html file):
-# <div data-file="foo.coffee"></div>
-
-# If this code is edited (and ok/run button pressed), it replaces the previous code (and executes if it's a script).
-# Later, we'll support way of saving edited code to gist.
-
-getBlabFromQuery = ->
-	query = location.search.slice(1)
-	return null unless query
-	h = query.split "&"
-	p = h?[0].split "="
-	blab = if p.length and p[0] is "blab" then p[1] else null
 

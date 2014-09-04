@@ -259,8 +259,8 @@ class Ace.Editor
 	
 	
 	run: ->
-		_gaq?.push ["_trackEvent", "runCoffee", "run", $blab.title]
 		@spec.update(@code())
+		$.event.trigger "runCode"
 	
 	keyboardShortcuts: ->
 		command = (o) => @editor.commands.addCommand o
@@ -270,9 +270,7 @@ class Ace.Editor
 				win: "Shift-Return"
 				mac: "Shift-Return"
 				sender: "editor"
-			exec: (env, args, request) =>
-				#_gaq?.push ["_trackEvent", "runCoffee", "run (key)", $pz?.module.id]
-				@run()
+			exec: (env, args, request) => @run()
 		command
 			name: "save"
 			bindKey:
@@ -323,7 +321,7 @@ class Ace.Languages
 	
 	@langName: (ext) ->
 		return name for name, language of Ace.Languages.list when language.ext is ext
-	
+
 
 Ace.path = "http://ajaxorg.github.io/ace-builds/src-min-noconflict"
 #Ace.path = "/puzlet/js/ace5"  # ace5
