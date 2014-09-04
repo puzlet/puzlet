@@ -3840,7 +3840,6 @@
       });
       changed = false;
       return $(document).on("codeNodeChanged", function() {
-        console.log("CHANGE");
         if (!changed) {
           if (typeof _gaq !== "undefined" && _gaq !== null) {
             _gaq.push(["_trackEvent", "edit", "firstEdit", $blab.title]);

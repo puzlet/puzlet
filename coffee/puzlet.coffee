@@ -150,7 +150,6 @@ class Page
 		
 		changed = false
 		$(document).on "codeNodeChanged", =>
-			console.log "CHANGE"
 			_gaq?.push ["_trackEvent", "edit", "firstEdit", $blab.title] unless changed
 			changed = true
 		
