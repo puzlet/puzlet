@@ -268,7 +268,7 @@ class CoffeeResource extends Resource
 	load: (callback) ->
 		super =>
 			@Compiler = if @hasEval() then CoffeeCompilerEval else CoffeeCompiler
-			@compiler = new @Compiler @url
+			@compiler = new @Compiler @location
 			callback?()
 			
 	compile: ->
@@ -463,7 +463,9 @@ class Resources
 
 class CoffeeCompiler
 	
-	constructor: (@url) ->
+	constructor: (@location) ->
+		@url = @location.url
+		@isMain = @location.inBlab
 		@head = document.head
 	
 	compile: (@content) ->
@@ -474,7 +476,7 @@ class CoffeeCompiler
 			type: "text/javascript"
 			"data-url": @url
 		# ZZZ enhance with try/catch for errors
-		js = CoffeeEvaluator.compile @content
+		js = CoffeeEvaluator.compile @content, @isMain
 		@element.text js
 		@head.appendChild @element[0]
 	
@@ -486,14 +488,16 @@ class CoffeeCompilerEval
 	
 	lf: "\n"
 	
-	constructor: (@url) ->
+	constructor: (@location) ->
+		@url = @location.url
+		@isMain = @location.inBlab
 		@evaluator = new CoffeeEvaluator
 	
 	compile: (@content) ->
 		# Eval node exists
 		console.log "Compile #{@url} (for eval box)"
 		recompile = true
-		@resultArray = @evaluator.process @content, recompile
+		@resultArray = @evaluator.process @content, @isMain, recompile
 		@result = @evaluator.stringify @resultArray
 		@resultStr = @result.join(@lf) + @plotLines()  # ZZZ should stringify produce this directly?
 		
@@ -523,20 +527,22 @@ class CoffeeEvaluator
 	lf: "\n"
 	
 	# Class properties.
-	@compile = (code, bare=false) ->
+	@compile = (code, isMain=true, bare=false) ->
+		console.log "@compile isMain", isMain
 		CoffeeEvaluator.blabCoffee ?= new BlabCoffee
-		js = CoffeeEvaluator.blabCoffee.compile code, bare
+		js = CoffeeEvaluator.blabCoffee.compile code, isMain, bare
 	
-	@eval = (code, js=null) ->
-		# Pass js if don't want to recompile
-		js = CoffeeEvaluator.compile code unless js
+	@eval = (code, isMain=true, js=null) ->
+		console.log "@eval isMain", isMain
+		# Pass js if don't want to recompile.
+		js = CoffeeEvaluator.compile code, isMain unless js
 		eval js
 		js
 	
 	constructor: ->
 		@js = null
 	
-	process: (code, recompile=true) -> #, stringify=true) ->
+	process: (code, isMain=true, recompile=true) -> #, stringify=true) ->
 		stringify = true #ZZZ test
 		compile = recompile or not(@evalLines and @js)
 		if compile
@@ -549,7 +555,7 @@ class CoffeeEvaluator
 			js = @js
 			
 		try
-			@js = CoffeeEvaluator.eval @evalLines, js  # Evaluated lines will be assigned to $blab.evaluator.
+			@js = CoffeeEvaluator.eval @evalLines, isMain, js  # Evaluated lines will be assigned to $blab.evaluator.
 		catch error
 			console.log "eval error", error
 			

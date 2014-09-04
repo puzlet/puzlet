@@ -87,15 +87,20 @@ class BlabCoffee
 		new EvalBoxPlotter
 		@mathInitialized = true
 		
-	compile: (code, bare=false) ->
+	compile: (code, isMain=true, bare=false) ->
 		lf = "\n"
+		
+		isMainStr = if isMain then 'true' else 'false'
+		preamble = ["__isMain__ = #{isMainStr}#{lf}"]
+		
 		codeLines = code.split lf
 		firstLine = codeLines[0]
 		vanilla = firstLine is "#!vanilla"
 		unless vanilla
 			@initializeMath()
-			codeLines = @predefinedCoffeeLines.concat codeLines
-			code = codeLines.join lf
+			preamble = preamble.concat @predefinedCoffeeLines
+		codeLines = preamble.concat(codeLines)
+		code = codeLines.join lf
 		js = CoffeeScript.compile code, bare: bare
 		js = PaperScript.compile js unless vanilla  # $blab.overloadOps no longer used.
 		js

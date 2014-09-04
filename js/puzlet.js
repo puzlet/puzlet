@@ -37,20 +37,26 @@
       return this.mathInitialized = true;
     };
 
-    BlabCoffee.prototype.compile = function(code, bare) {
-      var codeLines, firstLine, js, lf, vanilla;
+    BlabCoffee.prototype.compile = function(code, isMain, bare) {
+      var codeLines, firstLine, isMainStr, js, lf, preamble, vanilla;
+      if (isMain == null) {
+        isMain = true;
+      }
       if (bare == null) {
         bare = false;
       }
       lf = "\n";
+      isMainStr = isMain ? 'true' : 'false';
+      preamble = ["__isMain__ = " + isMainStr + lf];
       codeLines = code.split(lf);
       firstLine = codeLines[0];
       vanilla = firstLine === "#!vanilla";
       if (!vanilla) {
         this.initializeMath();
-        codeLines = this.predefinedCoffeeLines.concat(codeLines);
-        code = codeLines.join(lf);
+        preamble = preamble.concat(this.predefinedCoffeeLines);
       }
+      codeLines = preamble.concat(codeLines);
+      code = codeLines.join(lf);
       js = CoffeeScript.compile(code, {
         bare: bare
       });
@@ -1600,7 +1606,7 @@
       var _this = this;
       return CoffeeResource.__super__.load.call(this, function() {
         _this.Compiler = _this.hasEval() ? CoffeeCompilerEval : CoffeeCompiler;
-        _this.compiler = new _this.Compiler(_this.url);
+        _this.compiler = new _this.Compiler(_this.location);
         return typeof callback === "function" ? callback() : void 0;
       });
     };
@@ -1970,8 +1976,10 @@
 
   CoffeeCompiler = (function() {
 
-    function CoffeeCompiler(url) {
-      this.url = url;
+    function CoffeeCompiler(location) {
+      this.location = location;
+      this.url = this.location.url;
+      this.isMain = this.location.inBlab;
       this.head = document.head;
     }
 
@@ -1986,7 +1994,7 @@
         type: "text/javascript",
         "data-url": this.url
       });
-      js = CoffeeEvaluator.compile(this.content);
+      js = CoffeeEvaluator.compile(this.content, this.isMain);
       this.element.text(js);
       return this.head.appendChild(this.element[0]);
     };
@@ -2003,8 +2011,10 @@
 
     CoffeeCompilerEval.prototype.lf = "\n";
 
-    function CoffeeCompilerEval(url) {
-      this.url = url;
+    function CoffeeCompilerEval(location) {
+      this.location = location;
+      this.url = this.location.url;
+      this.isMain = this.location.inBlab;
       this.evaluator = new CoffeeEvaluator;
     }
 
@@ -2013,7 +2023,7 @@
       this.content = content;
       console.log("Compile " + this.url + " (for eval box)");
       recompile = true;
-      this.resultArray = this.evaluator.process(this.content, recompile);
+      this.resultArray = this.evaluator.process(this.content, this.isMain, recompile);
       this.result = this.evaluator.stringify(this.resultArray);
       return this.resultStr = this.result.join(this.lf) + this.plotLines();
     };
@@ -2045,23 +2055,31 @@
 
     CoffeeEvaluator.prototype.lf = "\n";
 
-    CoffeeEvaluator.compile = function(code, bare) {
+    CoffeeEvaluator.compile = function(code, isMain, bare) {
       var js, _ref;
+      if (isMain == null) {
+        isMain = true;
+      }
       if (bare == null) {
         bare = false;
       }
+      console.log("@compile isMain", isMain);
       if ((_ref = CoffeeEvaluator.blabCoffee) == null) {
         CoffeeEvaluator.blabCoffee = new BlabCoffee;
       }
-      return js = CoffeeEvaluator.blabCoffee.compile(code, bare);
+      return js = CoffeeEvaluator.blabCoffee.compile(code, isMain, bare);
     };
 
-    CoffeeEvaluator["eval"] = function(code, js) {
+    CoffeeEvaluator["eval"] = function(code, isMain, js) {
+      if (isMain == null) {
+        isMain = true;
+      }
       if (js == null) {
         js = null;
       }
+      console.log("@eval isMain", isMain);
       if (!js) {
-        js = CoffeeEvaluator.compile(code);
+        js = CoffeeEvaluator.compile(code, isMain);
       }
       eval(js);
       return js;
@@ -2071,8 +2089,11 @@
       this.js = null;
     }
 
-    CoffeeEvaluator.prototype.process = function(code, recompile) {
+    CoffeeEvaluator.prototype.process = function(code, isMain, recompile) {
       var codeLines, compile, js, l, n, stringify;
+      if (isMain == null) {
+        isMain = true;
+      }
       if (recompile == null) {
         recompile = true;
       }
@@ -2103,7 +2124,7 @@
         js = this.js;
       }
       try {
-        this.js = CoffeeEvaluator["eval"](this.evalLines, js);
+        this.js = CoffeeEvaluator["eval"](this.evalLines, isMain, js);
       } catch (error) {
         console.log("eval error", error);
       }
