@@ -276,7 +276,7 @@ class MathJaxProcessor
 
 class GoogleAnalytics
 	
-	construct: ->
+	constructor: ->
 		@codeChanged = false
 		@title = $blab.title
 		@track "codeNodeChanged", "edit", "firstEdit", @title, (=> not @codeChanged), (=> @codeChanged = true)
@@ -284,6 +284,7 @@ class GoogleAnalytics
 		
 	track: (pzEvent, gCat, gEvent, gText, condition=(->true), callback) ->
 		$(document).on pzEvent, =>
+			#console.log "pzEvent", pzEvent
 			_gaq?.push ["_trackEvent", gCat, gEvent, gText] if condition()
 			callback?()
 	

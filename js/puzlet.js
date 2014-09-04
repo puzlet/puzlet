@@ -4028,9 +4028,7 @@
 
   GoogleAnalytics = (function() {
 
-    function GoogleAnalytics() {}
-
-    GoogleAnalytics.prototype.construct = function() {
+    function GoogleAnalytics() {
       var _this = this;
       this.codeChanged = false;
       this.title = $blab.title;
@@ -4039,8 +4037,8 @@
       }), (function() {
         return _this.codeChanged = true;
       }));
-      return this.track("runCode", "runCode", "run", this.title);
-    };
+      this.track("runCode", "runCode", "run", this.title);
+    }
 
     GoogleAnalytics.prototype.track = function(pzEvent, gCat, gEvent, gText, condition, callback) {
       var _this = this;
