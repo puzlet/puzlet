@@ -430,9 +430,15 @@ class Resources
 	getContent: (id) ->
 		# id can be resource id or resource url.  Tries to match resource id first.
 		resource = @find(id)
-		if resource then resouce.content else null
+		if resource
+			content = resource.content
+			if resource.fileExt is "json" then JSON.parse(content) else content
+		else
+			null
 	
-	getJSON: (id) -> @getContent id
+	getJSON: (id) ->
+		content = @getContent id
+		JSON.parse(content) if content
 	
 	loadJSON: (url, callback) ->
 		resource = @find url

@@ -1891,17 +1891,26 @@
     };
 
     Resources.prototype.getContent = function(id) {
-      var resource;
+      var content, resource;
       resource = this.find(id);
       if (resource) {
-        return resouce.content;
+        content = resource.content;
+        if (resource.fileExt === "json") {
+          return JSON.parse(content);
+        } else {
+          return content;
+        }
       } else {
         return null;
       }
     };
 
     Resources.prototype.getJSON = function(id) {
-      return this.getContent(id);
+      var content;
+      content = this.getContent(id);
+      if (content) {
+        return JSON.parse(content);
+      }
     };
 
     Resources.prototype.loadJSON = function(url, callback) {
@@ -3649,8 +3658,7 @@
         return $blab.resources.loadJSON(url, callback);
       };
       $blab.resource = function(id) {
-        var _ref;
-        return (_ref = _this.resources.find(id)) != null ? _ref.content : void 0;
+        return _this.resources.getContent(id);
       };
       this.loadCoreResources(function() {
         return _this.loadGitHub(function() {
