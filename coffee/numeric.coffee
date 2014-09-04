@@ -106,6 +106,7 @@ class BlabCoffee
 		js
 		
 
+
 class TypeMath
 	# Superclass
 		
@@ -126,6 +127,7 @@ class TypeMath
 		# e.g., Array.prototype.__add = Array.prototype.add
 		@proto["__"+b] = @proto[a]
 	
+
 
 class ScalarMath extends TypeMath
 	
@@ -200,6 +202,7 @@ class ArrayMath extends TypeMath
 		numeric.rand = (sz=null) ->
 			if sz then numeric.random(sz) else Math.random()
 			# ZZZ Also flatten?
+
 
 class ComplexMath extends TypeMath
 	
@@ -277,6 +280,7 @@ class ComplexMath extends TypeMath
 			else
 				numericOld[op] x, y  # Otherwise, just previous method.
 	
+
 
 class NumericFunctions
 	

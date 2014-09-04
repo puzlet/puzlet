@@ -1,4 +1,22 @@
-window.$pz = {}
+class Blab
+	
+	constructor: ->
+		@publicInterface()
+		@location = new ResourceLocation  # For current page
+		@page = new Page @location
+		render = (wikyHtml) => @page.render wikyHtml
+		ready = => @page.ready @loader.resources
+		@loader = new Loader @location, render, ready
+		$pz.renderHtml = => @page.rerender()
+	
+	publicInterface: ->
+		window.$pz = {}
+		window.$blab = {}  # Exported interface.
+		window.console = {} unless window.console?
+		window.console.log = (->) unless window.console.log?
+		$pz.AceIdentifiers = Ace.Identifiers
+		$blab.codeDecoration = true
+
 
 class Loader
 	
@@ -50,9 +68,7 @@ class Loader
 	
 	constructor: (@blabLocation, @render, @done) ->
 		@resources = new Resources @blabLocation
-		$blab.resources = @resources
-		$blab.loadJSON = (url, callback) -> $blab.resources.loadJSON(url, callback)
-		$blab.resource = (id) => @resources.getContent id
+		@publicInterface()
 		@loadCoreResources => @loadGitHub => @loadResourceList => @loadHtmlCss => @loadScripts => @loadAce => @done()
 	
 	# Dynamically load and run jQuery and Wiky.
@@ -120,6 +136,11 @@ class Loader
 		# ZZZ do external first; then blabs.
 		filter = (resource) -> resource.isType("coffee") and coffeeFilter(resource)
 		coffee.compile() for coffee in @resources.select filter
+		
+	publicInterface: ->
+		$blab.resources = @resources
+		$blab.loadJSON = (url, callback) => @resources.loadJSON(url, callback)
+		$blab.resource = (id) => @resources.getContent id
 
 
 class Page
@@ -128,11 +149,10 @@ class Page
 		@doneFirstHtml = false
 	
 	render: (wikyHtml) ->
-		@mainContainer() unless @container?
+		@mainContainer()
 		@container.append Wiky.toHtml(wikyHtml)
 		new PageTitle unless @doneFirstHtml
 		@doneFirstHtml = true
-		#@pageTitle wikyHtml  # ZZZ should work only for first wikyHtml
 		
 	ready: (@resources) ->
 		new MathJaxProcessor  # ZZZ should be after all html rendered?
@@ -146,7 +166,6 @@ class Page
 		@empty()
 		@doneFirstHtml = false
 		@render html.content for html in @resources.select("html")
-		# Note that page title not changed.
 		@resources.render()  # Render Ace editors
 		resource.compile() for resource in @resources.select "coffee"  # Compile and run all CoffeeScript
 		$.event.trigger "htmlOutputUpdated"
@@ -154,31 +173,12 @@ class Page
 	mainContainer: ->
 		return if @container?
 		@container = $ "<div>", id: "blab_container"
-		@container.hide()
+		#@container.hide()
 		$(document.body).append @container
-		@container.show()  # ZZZ should show only after all html rendered - need another event.
-	
-	#pageTitle: (wikyHtml) ->
-	#	headings = $ ":header"
-	#	return unless headings.length
-	#	$blab.title = headings[0].innerHTML
-		#matches = wikyHtml.match /[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/
-		#$blab.title = matches[1] if matches?.length
-	#	document.title = $blab.title
+		#@container.show()  # ZZZ should show only after all html rendered - need another event.
 	
 	empty: ->
 		@container.empty()
-		
-	#googleAnalytics: ->
-		# ZZZ make this a class, and handle all google events via puzlet events.
-	#	changed = false
-	#	$(document).on "codeNodeChanged", =>
-	#		_gaq?.push ["_trackEvent", "edit", "firstEdit", $blab.title] unless changed
-	#		changed = true
-	#	$(document).on "runCode", =>
-	#		_gaq?.push ["_trackEvent", "runCoffee", "run", $blab.title]
-		# 	$.event.trigger "saveGitHub"
-
 
 
 class FavIcon
@@ -200,6 +200,7 @@ class PageTitle
 		#matches = wikyHtml.match /[^|\n][=]{1,6}(.*?)[=]{1,6}[^a-z0-9][\n|$]/
 		#$blab.title = matches[1] if matches?.length
 		document.title = $blab.title
+
 
 class GithubRibbon
 	
@@ -285,11 +286,14 @@ class GoogleAnalytics
 		$(document).on pzEvent, =>
 			_gaq?.push ["_trackEvent", gCat, gEvent, gText] if condition()
 			callback?()
-			
+	
+
+
 # Mouseovers notes
 class Notes
 	
 	constructor: ->
+		@initTooltip()
 		@processText((t) => @init t)
 		$(document).on "mathjaxPreConfig", =>
 			#MathJax.Hub.signal.Interest (message) ->
@@ -300,7 +304,42 @@ class Notes
 				@processText((t) => @set t)
 		$(document).on "htmlOutputUpdated", => @processText((t) => @init t)
 		$(document).tooltip(css: {fontSize: "10pt"})  # ZZZ Use .css instead
-		
+	
+	
+	initTooltip: ->
+		$pz.persistentTooltip = (widget) ->
+			
+			delay = 100
+			tId = null
+			
+			clear = -> if tId then clearTimeout tId
+			
+			set = ->
+				clear()
+				tId = setTimeout (-> widget.tooltip "close"), delay
+				
+			widget.tooltip()  # This is necessary to initialize tooltip for timeout.
+			
+			widget.on "tooltipopen", (event, ui) ->
+				setClose = ->
+					tipId = widget.attr "aria-describedBy"
+					tip = $ "#"+tipId
+					tip.on "click", (-> widget.tooltip "close")
+				setTimeout setClose, 100
+			
+			widget.mouseenter ((evt) -> clear())
+			
+			widget.mouseleave ((evt) ->
+				evt.stopImmediatePropagation()
+				#return  # ZZZ DEBUG
+				set()
+				tipId = widget.attr "aria-describedBy"
+				tip = $ "#"+tipId                # Alt (broad): $ ".ui-tooltip-content" 
+				tip.on "mouseenter", (-> clear())
+				tip.on "mouseleave", (-> set())
+			)
+	
+	
 	processText: (method) -> method($ txt) for txt in $ ".pz_text"
 	
 	init: (t) ->
@@ -320,66 +359,5 @@ class Notes
 		$("##{ref}").html()
 
 
-$pz.persistentTooltip = (widget) ->
-	
-	delay = 100
-	tId = null
-	
-	clear = -> if tId then clearTimeout tId
-	
-	set = ->
-		clear()
-		tId = setTimeout (-> widget.tooltip "close"), delay
-		
-	widget.tooltip()  # This is necessary to initialize tooltip for timeout.
-	
-	widget.on "tooltipopen", (event, ui) ->
-		setClose = ->
-			tipId = widget.attr "aria-describedBy"
-			tip = $ "#"+tipId
-			tip.on "click", (-> widget.tooltip "close")
-		setTimeout setClose, 100
-	
-	#clickAction = 
-	#setClick = ->
-	#	widget.click(-> 
-	#		widget.tooltip "close"
-			#widget.unbind()
-	#	)
-	#setTimeout setClick, 100
-	
-	widget.mouseenter ((evt) -> clear())
-	
-	widget.mouseleave ((evt) ->
-		evt.stopImmediatePropagation()
-		#return  # ZZZ DEBUG
-		set()
-		tipId = widget.attr "aria-describedBy"
-		tip = $ "#"+tipId                # Alt (broad): $ ".ui-tooltip-content" 
-		tip.on "mouseenter", (-> clear())
-		tip.on "mouseleave", (-> set())
-	)
-
-
-publicInterface = ->
-	window.$blab = {}  # Exported interface.
-	window.console = {} unless window.console?
-	window.console.log = (->) unless window.console.log?
-	$pz.AceIdentifiers = Ace.Identifiers
-	$blab.codeDecoration = true
-	
-
-init = ->
-	publicInterface()
-	blabLocation = new ResourceLocation  # For current page
-	page = new Page blabLocation
-	render = (wikyHtml) -> page.render wikyHtml
-	ready = -> page.ready loader.resources
-	loader = new Loader blabLocation, render, ready
-	$pz.renderHtml = -> page.rerender()  # ZZZ publicInterface?
-
-
-init()
-
-
+new Blab
 
