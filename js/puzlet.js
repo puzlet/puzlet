@@ -2063,7 +2063,6 @@
       if (bare == null) {
         bare = false;
       }
-      console.log("@compile isMain", isMain);
       if ((_ref = CoffeeEvaluator.blabCoffee) == null) {
         CoffeeEvaluator.blabCoffee = new BlabCoffee;
       }
@@ -2077,7 +2076,6 @@
       if (js == null) {
         js = null;
       }
-      console.log("@eval isMain", isMain);
       if (!js) {
         js = CoffeeEvaluator.compile(code, isMain);
       }

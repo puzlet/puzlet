@@ -528,12 +528,12 @@ class CoffeeEvaluator
 	
 	# Class properties.
 	@compile = (code, isMain=true, bare=false) ->
-		console.log "@compile isMain", isMain
+		#console.log "@compile isMain", isMain
 		CoffeeEvaluator.blabCoffee ?= new BlabCoffee
 		js = CoffeeEvaluator.blabCoffee.compile code, isMain, bare
 	
 	@eval = (code, isMain=true, js=null) ->
-		console.log "@eval isMain", isMain
+		#console.log "@eval isMain", isMain
 		# Pass js if don't want to recompile.
 		js = CoffeeEvaluator.compile code, isMain unless js
 		eval js
