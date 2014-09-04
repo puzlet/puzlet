@@ -148,6 +148,12 @@ class Page
 		new GithubRibbon @container, @blabLocation.source
 		new SaveButton @container, -> $.event.trigger "saveGitHub"
 		
+		changed = false
+		$(document).on "codeNodeChanged", =>
+			console.log "CHANGE"
+			_gaq?.push ["_trackEvent", "edit", "firstEdit", $blab.title] unless changed
+			changed = true
+		
 	rerender: ->
 		@empty()
 		@render html.content for html in @resources.select("html")

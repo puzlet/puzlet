@@ -1777,6 +1777,7 @@
       this.factory = new ResourceFactory(this.blabLocation, function(url) {
         return _this.getGistSource(url);
       });
+      this.changed = false;
     }
 
     Resources.prototype.add = function(resourceSpecs) {
@@ -3140,9 +3141,6 @@
           sender: "editor"
         },
         exec: function(env, args, request) {
-          if (typeof _gaq !== "undefined" && _gaq !== null) {
-            _gaq.push(["_trackEvent", "runCoffee", "run (key)"]);
-          }
           return _this.run();
         }
       });
@@ -3829,14 +3827,26 @@
     };
 
     Page.prototype.ready = function(resources, gistId) {
+      var changed,
+        _this = this;
       this.resources = resources;
       this.gistId = gistId;
       new MathJaxProcessor;
       new Notes;
       new FavIcon;
       new GithubRibbon(this.container, this.blabLocation.source);
-      return new SaveButton(this.container, function() {
+      new SaveButton(this.container, function() {
         return $.event.trigger("saveGitHub");
+      });
+      changed = false;
+      return $(document).on("codeNodeChanged", function() {
+        console.log("CHANGE");
+        if (!changed) {
+          if (typeof _gaq !== "undefined" && _gaq !== null) {
+            _gaq.push(["_trackEvent", "edit", "firstEdit", $blab.title]);
+          }
+        }
+        return changed = true;
       });
     };
 

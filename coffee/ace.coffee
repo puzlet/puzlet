@@ -271,7 +271,6 @@ class Ace.Editor
 				mac: "Shift-Return"
 				sender: "editor"
 			exec: (env, args, request) =>
-				_gaq?.push ["_trackEvent", "runCoffee", "run (key)", ]
 				#_gaq?.push ["_trackEvent", "runCoffee", "run (key)", $pz?.module.id]
 				@run()
 		command

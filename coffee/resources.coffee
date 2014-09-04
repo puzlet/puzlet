@@ -372,6 +372,7 @@ class Resources
 	constructor: (@blabLocation) ->
 		@resources = []
 		@factory = new ResourceFactory @blabLocation, (url) => @getGistSource url
+		@changed = false
 	
 	add: (resourceSpecs) ->
 		resourceSpecs = [resourceSpecs] unless resourceSpecs.length
