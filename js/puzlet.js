@@ -1250,7 +1250,7 @@
         s = this.subf ? "/" + this.subf : "";
         branch = "gh-pages";
         this.source = ("https://github.com/" + this.owner + "/" + this.repo + s) + (this.file ? "/blob/" + branch + "/" + this.file : "");
-        this.apiUrl = ("https://api.github.com/repos/" + this.owner + "/" + this.repo + "/contents") + (this.file ? "/" + this.file : "");
+        this.apiUrl = ("https://api.github.com/repos/" + this.owner + "/" + this.repo + "/contents" + s) + (this.file ? "/" + this.file : "");
       } else {
         this.source = this.url;
       }

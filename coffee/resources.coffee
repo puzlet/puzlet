@@ -65,7 +65,7 @@ class ResourceLocation
 			s = if @subf then "/#{@subf}" else ""  # Subfolder path string
 			branch = "gh-pages"  # ZZZ bug: need to get branch - could be master or something else besides gh-pages.
 			@source = "https://github.com/#{@owner}/#{@repo}#{s}" + (if @file then "/blob/#{branch}/#{@file}" else "")
-			@apiUrl = "https://api.github.com/repos/#{@owner}/#{@repo}/contents" + (if @file then "/#{@file}" else "")
+			@apiUrl = "https://api.github.com/repos/#{@owner}/#{@repo}/contents#{s}" + (if @file then "/#{@file}" else "")
 		else
 			# Regular URL - assume source at same location.
 			@source = @url
