@@ -810,3 +810,142 @@ a.menu:hover {
 	border: 1px #555 solid;
 }
 
+
+/************* Slides ***************/
+.pz_section {
+    cursor: pointer;
+}
+
+.pz_slide_link {
+	cursor: pointer;
+	color: #0080FF;
+	border-bottom: 1px #0080FF dashed;
+}
+
+.pz_slide, .pz_slide_clone {
+	height: 500px;
+	text-align: center; 
+}
+
+.pz_slide_toc {
+	width: 300px;
+	margin-top: 20px;
+	margin-left: auto;
+	margin-right: auto; 
+	text-align: left;
+	line-height: normal;
+}
+
+.pz_slide_heading {
+	padding-bottom: 20px;
+}
+
+.pz_slide_body {
+	width: 600px;
+	margin-top: 10px;
+	margin-left: auto;
+	margin-right: auto; 
+	text-align: left   
+}
+
+.pz_slide_left_panel {
+	float: left;
+	width: 320px;
+	/*height: 430px;*/
+	text-align: left;
+	padding-left: 50px;
+	/*padding-top: 150px;*/
+}
+
+.pz_slide_right_panel {
+	float: right;
+	width: 360px;
+	height: 430px;
+	text-align: left;
+	padding-left: 0px;	
+}
+
+.pz_slide_left_panel_one_third {
+	float: left;
+	width: 230px;
+	text-align: left;
+	padding-left: 50px;
+}
+
+.pz_slide_right_panel_two_thirds {
+	float: right;
+	width: 450px;
+	height: 430px;
+	text-align: left;
+	/*padding-left: 0;*/ 
+}
+
+.pz_slide_tips {
+	width: 500px;
+	margin-top: 30px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	padding-left: 20px;
+	padding-right: 20px;
+	margin-left: auto;
+	margin-right: auto; 
+	text-align: left;
+	background: #eee; color: #888;
+	font-size: 10pt;
+	line-height: 100%;
+}
+
+.subslide {
+    margin-top: -5px;
+    font-size: 10pt;
+    color: gray;
+}
+
+/*
+.bib {
+    margin-left:2em; 
+    text-indent: -2em; 
+    font-size: 10pt;
+    line-height:normal;
+    margin-bottom: 10pt;
+}
+*/
+
+.bib {
+    width: 600px;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto; 
+    text-align: left   
+}
+
+.bib p {
+    margin-left: 2em; 
+    text-indent: -2em;
+    font-size: 10pt;
+    line-height: normal;
+    margin-bottom: 10pt;
+}
+
+.bib ol {
+    margin-left: 0;
+    padding-left: 0;
+    counter-reset: item;
+}
+
+.bib ol>li {
+    margin-left: 2em; 
+    text-indent: -2em;
+    padding-left: 0; 
+    counter-increment: item; 
+    list-style: none inside;
+    font-size: 10pt;
+    line-height: normal;
+    margin-bottom: 10pt;
+}
+
+.bib ol>li:before {
+    content: "[" counter(item) "]";
+    margin-right: 0.5em;
+}
+

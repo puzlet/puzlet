@@ -155,6 +155,7 @@ class Page
 		@doneFirstHtml = true
 		
 	ready: (@resources) ->
+		new SlideDeck
 		new MathJaxProcessor  # ZZZ should be after all html rendered?
 		new Notes
 		new FavIcon
