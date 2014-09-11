@@ -109,7 +109,9 @@ class Resource
 			#console.log "foreign"
 			url = @location.apiUrl
 			type = "json"
-			process = (data) -> atob(data.content)
+			process = (data) ->
+				content = data.content.replace(/\s/g, '')  # Remove whitespace. Fixes parsing issue for Safari.
+				atob(content)
 		else
 			# Regular load.  Doesn't use cache.  type as specified in call.
 			url = @url+"?t=#{Date.now()}"

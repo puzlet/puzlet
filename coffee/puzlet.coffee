@@ -147,6 +147,9 @@ class Page
 	
 	constructor: (@blabLocation) ->
 		@doneFirstHtml = false
+		
+		#$pz.event.mathjaxProcessed.on (=> @scrollToHashSection())
+		#$(window).on "hashchange", (=> @scrollToHashSection())
 	
 	render: (wikyHtml) ->
 		@mainContainer()
@@ -162,6 +165,7 @@ class Page
 		new GithubRibbon @container, @blabLocation.source
 		new SaveButton @container, -> $.event.trigger "saveGitHub"
 		new GoogleAnalytics
+		@scrollToHashSection()
 		
 	rerender: ->
 		@empty()
@@ -180,6 +184,13 @@ class Page
 	
 	empty: ->
 		@container.empty()
+	
+	scrollToHashSection: ->
+		hash = window.location.hash
+		return if not hash
+		section = $ "#"+hash.slice(1)
+		return unless section.length
+		$(document.body).animate(scrollTop: section.offset().top, 0)
 
 
 class FavIcon
@@ -359,6 +370,21 @@ class Notes
 	html: (t) ->
 		ref = t.attr "ref"
 		$("##{ref}").html()
+
+
+class OpenInTab
+	
+	# ZZZ not implemented yet.
+	
+	constructor: ->
+	
+		@linkedTab = null
+		window.openInTab = (id, section) =>
+			if not @linkedTab or @linkedTab.closed
+				@linkedTab = window.open "?id=#{id}##{section}", "_blank"
+			else
+				@linkedTab.focus()
+				@linkedTab.location.hash = "#"+section
 
 
 new Blab
