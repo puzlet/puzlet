@@ -158,6 +158,7 @@ class Page
 		@doneFirstHtml = true
 		
 	ready: (@resources) ->
+		new ThumbImages
 		new SlideDeck
 		new MathJaxProcessor  # ZZZ should be after all html rendered?
 		new Notes
@@ -385,6 +386,35 @@ class OpenInTab
 			else
 				@linkedTab.focus()
 				@linkedTab.location.hash = "#"+section
+
+
+class ThumbImages
+	
+	constructor: ->
+		@processThumb($ img) for img in $ "pzthumb"
+		
+	processThumb: (img) ->
+		i = @processImg img
+		return if not i
+		i.attr "title", "Click to see slide"
+		i.css
+			float: "right"
+			cursor: "pointer"
+			backgroundImage: "url('http://puzlet.org/puzlet/images/UI_171.png')"
+			backgroundRepeat: "no-repeat"
+			backgroundPosition: "right top" #"right top"
+			backgroundSize: "20px 20px"
+		i.attr "height", "250"
+		
+	processImg: (img) ->
+		#return if not img.is ':empty'  # ZZZ need this later?
+		i = $ "<img>"
+		for attr in img[0].attributes
+			name = attr.name
+			val = attr.value
+			i.attr name, val
+		img.append i
+		i
 
 
 new Blab
