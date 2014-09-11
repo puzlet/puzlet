@@ -242,7 +242,7 @@ class SlidesButton
 				#marginLeft: parent.width() + 20
 				height: "50px"
 		@img = $ "<img>"
-			src: "/puzlet/puzlet/images/UI_302.png"
+			src: "http://puzlet.org/puzlet/images/UI_302.png"
 			height: 25
 			css: {cursor: "pointer"}  #, opacity: 0.3}
 			title: "Show/hide slides"
@@ -339,7 +339,7 @@ class ImageButton
 		
 	constructor: (@container, @src, css, @callback) ->
 		@button = $ "<img>"
-			src: "/puzlet/puzlet/images/#{@src}"
+			src: "http://puzlet.org/puzlet/images/#{@src}"
 			height: 20
 			width: 20
 			css:

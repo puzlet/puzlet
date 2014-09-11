@@ -4010,7 +4010,7 @@
         }
       });
       this.img = $("<img>", {
-        src: "/puzlet/puzlet/images/UI_302.png",
+        src: "http://puzlet.org/puzlet/images/UI_302.png",
         height: 25,
         css: {
           cursor: "pointer"
@@ -4206,7 +4206,7 @@
       this.src = src;
       this.callback = callback;
       this.button = $("<img>", {
-        src: "/puzlet/puzlet/images/" + this.src,
+        src: "http://puzlet.org/puzlet/images/" + this.src,
         height: 20,
         width: 20,
         css: {
