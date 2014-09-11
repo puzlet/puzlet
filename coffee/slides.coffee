@@ -1,3 +1,7 @@
+# TODO:
+# Pass blab container
+# pzthumb, pzimg
+
 class SlideDeck
 	
 	constructor: ->
@@ -12,13 +16,6 @@ class SlideDeck
 		$(document).on "mathjaxPreConfig", =>
 			window.MathJax.Hub.Register.StartupHook "MathMenu Ready", =>
 				@createDeck()
-# ZZZ for sandboxes:
-#		$pz.event.mathjaxProcessed.on =>
-#			@createDeck()
-			#@scrollToHashSection()
-#		$pz.event.codeSaved.on => @createDeck()
-		# Improvement: do only for html nodes
-		#$(window).on('hashchange', => @scrollToHashSection())
 		
 	slideSource: -> 
 		$ ".pz_slide"
