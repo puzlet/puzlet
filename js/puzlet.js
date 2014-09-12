@@ -3636,6 +3636,7 @@
       commentNodes = this.editorContainer.find(".ace_comment");
       type = this.node.constructor.name;
       split = this.node.container.data("split");
+      console.log("commentNodes", split != null, type, commentNodes);
       if (!((split != null) && (type === "Editor" || type === "CoffeeEditor"))) {
         return;
       }

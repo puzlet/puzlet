@@ -608,6 +608,8 @@ class SplitEditor
 		type = @node.constructor.name
 		split = @node.container.data "split"
 		
+		console.log "commentNodes", split?, type, commentNodes
+		
 		return unless split? and (type is "Editor" or type is "CoffeeEditor")  # Don't render CoffeeEval nodes
 		
 		id = @editorContainer.attr("id")
