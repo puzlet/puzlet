@@ -65,9 +65,10 @@ class Ace.Editor
 	
 	constructor: (@spec) ->
 		
+		startLine = @spec.container.data "start-line" 
 		@filename = @spec.filename
 		@lang = @spec.lang
-		@id = @idPrefix + @filename
+		@id = @idPrefix + @filename + (if startLine then startLine else "")
 		
 		@initContainer()
 		
@@ -188,17 +189,18 @@ class Ace.Editor
 		@editorContainer.css css
 	
 	
-	setHeight: ->
+	setHeight: (numLines=null)->
 		return if not @editor
-		lines = @code().split("\n")
-		numLines = lines.length
-		if numLines<20
-			lengths = (l.length for l in lines)
-			max = Math.max.apply(Math, lengths)
-			numLines++ if max>75
-		else
-			numLines++
 		lineHeight = @renderer.lineHeight
+		unless numLines
+			lines = @code().split("\n")
+			numLines = lines.length
+			if numLines<20
+				lengths = (l.length for l in lines)
+				max = Math.max.apply(Math, lengths)
+				numLines++ if max>75
+			else
+				numLines++
 		return if @numLines is numLines and @lineHeight is lineHeight
 		
 		@numLines = numLines
@@ -587,6 +589,21 @@ class SplitEditor
 	constructor: (@node) ->
 		
 		@editorContainer = @node.editorContainer
+		startLine = @node.container.data "start-line"
+		endLine = @node.container.data "end-line"
+		console.log "start/end", startLine, endLine
+		# ZZZ Need to get defaults for these
+		return unless startLine
+		height = endLine-startLine+1
+		
+		$(document).on "mathjaxPreConfig", =>
+			#setTimeout (=> @render()), 100
+			@node.setHeight height
+			if startLine>1
+				@node.editor.scrollToLine startLine
+				@node.editor.gotoLine startLine
+		
+		return
 		$(document).on "mathjaxPreConfig", =>
 			setTimeout (=> @render()), 100
 		

@@ -2882,11 +2882,13 @@
     Editor.prototype.idPrefix = "ace_editor_";
 
     function Editor(spec) {
-      var _this = this;
+      var startLine,
+        _this = this;
       this.spec = spec;
+      startLine = this.spec.container.data("start-line");
       this.filename = this.spec.filename;
       this.lang = this.spec.lang;
-      this.id = this.idPrefix + this.filename;
+      this.id = this.idPrefix + this.filename + (startLine ? startLine : "");
       this.initContainer();
       this.editor = ace.edit(this.id);
       this.initMode();
@@ -3015,31 +3017,36 @@
       return this.editorContainer.css(css);
     };
 
-    Editor.prototype.setHeight = function() {
-      var heightStr, l, lengths, lineHeight, lines, max, numLines;
+    Editor.prototype.setHeight = function(numLines) {
+      var heightStr, l, lengths, lineHeight, lines, max;
+      if (numLines == null) {
+        numLines = null;
+      }
       if (!this.editor) {
         return;
       }
-      lines = this.code().split("\n");
-      numLines = lines.length;
-      if (numLines < 20) {
-        lengths = (function() {
-          var _i, _len, _results;
-          _results = [];
-          for (_i = 0, _len = lines.length; _i < _len; _i++) {
-            l = lines[_i];
-            _results.push(l.length);
+      lineHeight = this.renderer.lineHeight;
+      if (!numLines) {
+        lines = this.code().split("\n");
+        numLines = lines.length;
+        if (numLines < 20) {
+          lengths = (function() {
+            var _i, _len, _results;
+            _results = [];
+            for (_i = 0, _len = lines.length; _i < _len; _i++) {
+              l = lines[_i];
+              _results.push(l.length);
+            }
+            return _results;
+          })();
+          max = Math.max.apply(Math, lengths);
+          if (max > 75) {
+            numLines++;
           }
-          return _results;
-        })();
-        max = Math.max.apply(Math, lengths);
-        if (max > 75) {
+        } else {
           numLines++;
         }
-      } else {
-        numLines++;
       }
-      lineHeight = this.renderer.lineHeight;
       if (this.numLines === numLines && this.lineHeight === lineHeight) {
         return;
       }
@@ -3620,9 +3627,25 @@
   SplitEditor = (function() {
 
     function SplitEditor(node) {
-      var _this = this;
+      var endLine, height, startLine,
+        _this = this;
       this.node = node;
       this.editorContainer = this.node.editorContainer;
+      startLine = this.node.container.data("start-line");
+      endLine = this.node.container.data("end-line");
+      console.log("start/end", startLine, endLine);
+      if (!startLine) {
+        return;
+      }
+      height = endLine - startLine + 1;
+      $(document).on("mathjaxPreConfig", function() {
+        _this.node.setHeight(height);
+        if (startLine > 1) {
+          _this.node.editor.scrollToLine(startLine);
+          return _this.node.editor.gotoLine(startLine);
+        }
+      });
+      return;
       $(document).on("mathjaxPreConfig", function() {
         return setTimeout((function() {
           return _this.render();
