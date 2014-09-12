@@ -1383,7 +1383,7 @@
     }
 
     ResourceContainers.prototype.render = function() {
-      var file, node, _i, _len, _ref, _ref1, _results;
+      var file, idx, node, _i, _len, _ref, _ref1, _results;
       this.fileNodes = (function() {
         var _i, _len, _ref, _results;
         _ref = this.files();
@@ -1398,9 +1398,9 @@
         var _i, _len, _ref, _results;
         _ref = this.evals();
         _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          node = _ref[_i];
-          _results.push(new Ace.EvalNode($(node), this.resource));
+        for (idx = _i = 0, _len = _ref.length; _i < _len; idx = ++_i) {
+          node = _ref[idx];
+          _results.push(new Ace.EvalNode($(node), this.resource, this.fileNodes[idx]));
         }
         return _results;
       }).call(this);
@@ -2857,6 +2857,7 @@
       }
       this.spec.code = this.resource.content;
       this.getAttributes();
+      console.log("start/end", this.viewPort, this.startLine, this.endLine);
       this.spec.startLine = this.startLine;
       this.spec.endLine = this.endLine;
       this.spec.viewPort = this.viewPort;
@@ -2915,9 +2916,19 @@
 
     __extends(EvalNode, _super);
 
-    function EvalNode() {
-      return EvalNode.__super__.constructor.apply(this, arguments);
+    function EvalNode(container, resource, fileNode) {
+      this.container = container;
+      this.resource = resource;
+      this.fileNode = fileNode;
+      EvalNode.__super__.constructor.call(this, this.container, this.resource);
     }
+
+    EvalNode.prototype.getSpec = function() {
+      EvalNode.__super__.getSpec.call(this);
+      this.spec.startLine = this.fileNode.spec.startLine;
+      this.spec.endLine = this.fileNode.spec.endLine;
+      return this.spec.viewPort = this.fileNode.spec.viewPort;
+    };
 
     EvalNode.prototype.create = function() {
       var _this = this;
@@ -3088,7 +3099,7 @@
     };
 
     Editor.prototype.setViewPort = function() {
-      var endLine, height, line, startLine, _i, _ref, _results;
+      var endLine, height, line, lines, numLines, startLine, _i, _results;
       if (!this.spec.viewPort) {
         return;
       }
@@ -3097,11 +3108,14 @@
       height = endLine - startLine + 1;
       this.setHeight(height);
       if (startLine > 1) {
-        this.editor.gotoLine(startLine);
-        this.editor.scrollToLine(startLine);
+        console.log("startLine/endLine", this.id, startLine, endLine);
+        this.editor.gotoLine(startLine - 1);
+        this.editor.scrollToLine(startLine - 1);
       }
+      lines = this.code().split("\n");
+      numLines = lines.length;
       _results = [];
-      for (line = _i = 1, _ref = this.numLines; 1 <= _ref ? _i <= _ref : _i >= _ref; line = 1 <= _ref ? ++_i : --_i) {
+      for (line = _i = 1; 1 <= numLines ? _i <= numLines : _i >= numLines; line = 1 <= numLines ? ++_i : --_i) {
         if (line < startLine || line > endLine) {
           _results.push(this.session().addGutterDecoration(line - 1, "my_ace_test"));
         } else {
@@ -3176,7 +3190,11 @@
         return;
       }
       this.session().setValue(code);
-      return this.setHeight();
+      if (this.spec.viewPort) {
+        return this.setViewPort();
+      } else {
+        return this.setHeight();
+      }
     };
 
     Editor.prototype.show = function(show) {

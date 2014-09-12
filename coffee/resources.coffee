@@ -165,7 +165,7 @@ class ResourceContainers
 	
 	render: ->
 		@fileNodes = (new Ace.EditorNode $(node), @resource for node in @files())
-		@evalNodes = (new Ace.EvalNode $(node), @resource for node in @evals())
+		@evalNodes = (new Ace.EvalNode $(node), @resource, @fileNodes[idx] for node, idx in @evals())
 		$pz.codeNode ?= {}
 		$pz.codeNode[file.editor.id] = file.editor for file in @files
 		

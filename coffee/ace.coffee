@@ -28,6 +28,7 @@ class Ace.EditorNode extends Ace.Node
 		return unless @resource
 		@spec.code = @resource.content
 		@getAttributes()
+		console.log "start/end", @viewPort, @startLine, @endLine
 		@spec.startLine = @startLine
 		@spec.endLine = @endLine
 		@spec.viewPort = @viewPort
@@ -61,7 +62,17 @@ class Ace.EditorNode extends Ace.Node
 
 class Ace.EvalNode extends Ace.Node
 	
+	constructor: (@container, @resource, @fileNode) ->
+		super @container, @resource
+	
+	getSpec: ->
+		super()
+		@spec.startLine = @fileNode.spec.startLine
+		@spec.endLine = @fileNode.spec.endLine
+		@spec.viewPort = @fileNode.spec.viewPort
+	
 	create: ->
+		
 		# Initially, support only CoffeeScript eval.
 		if @lang isnt "coffee"
 			console.log "<div data-eval='#{@filename}'>: must be CoffeeScript."
@@ -75,6 +86,7 @@ class Ace.EvalNode extends Ace.Node
 			
 	setCode: ->
 		@editor.set @resource.resultStr
+	
 
 
 class Ace.Editor
@@ -215,13 +227,16 @@ class Ace.Editor
 		return unless @spec.viewPort
 		startLine = @spec.startLine
 		endLine = @spec.endLine
-		height = endLine - startLine+1
+		height = endLine - startLine + 1
 		
 		@setHeight height
 		if startLine>1
-			@editor.gotoLine startLine
-			@editor.scrollToLine startLine
-		for line in [1..@numLines]
+			console.log "startLine/endLine", @id, startLine, endLine
+			@editor.gotoLine startLine-1
+			@editor.scrollToLine startLine-1
+		lines = @code().split("\n")  # ZZZ dup code
+		numLines = lines.length
+		for line in [1..numLines]
 			@session().addGutterDecoration(line-1, "my_ace_test") if line<startLine or line>endLine
 	
 	
@@ -264,7 +279,11 @@ class Ace.Editor
 		# ZZZ or setCode
 		return unless @editor
 		@session().setValue code
-		@setHeight()
+		if @spec.viewPort
+			@setViewPort()
+		else
+			@setHeight()
+		
 	
 	
 	show: (show) ->
