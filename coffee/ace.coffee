@@ -638,7 +638,7 @@ class SplitEditor
 #		container.empty()
 		#last = @node.container
 		
-		editor = (c, code) =>
+		editor = (c, code, startLine) =>
 			
 			spec =
 				container: c
@@ -647,6 +647,7 @@ class SplitEditor
 				code: code
 			Editor = Ace.Languages.get(lang).Editor ? Ace.Editor
 			ed = new Editor spec
+			ed.editor.setOption("firstLineNumber", startLine)
 			subNode++  # ZZZ not used - reinstate
 			Ace.CustomRenderer.tempIdx++
 			setTimeout (-> ed.customRenderer.render()), 1000  # ZZZ but only after mathjax processed.
@@ -659,13 +660,15 @@ class SplitEditor
 					@render()
 			
 		
+		start = 1
+		
 		flush = (mode) =>
 			#console.log(if mode then "----CODE----" else "----COMMENT----")
 			code = buffer.join("\n") #+ "\n"
 			if mode
 				c = $ "<div>"
 				@splitContainer.append c
-				editor c, code
+				editor c, code, start
 				
 				#MathJax.Hub.Queue(["PreProcess", MathJax.Hub, c[0]])
 				#MathJax.Hub.Queue(["Process", MathJax.Hub, c[0]])
@@ -686,10 +689,12 @@ class SplitEditor
 			prevMode = codeMode
 			codeMode = not isComment[idx]
 			change = codeMode isnt prevMode
-			flush(prevMode) if change
+			flush(prevMode, idx+1) if change
+			if change
+				start = idx+1
 			if not codeMode then line = line.slice(2)
 			buffer.push line
-		flush(codeMode)
+		flush(codeMode, idx+1)
 		@node.show false
 		
 		#z = container[0]

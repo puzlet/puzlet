@@ -3631,7 +3631,7 @@
     }
 
     SplitEditor.prototype.render = function() {
-      var buffer, change, codeLines, codeMode, commentNodes, container, editor, filename, flush, html, id, idx, isComment, lang, line, node, prevMode, split, subNode, type, x, _i, _j, _len, _len1,
+      var buffer, change, codeLines, codeMode, commentNodes, container, editor, filename, flush, html, id, idx, isComment, lang, line, node, prevMode, split, start, subNode, type, x, _i, _j, _len, _len1,
         _this = this;
       commentNodes = this.editorContainer.find(".ace_comment");
       type = this.node.constructor.name;
@@ -3667,7 +3667,7 @@
       lang = this.node.lang;
       this.splitContainer = $("<div>");
       container.append(this.splitContainer);
-      editor = function(c, code) {
+      editor = function(c, code, startLine) {
         var Editor, ed, spec, _ref;
         spec = {
           container: c,
@@ -3677,6 +3677,7 @@
         };
         Editor = (_ref = Ace.Languages.get(lang).Editor) != null ? _ref : Ace.Editor;
         ed = new Editor(spec);
+        ed.editor.setOption("firstLineNumber", startLine);
         subNode++;
         Ace.CustomRenderer.tempIdx++;
         setTimeout((function() {
@@ -3693,13 +3694,14 @@
           };
         };
       };
+      start = 1;
       flush = function(mode) {
         var c, code, z;
         code = buffer.join("\n");
         if (mode) {
           c = $("<div>");
           _this.splitContainer.append(c);
-          editor(c, code);
+          editor(c, code, start);
         } else {
           html = Wiky.toHtml(code);
           z = $(html);
@@ -3715,14 +3717,17 @@
         codeMode = !isComment[idx];
         change = codeMode !== prevMode;
         if (change) {
-          flush(prevMode);
+          flush(prevMode, idx + 1);
+        }
+        if (change) {
+          start = idx + 1;
         }
         if (!codeMode) {
           line = line.slice(2);
         }
         buffer.push(line);
       }
-      flush(codeMode);
+      flush(codeMode, idx + 1);
       return this.node.show(false);
     };
 
