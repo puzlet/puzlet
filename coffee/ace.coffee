@@ -19,7 +19,7 @@ class Ace.Node
 	create: -> # Override in subclass
 		
 	code: -> @editor.code()
-
+	
 
 class Ace.EditorNode extends Ace.Node
 	
@@ -27,6 +27,10 @@ class Ace.EditorNode extends Ace.Node
 		super()
 		return unless @resource
 		@spec.code = @resource.content
+		@getAttributes()
+		@spec.startLine = @startLine
+		@spec.endLine = @endLine
+		@spec.viewPort = @viewPort
 		@spec.update = (code) => @resource.update?(code)  # Updates resource code
 		
 	create: ->
@@ -35,8 +39,25 @@ class Ace.EditorNode extends Ace.Node
 		@editor.onChange =>
 			@resource.edited = true
 			$.event.trigger "codeNodeChanged"
-		new SplitEditor @editor
-
+		#new SplitEditor @editor
+		
+	getAttributes: ->
+		lines = @resource.content.split("\n")  # ZZZ this will not work for EvalNode
+		numLines = lines.length
+		data = (name) => @container.data name
+		@startMatch = data "start-match"
+		@endMatch = data "end-match"
+		@startLine = @match(lines, @startMatch) ? (data("start-line") ? 1)
+		@endLine = @match(lines, @endMatch) ? (data("end-line") ? numLines)
+		@viewPort = @startLine>1 or @endLine<numLines
+			
+	match: (lines, regex) ->
+		return null unless lines?.length and regex
+		for line, idx in lines
+			match = line.match regex
+			return idx+1 if match
+		null
+			
 
 class Ace.EvalNode extends Ace.Node
 	
@@ -62,13 +83,15 @@ class Ace.Editor
 	# ZZZ rename container?
 	
 	idPrefix: "ace_editor_"
+	@count: 0  # Counts number of editor instances.
 	
 	constructor: (@spec) ->
 		
-		startLine = @spec.container.data "start-line" 
 		@filename = @spec.filename
 		@lang = @spec.lang
-		@id = @idPrefix + @filename + (if startLine then startLine else "")
+		Ace.Editor.count++
+		@id = @idPrefix + @filename + ("_#{@spec.startLine}_#{@spec.endLine}") + "_#{Ace.Editor.count}"
+		@fixedNumLines = if @spec.viewPort then @spec.endLine - @spec.startLine + 1 else null
 		
 		@initContainer()
 		
@@ -90,8 +113,8 @@ class Ace.Editor
 		@keyboardShortcuts()
 		@onSwipe => @run() #@spec.update(@code())
 		
-		@customRenderer = new Ace.CustomRenderer this
-	
+		@customRenderer = new Ace.CustomRenderer this, (=> @setViewPort())
+		@setViewPort()
 	
 	initContainer: ->
 		@container = @spec.container
@@ -156,7 +179,6 @@ class Ace.Editor
 		@renderer.$gutterLayer.setShowLineNumbers true, 1  # Default - line numbers enabled
 		#@renderer.$gutterLayer.setShowLineNumbers false, 1  # Initially no line numbers
 		@editor.setShowFoldWidgets false
-		
 	
 	
 	initFont: ->
@@ -189,9 +211,24 @@ class Ace.Editor
 		@editorContainer.css css
 	
 	
+	setViewPort: ->
+		return unless @spec.viewPort
+		startLine = @spec.startLine
+		endLine = @spec.endLine
+		height = endLine - startLine+1
+		
+		@setHeight height
+		if startLine>1
+			@editor.gotoLine startLine
+			@editor.scrollToLine startLine
+		for line in [1..@numLines]
+			@session().addGutterDecoration(line-1, "my_ace_test") if line<startLine or line>endLine
+	
+	
 	setHeight: (numLines=null)->
 		return if not @editor
 		lineHeight = @renderer.lineHeight
+		numLines ?= @fixedNumLines
 		unless numLines
 			lines = @code().split("\n")
 			numLines = lines.length
@@ -390,7 +427,7 @@ class Ace.CustomRenderer
 	
 	@tempIdx: 0
 	
-	constructor: (@node) ->
+	constructor: (@node, @callback1, @callback) ->
 		
 		@editorContainer = @node.editorContainer
 		@editor = @node.editor
@@ -439,8 +476,10 @@ class Ace.CustomRenderer
 		#@commentTest commentNodes
 		
 		$(document).on "mathjaxPreConfig", =>
+			@callback1?()
 			window.MathJax.Hub.Register.StartupHook "MathMenu Ready", =>
 				@render()
+				@callback?()
 		
 		#@render()
 		
@@ -584,14 +623,17 @@ class CodeNodeFunction
 			@node.text @originalText
 
 
-class SplitEditor
+class OLD___SplitEditor
 	
 	constructor: (@node) ->
 		
+		###
 		@editorContainer = @node.editorContainer
-		startLine = @node.container.data "start-line"
-		endLine = @node.container.data "end-line"
-		console.log "start/end", startLine, endLine
+		startLine = @node.spec.startLine
+		endLine = @node.spec.endLine
+#		startLine = @node.container.data "start-line"
+#		endLine = @node.container.data "end-line"
+		console.log "start/end", @node.id, startLine, endLine
 		# ZZZ Need to get defaults for these
 		return unless startLine
 		height = endLine-startLine+1
@@ -599,16 +641,18 @@ class SplitEditor
 		$(document).on "mathjaxPreConfig", =>
 			#setTimeout (=> @render()), 100
 			@node.setHeight height
+			console.log "START", startLine
 			if startLine>1
-				@node.editor.scrollToLine startLine
 				@node.editor.gotoLine startLine
+				@node.editor.scrollToLine startLine
 			lines = @node.code().split("\n")
 			numLines = lines.length
 			for line in [1..numLines]
 				if line<startLine or line>endLine
 					@node.session().addGutterDecoration(line-1, "my_ace_test")
+		###
 		
-		return
+		#return
 		$(document).on "mathjaxPreConfig", =>
 			setTimeout (=> @render()), 100
 		

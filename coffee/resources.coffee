@@ -184,6 +184,27 @@ class ResourceContainers
 	evals: -> $("div[#{@evalContainerAttr}='#{@url}']")
 
 
+# ZZZ needed?
+class EditorContainer
+	
+	constructor: (@resource, @div) ->
+		@node = new Ace.EditorNode @div, @resource
+		
+	updateResource: ->
+		# ZZZ need event/listeners here for other related containers.
+		@resource.update(@node.code())
+
+class EvalContainer
+	
+	constructor: (@resource, @div) ->
+		@node = new Ace.EvalNode @div, @resource
+		
+	getContainer: ->
+		@node.container
+	
+
+		
+
 class HtmlResource extends Resource
 	
 	update: (@content) ->
