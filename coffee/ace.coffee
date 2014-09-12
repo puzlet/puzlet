@@ -35,6 +35,7 @@ class Ace.EditorNode extends Ace.Node
 		@editor.onChange =>
 			@resource.edited = true
 			$.event.trigger "codeNodeChanged"
+		new SplitEditor @editor
 
 
 class Ace.EvalNode extends Ace.Node
@@ -88,7 +89,7 @@ class Ace.Editor
 		@keyboardShortcuts()
 		@onSwipe => @run() #@spec.update(@code())
 		
-		new Ace.CustomRenderer this
+		@customRenderer = new Ace.CustomRenderer this
 	
 	
 	initContainer: ->
@@ -385,6 +386,8 @@ class Ace.Resources
 
 class Ace.CustomRenderer
 	
+	@tempIdx: 0
+	
 	constructor: (@node) ->
 		
 		@editorContainer = @node.editorContainer
@@ -393,7 +396,7 @@ class Ace.CustomRenderer
 		@isEditable = @node.isEditable
 		
 		@customRendering()
-		
+	
 	customRendering: ->
 		
 		@linkSelected = false
@@ -430,6 +433,9 @@ class Ace.CustomRenderer
 		# ZZZ temporary hack to render function links
 		#@registerLinks()
 		
+		#commentNodes = @editorContainer.find ".ace_comment"
+		#@commentTest commentNodes
+		
 		$(document).on "mathjaxPreConfig", =>
 			window.MathJax.Hub.Register.StartupHook "MathMenu Ready", =>
 				@render()
@@ -453,7 +459,7 @@ class Ace.CustomRenderer
 		f.render() for f in @functions
 		# Also should look for class="ace_entity ace_name ace_function"
 			
-			
+	
 	restoreCode: ->
 		comment.restore() for comment in @comments
 		f.restore() for f in @functions
@@ -575,3 +581,128 @@ class CodeNodeFunction
 			@node.empty()
 			@node.text @originalText
 
+
+class SplitEditor
+	
+	constructor: (@node) ->
+		
+		@editorContainer = @node.editorContainer
+		$(document).on "mathjaxPreConfig", =>
+			setTimeout (=> @render()), 100
+		
+		# ZZZ should be from event gen from custom renderer?
+		#$(document).on "mathjaxPreConfig", =>
+		#	window.MathJax.Hub.Register.StartupHook "MathMenu Ready", =>
+		#		@render()
+				#commentNodes = @editorContainer.find ".ace_comment"
+				#console.log "+++++++++++++comments", commentNodes
+				
+	render: ->
+		
+		#console.log "container", @editorContainer
+		
+		commentNodes = @editorContainer.find ".ace_comment"
+		#return
+		#@commentTest commentNodes
+		
+		type = @node.constructor.name
+		split = @node.container.data "split"
+		
+		return unless split? and (type is "Editor" or type is "CoffeeEditor")  # Don't render CoffeeEval nodes
+		
+		id = @editorContainer.attr("id")
+		#return unless id is "ace_editor_test_eval.coffee"
+		console.log "===Code node #{id}"
+		codeLines = @node.code().split("\n")
+		isComment = (false for x in [1..codeLines.length])
+		#console.log isComment
+		#console.log codeLines
+		html = ""
+		#prevIdx = 0
+		for node in commentNodes
+			continue unless node.previousSibling is null
+			idx = $(node).parent().index()
+			isComment[idx] = true
+		
+		codeMode = not isComment[0]
+		buffer = []
+		subNode = 0
+		
+		container = @node.container
+		filename = @node.filename
+		lang = @node.lang
+		
+		@splitContainer = $ "<div>"
+		container.append @splitContainer
+		
+#		container.empty()
+		#last = @node.container
+		
+		editor = (c, code) =>
+			
+			spec =
+				container: c
+				filename: filename + Ace.CustomRenderer.tempIdx #+Math.random()
+				lang: lang
+				code: code
+			Editor = Ace.Languages.get(lang).Editor ? Ace.Editor
+			ed = new Editor spec
+			subNode++  # ZZZ not used - reinstate
+			Ace.CustomRenderer.tempIdx++
+			setTimeout (-> ed.customRenderer.render()), 1000  # ZZZ but only after mathjax processed.
+			
+			ed.editor.onFocus = =>
+				@node.show true
+				@splitContainer.empty()
+				setTimeout (=> @node.focus()), 100
+				@node.editor.onBlur = =>
+					@render()
+			
+		
+		flush = (mode) =>
+			#console.log(if mode then "----CODE----" else "----COMMENT----")
+			code = buffer.join("\n") #+ "\n"
+			if mode
+				c = $ "<div>"
+				@splitContainer.append c
+				editor c, code
+				
+				#MathJax.Hub.Queue(["PreProcess", MathJax.Hub, c[0]])
+				#MathJax.Hub.Queue(["Process", MathJax.Hub, c[0]])
+				#html = "<pre style='color: gray; background: #eee'>"+code+"</pre>"
+			else
+				html = Wiky.toHtml code
+				z = $(html)
+				MathJax.Hub.Queue(["PreProcess", MathJax.Hub, z[0]])
+				MathJax.Hub.Queue(["Process", MathJax.Hub, z[0]])
+				@splitContainer.append z
+					#return unless node = @node[0]
+			#@node.container.after (if mode then "----CODE----" else "----COMMENT----")+"\n"
+			#color = if mode then "gray" else "green"
+			#container.append html #"<pre style='color: #{color}; background: #eee'>"+html+"</pre>"
+			buffer = []
+		
+		for line, idx in codeLines
+			prevMode = codeMode
+			codeMode = not isComment[idx]
+			change = codeMode isnt prevMode
+			flush(prevMode) if change
+			if not codeMode then line = line.slice(2)
+			buffer.push line
+		flush(codeMode)
+		@node.show false
+		
+		#z = container[0]
+		#mj = (z) ->
+		#	console.log "**********MATHJAX***********", z
+		#	MathJax.Hub.Queue(["PreProcess", MathJax.Hub, z])
+		#	MathJax.Hub.Queue(["Process", MathJax.Hub, z])
+		#setTimeout (-> mj z), 2000
+			
+			#console.log line
+			#console.log(if isComment[idx] then ">>> "+line else line)
+		#console.log html
+		#@node.container.before html
+		
+		
+		
