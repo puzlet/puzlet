@@ -602,6 +602,11 @@ class SplitEditor
 			if startLine>1
 				@node.editor.scrollToLine startLine
 				@node.editor.gotoLine startLine
+			lines = @node.code().split("\n")
+			numLines = lines.length
+			for line in [1..numLines]
+				if line<startLine or line>endLine
+					@node.session().addGutterDecoration(line-1, "my_ace_test")
 		
 		return
 		$(document).on "mathjaxPreConfig", =>

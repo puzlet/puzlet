@@ -3639,11 +3639,23 @@
       }
       height = endLine - startLine + 1;
       $(document).on("mathjaxPreConfig", function() {
+        var line, lines, numLines, _i, _results;
         _this.node.setHeight(height);
         if (startLine > 1) {
           _this.node.editor.scrollToLine(startLine);
-          return _this.node.editor.gotoLine(startLine);
+          _this.node.editor.gotoLine(startLine);
         }
+        lines = _this.node.code().split("\n");
+        numLines = lines.length;
+        _results = [];
+        for (line = _i = 1; 1 <= numLines ? _i <= numLines : _i >= numLines; line = 1 <= numLines ? ++_i : --_i) {
+          if (line < startLine || line > endLine) {
+            _results.push(_this.node.session().addGutterDecoration(line - 1, "my_ace_test"));
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
       });
       return;
       $(document).on("mathjaxPreConfig", function() {
