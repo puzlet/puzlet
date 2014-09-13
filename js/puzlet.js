@@ -2850,6 +2850,7 @@
       this.resource = resource;
       this.getSpec();
       this.create();
+      this.renderTId = null;
     }
 
     Node.prototype.getSpec = function() {
@@ -2872,10 +2873,17 @@
     };
 
     Node.prototype.setCode = function(triggerChange) {
+      var _this = this;
       if (triggerChange == null) {
         triggerChange = true;
       }
-      return this.editor.set(this.resource.content, triggerChange);
+      if (this.renderTId) {
+        clearTimeout(this.renderTId);
+      }
+      this.editor.set(this.resource.content, triggerChange);
+      return this.renderTId = setTimeout((function() {
+        return _this.editor.customRenderer.render();
+      }), 1000);
     };
 
     return Node;

@@ -5,6 +5,7 @@ class Ace.Node
 	constructor: (@container, @resource) ->
 		@getSpec()
 		@create()
+		@renderTId = null
 		
 	# Specialize in subclass
 	getSpec: ->
@@ -22,7 +23,9 @@ class Ace.Node
 	
 	setCode: (triggerChange=true) ->
 		#setEditorView = false
+		clearTimeout @renderTId if @renderTId
 		@editor.set @resource.content, triggerChange #, setEditorView
+		@renderTId = setTimeout (=> @editor.customRenderer.render()), 1000
 
 
 class Ace.EditorNode extends Ace.Node
@@ -511,6 +514,8 @@ class Ace.CustomRenderer
 		
 		
 	render: ->
+		
+		#console.log "render", @node.id
 		
 		return unless window.MathJax
 		return unless $blab.codeDecoration
