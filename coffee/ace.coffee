@@ -20,6 +20,10 @@ class Ace.Node
 		
 	code: -> @editor.code()
 	
+	setCode: (triggerChange=true) ->
+		#setEditorView = false
+		@editor.set @resource.content, triggerChange #, setEditorView
+
 
 class Ace.EditorNode extends Ace.Node
 	
@@ -28,7 +32,7 @@ class Ace.EditorNode extends Ace.Node
 		return unless @resource
 		@spec.code = @resource.content
 		@getAttributes()
-		console.log "start/end", @viewPort, @startLine, @endLine
+		#console.log "start/end", @viewPort, @startLine, @endLine
 		@spec.startLine = @startLine
 		@spec.endLine = @endLine
 		@spec.viewPort = @viewPort
@@ -38,9 +42,9 @@ class Ace.EditorNode extends Ace.Node
 		Editor = Ace.Languages.get(@spec.lang).Editor ? Ace.Editor
 		@editor = new Editor @spec
 		@editor.onChange =>
-			@resource.edited = true
+			@resource.setFromEditor @editor
+			@resource.edited = true  # ZZZ put into setContent?
 			$.event.trigger "codeNodeChanged"
-		#new SplitEditor @editor
 		
 	getAttributes: ->
 		lines = @resource.content.split("\n")  # ZZZ this will not work for EvalNode
@@ -59,6 +63,7 @@ class Ace.EditorNode extends Ace.Node
 			return idx+1 if match
 		null
 			
+
 
 class Ace.EvalNode extends Ace.Node
 	
@@ -231,13 +236,13 @@ class Ace.Editor
 		
 		@setHeight height
 		if startLine>1
-			console.log "startLine/endLine", @id, startLine, endLine
+			#console.log "startLine/endLine", @id, startLine, endLine
 			@editor.gotoLine startLine-1
 			@editor.scrollToLine startLine-1
 		lines = @code().split("\n")  # ZZZ dup code
 		numLines = lines.length
 		for line in [1..numLines]
-			@session().addGutterDecoration(line-1, "my_ace_test") if line<startLine or line>endLine
+			@session().addGutterDecoration(line-1, "ace_light_line_numbers") if line<startLine or line>endLine
 	
 	
 	setHeight: (numLines=null)->
@@ -275,15 +280,17 @@ class Ace.Editor
 		@session().getValue()
 	
 	
-	set: (code) ->
+	set: (code, triggerChange=true, setEditorView=true) ->
+		@enableChangeAction = false unless triggerChange
 		# ZZZ or setCode
 		return unless @editor
 		@session().setValue code
-		if @spec.viewPort
-			@setViewPort()
-		else
-			@setHeight()
-		
+		if setEditorView
+			if @spec.viewPort
+				@setViewPort()
+			else
+				@setHeight()
+		@enableChangeAction = true
 	
 	
 	show: (show) ->
@@ -641,160 +648,3 @@ class CodeNodeFunction
 			@node.empty()
 			@node.text @originalText
 
-
-class OLD___SplitEditor
-	
-	constructor: (@node) ->
-		
-		###
-		@editorContainer = @node.editorContainer
-		startLine = @node.spec.startLine
-		endLine = @node.spec.endLine
-#		startLine = @node.container.data "start-line"
-#		endLine = @node.container.data "end-line"
-		console.log "start/end", @node.id, startLine, endLine
-		# ZZZ Need to get defaults for these
-		return unless startLine
-		height = endLine-startLine+1
-		
-		$(document).on "mathjaxPreConfig", =>
-			#setTimeout (=> @render()), 100
-			@node.setHeight height
-			console.log "START", startLine
-			if startLine>1
-				@node.editor.gotoLine startLine
-				@node.editor.scrollToLine startLine
-			lines = @node.code().split("\n")
-			numLines = lines.length
-			for line in [1..numLines]
-				if line<startLine or line>endLine
-					@node.session().addGutterDecoration(line-1, "my_ace_test")
-		###
-		
-		#return
-		$(document).on "mathjaxPreConfig", =>
-			setTimeout (=> @render()), 100
-		
-		# ZZZ should be from event gen from custom renderer?
-		#$(document).on "mathjaxPreConfig", =>
-		#	window.MathJax.Hub.Register.StartupHook "MathMenu Ready", =>
-		#		@render()
-				#commentNodes = @editorContainer.find ".ace_comment"
-				#console.log "+++++++++++++comments", commentNodes
-				
-	render: ->
-		
-		#console.log "container", @editorContainer
-		
-		commentNodes = @editorContainer.find ".ace_comment"
-		#return
-		#@commentTest commentNodes
-		
-		type = @node.constructor.name
-		split = @node.container.data "split"
-		
-		console.log "commentNodes", split?, type, commentNodes
-		
-		return unless split? and (type is "Editor" or type is "CoffeeEditor")  # Don't render CoffeeEval nodes
-		
-		id = @editorContainer.attr("id")
-		#return unless id is "ace_editor_test_eval.coffee"
-		console.log "===Code node #{id}"
-		codeLines = @node.code().split("\n")
-		isComment = (false for x in [1..codeLines.length])
-		#console.log isComment
-		#console.log codeLines
-		html = ""
-		#prevIdx = 0
-		for node in commentNodes
-			continue unless node.previousSibling is null
-			idx = $(node).parent().index()
-			isComment[idx] = true
-		
-		codeMode = not isComment[0]
-		buffer = []
-		subNode = 0
-		
-		container = @node.container
-		filename = @node.filename
-		lang = @node.lang
-		
-		@splitContainer = $ "<div>"
-		container.append @splitContainer
-		
-#		container.empty()
-		#last = @node.container
-		
-		editor = (c, code, startLine) =>
-			
-			spec =
-				container: c
-				filename: filename + Ace.CustomRenderer.tempIdx #+Math.random()
-				lang: lang
-				code: code
-			Editor = Ace.Languages.get(lang).Editor ? Ace.Editor
-			ed = new Editor spec
-			ed.editor.setOption("firstLineNumber", startLine)
-			subNode++  # ZZZ not used - reinstate
-			Ace.CustomRenderer.tempIdx++
-			setTimeout (-> ed.customRenderer.render()), 1000  # ZZZ but only after mathjax processed.
-			
-			ed.editor.onFocus = =>
-				@node.show true
-				@splitContainer.empty()
-				setTimeout (=> @node.focus()), 100
-				@node.editor.onBlur = =>
-					@render()
-			
-		
-		start = 1
-		
-		flush = (mode) =>
-			#console.log(if mode then "----CODE----" else "----COMMENT----")
-			code = buffer.join("\n") #+ "\n"
-			if mode
-				c = $ "<div>"
-				@splitContainer.append c
-				editor c, code, start
-				
-				#MathJax.Hub.Queue(["PreProcess", MathJax.Hub, c[0]])
-				#MathJax.Hub.Queue(["Process", MathJax.Hub, c[0]])
-				#html = "<pre style='color: gray; background: #eee'>"+code+"</pre>"
-			else
-				html = Wiky.toHtml code
-				z = $(html)
-				MathJax.Hub.Queue(["PreProcess", MathJax.Hub, z[0]])
-				MathJax.Hub.Queue(["Process", MathJax.Hub, z[0]])
-				@splitContainer.append z
-					#return unless node = @node[0]
-			#@node.container.after (if mode then "----CODE----" else "----COMMENT----")+"\n"
-			#color = if mode then "gray" else "green"
-			#container.append html #"<pre style='color: #{color}; background: #eee'>"+html+"</pre>"
-			buffer = []
-		
-		for line, idx in codeLines
-			prevMode = codeMode
-			codeMode = not isComment[idx]
-			change = codeMode isnt prevMode
-			flush(prevMode, idx+1) if change
-			if change
-				start = idx+1
-			if not codeMode then line = line.slice(2)
-			buffer.push line
-		flush(codeMode, idx+1)
-		@node.show false
-		
-		#z = container[0]
-		#mj = (z) ->
-		#	console.log "**********MATHJAX***********", z
-		#	MathJax.Hub.Queue(["PreProcess", MathJax.Hub, z])
-		#	MathJax.Hub.Queue(["Process", MathJax.Hub, z])
-		#setTimeout (-> mj z), 2000
-			
-			#console.log line
-			#console.log(if isComment[idx] then ">>> "+line else line)
-		#console.log html
-		#@node.container.before html
-		
-		
-		

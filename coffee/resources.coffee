@@ -129,6 +129,13 @@ class Resource
 	
 	isType: (type) -> @fileExt is type
 	
+	setContent: (@content) ->
+		@containers.setEditorContent @content  # ZZZ exclude editor that triggered change (2nd optional arg)
+	
+	setFromEditor: (editor) ->
+		@content = editor.code()
+		@containers.setFromEditor editor
+	
 	update: (@content) ->
 		console.log "No update method for #{@url}"
 	
@@ -174,10 +181,22 @@ class ResourceContainers
 		return null unless @evalNodes?.length is 1
 		@evalNodes[0].container
 		
+	setEditorContent: (content) ->
+		triggerChange = false
+		node.setCode(triggerChange) for node in @fileNodes
+		
+	setFromEditor: (editor) ->
+		triggerChange = false
+		for node in @fileNodes
+			node.setCode(triggerChange) unless node.editor.id is editor.id
+		
 	updateResource: ->
-		console.log "Potential update issue because more than one editor for a resource", @resource if @fileNodes.length>1
-		for fileNode in @fileNodes
-			@resource.update(fileNode.code())
+		return unless @fileNodes.length
+		console.log "Multiple editor nodes for resource.  Updating resource from only first editor node.", @resource if @fileNodes.length>1
+		@resource.update(@fileNodes[0].code())
+		#console.log "Potential update issue because more than one editor for a resource", @resource if @fileNodes.length>1
+		#for fileNode in @fileNodes
+		#	@resource.update(fileNode.code())
 	
 	files: -> $("div[#{@fileContainerAttr}='#{@url}']")
 	
