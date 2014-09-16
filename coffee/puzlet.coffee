@@ -118,7 +118,7 @@ class Loader
 	# (Loading scripts after HTML/CSS improves html rendering speed.)
 	# Note: for large JS file (even 3rd party), put in repo without gh-pages (web page).
 	loadScripts: (callback) ->
-		@resources.load ["json", "js", "coffee", "py", "m"], =>
+		@resources.load ["json", "js", "coffee", "py", "m", "svg", "txt"], =>
 			# Before Ace loaded, compile any CoffeeScript that has no assocaited eval box. 
 			@compileCoffee (coffee) -> not coffee.hasEval()
 			callback?()
@@ -158,6 +158,8 @@ class Page
 		@doneFirstHtml = true
 		
 	ready: (@resources) ->
+		#console.log @resources
+		new ResourceImages @resources
 		new ThumbImages
 		new SlideDeck
 		new MathJaxProcessor  # ZZZ should be after all html rendered?
@@ -387,6 +389,14 @@ class OpenInTab
 				@linkedTab.focus()
 				@linkedTab.location.hash = "#"+section
 
+
+class ResourceImages
+	
+	constructor: (@resources) ->
+		for img in $("img[data-src]")
+			$img = $(img)
+			r = @resources.select((resource) -> resource.url is $img.data("src"))
+			$img.attr src: "data:image/svg+xml;charset=utf-8,"+r[0].content
 
 class ThumbImages
 	

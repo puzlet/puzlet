@@ -102,7 +102,7 @@ class Resource
 			@content = @spec.gistSource
 			@postLoad callback
 			return
-			
+		
 		thisHost = window.location.hostname
 		if @location.host isnt thisHost and @location.apiUrl
 			# Foreign file - load via GitHub API.  Uses cache.
@@ -345,6 +345,8 @@ class ResourceFactory
 		json: {all: JsonResource}
 		py: {all: Resource}
 		m: {all: Resource}
+		svg: {all: Resource}
+		txt: {all: Resource}
 	
 	constructor: (@blabLocation, @getGistSource) ->
 	
