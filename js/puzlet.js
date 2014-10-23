@@ -4713,6 +4713,7 @@
     }
 
     Page.prototype.render = function(wikyHtml) {
+      console.log("render");
       this.mainContainer();
       this.container.append(Wiky.toHtml(wikyHtml));
       if (!this.doneFirstHtml) {
@@ -4723,6 +4724,7 @@
 
     Page.prototype.ready = function(resources) {
       this.resources = resources;
+      console.log("ready");
       new ResourceImages(this.resources);
       new ThumbImages;
       new SlideDeck;
@@ -4759,10 +4761,13 @@
       if (this.container != null) {
         return;
       }
-      this.container = $("<div>", {
-        id: "blab_container"
-      });
-      return $(document.body).append(this.container);
+      this.container = $("#blab_container");
+      if (!this.container.length) {
+        this.container = $("<div>", {
+          id: "blab_container"
+        });
+        return $(document.body).append(this.container);
+      }
     };
 
     Page.prototype.empty = function() {
@@ -4827,9 +4832,6 @@
         _this = this;
       this.container = container;
       this.link = link;
-      if (!this.container) {
-        return;
-      }
       src = "https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67";
       html = "<a href=\"" + this.link + "\" id=\"ribbon\" style=\"opacity:0.2\">\n<img style=\"position: absolute; top: 0; right: 0; border: 0;\" src=\"" + src + "\" alt=\"Fork me on GitHub\" data-canonical-src=\"https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png\"></a>";
       this.container.append(html);
@@ -4858,7 +4860,7 @@
     function MathJaxProcessor() {
       var configScript, mathjax,
         _this = this;
-      this.outputId = "blab_container";
+      this.outputId = $("#container").length ? "container" : "blab_container";
       $blab.mathjaxConfig = function() {
         $.event.trigger("mathjaxPreConfig");
         window.MathJax.Hub.Config({

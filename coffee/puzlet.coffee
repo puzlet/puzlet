@@ -152,6 +152,7 @@ class Page
 		#$(window).on "hashchange", (=> @scrollToHashSection())
 	
 	render: (wikyHtml) ->
+		console.log "render"
 		@mainContainer()
 		#console.log("HTML",  Wiky.toHtml(wikyHtml))
 		@container.append Wiky.toHtml(wikyHtml)
@@ -159,6 +160,7 @@ class Page
 		@doneFirstHtml = true
 		
 	ready: (@resources) ->
+		console.log "ready"
 		#console.log @resources
 		new ResourceImages @resources
 		new ThumbImages
@@ -181,10 +183,12 @@ class Page
 	
 	mainContainer: ->
 		return if @container?
-		@container = $ "<div>", id: "blab_container"
-		#@container.hide()
-		$(document.body).append @container
-		#@container.show()  # ZZZ should show only after all html rendered - need another event.
+		@container = $ "#blab_container"
+		unless @container.length
+			@container = $ "<div>", id: "blab_container"
+			#@container.hide()
+			$(document.body).append @container
+			#@container.show()  # ZZZ should show only after all html rendered - need another event.
 	
 	empty: ->
 		@container.empty()
@@ -222,7 +226,7 @@ class GithubRibbon
 	
 	constructor: (@container, @link) ->
 		
-		return unless @container
+		#return unless @container
 		
 		src = "https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
 		html = """
@@ -248,7 +252,8 @@ class MathJaxProcessor
 	
 		#return # DEBUG
 		
-		@outputId = "blab_container"
+		@outputId = if $("#container").length then "container" else "blab_container"
+		
 #		@outputId = "codeout_html"
 		
 		#MathJaxProcessor?.mode = "SVG"
@@ -400,6 +405,7 @@ class ResourceImages
 			$img = $(img)
 			r = @resources.select((resource) -> resource.url is $img.data("src"))
 			$img.attr src: "data:image/svg+xml;charset=utf-8,"+r[0].content
+
 
 class ThumbImages
 	

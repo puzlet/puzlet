@@ -213,6 +213,7 @@ class EditorContainer
 		# ZZZ need event/listeners here for other related containers.
 		@resource.update(@node.code())
 
+
 class EvalContainer
 	
 	constructor: (@resource, @div) ->
@@ -223,7 +224,6 @@ class EvalContainer
 	
 
 		
-
 class HtmlResource extends Resource
 	
 	update: (@content) ->
