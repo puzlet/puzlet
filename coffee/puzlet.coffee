@@ -225,6 +225,8 @@ class PageTitle
 class GithubRibbon
 	
 	constructor: (@container, @link) ->
+	    
+		return if $blab.noGitHubRibbon
 		
 		#return unless @container
 		
