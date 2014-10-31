@@ -4861,9 +4861,11 @@
     MathJaxProcessor.prototype.mode = "HTML-CSS";
 
     function MathJaxProcessor() {
-      var configScript, mathjax,
+      var configScript, container, hasBodyContainer, mathjax,
         _this = this;
-      this.outputId = $("#container").length ? "container" : "blab_container";
+      container = $("#container");
+      hasBodyContainer = container.length && container.parent().is("body");
+      this.outputId = hasBodyContainer ? "container" : "blab_container";
       $blab.mathjaxConfig = function() {
         $.event.trigger("mathjaxPreConfig");
         window.MathJax.Hub.Config({

@@ -254,7 +254,9 @@ class MathJaxProcessor
 	
 		#return # DEBUG
 		
-		@outputId = if $("#container").length then "container" else "blab_container"
+		container = $("#container")
+		hasBodyContainer = container.length and container.parent().is("body")
+		@outputId = if hasBodyContainer then "container" else "blab_container"
 		
 #		@outputId = "codeout_html"
 		
