@@ -168,7 +168,7 @@ class Page
 		new MathJaxProcessor  # ZZZ should be after all html rendered?
 		new Notes
 		new FavIcon
-		new GithubRibbon @container, @blabLocation.path
+		new GithubRibbon @container, @blabLocation
 		new SaveButton @container, -> $.event.trigger "saveGitHub"
 		new GoogleAnalytics
 		@scrollToHashSection()
@@ -224,13 +224,22 @@ class PageTitle
 
 class GithubRibbon
 	
-	constructor: (@container, @path) ->
+	constructor: (@container, @location) ->
 	    
 		return if $blab.noGitHubRibbon
 
-		s = @path.split("/")
-		@link = "http://github.com/"+s[1].split(".")[0]+"/"+s[2]
-        
+		# Link depends on server:
+		# For localhost use path. E.g. "/stemblab.github.io/gifs/gallery/"
+		# For github use URL. E.g. "http://stemblab.github.io/gifs/gallery"
+		# Both map to "http://github.com/stemblab/gifs" (sub-blabs ignored).
+
+		if @location.host is "localhost"
+			s = @location.path.split("/")
+			@link = "http://github.com/"+s[1].split(".")[0]+"/"+s[2]
+		else
+			s = @location.url.split("/")
+			@link = "http://github.com/"+s[2].split(".")[0]+"/"+s[3]
+		
 		#return unless @container
 		
 		src = "https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
