@@ -873,7 +873,7 @@ class CredentialsForm
 		
 		@dialog = $ "<div>"
 			id: "github_save_dialog"
-			title: "Save to GitHub"
+			title: "Save immediately, or enter credentials."
 		
 		@dialog.dialog
 			autoOpen: false

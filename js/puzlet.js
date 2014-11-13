@@ -2643,7 +2643,7 @@
       this.key = $.cookie("gh_key");
       this.dialog = $("<div>", {
         id: "github_save_dialog",
-        title: "Save to GitHub"
+        title: "Save immediately, or enter credentials."
       });
       this.dialog.dialog({
         autoOpen: false,
