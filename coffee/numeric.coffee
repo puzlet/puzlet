@@ -481,12 +481,12 @@ class AxesLabels
 	
 	position: ->
 		@xaxisLabel?.css
-			marginLeft: (-@xaxisLabel.width()/2 + 10) + "px"  # width of ylabels?
+			marginLeft: (-@xaxisLabel.width() / 2 + 10) + "px"  # width of ylabels?
 			marginBottom: "-20px"
 			
 		@yaxisLabel?.css
 			marginLeft: "-27px"
-			marginTop: (@yaxisLabel.width()/2 - 10) + "px"
+			marginTop: (@yaxisLabel.width() / 2 - 10) + "px"
 
 
 ### Not used - to obsolete

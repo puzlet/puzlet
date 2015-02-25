@@ -227,12 +227,12 @@ class GithubRibbon
 	constructor: (@container, @location) ->
 	    
 		return if $blab.noGitHubRibbon
-
+		
 		# Link depends on server:
 		# For localhost use path. E.g. "/stemblab.github.io/gifs/gallery/"
 		# For github use URL. E.g. "http://stemblab.github.io/gifs/gallery"
 		# Both map to "http://github.com/stemblab/gifs" (sub-blabs ignored).
-
+		
 		if @location.host is "localhost"
 			s = @location.path.split("/")
 			@link = "http://github.com/"+s[1].split(".")[0]+"/"+s[2]
@@ -257,7 +257,8 @@ class GithubRibbon
 
 class MathJaxProcessor
 	
-	source: "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"
+	source: "http://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=default"
+#	source: "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"
 		# default, TeX-AMS-MML_SVG, TeX-AMS-MML_HTMLorMML
 	#outputSelector: ".code_node_html_output"
 	mode: "HTML-CSS"  # HTML-CSS, SVG, or NativeMML
