@@ -125,6 +125,7 @@ class Ace.Editor
 		@initMode()
 		@initRenderer()
 		@initFont()
+		@editor.$blockScrolling = Infinity
 		
 		@set @spec.code
 		@setEditable()

@@ -3027,6 +3027,7 @@
       this.initMode();
       this.initRenderer();
       this.initFont();
+      this.editor.$blockScrolling = Infinity;
       this.set(this.spec.code);
       this.setEditable();
       this.initChangeListeners();
