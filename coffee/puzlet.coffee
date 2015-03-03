@@ -3,7 +3,8 @@ class Blab
 	constructor: ->
 		@publicInterface()
 		@location = new ResourceLocation  # For current page
-		@page = new Page @location
+		window.blabBasic = window.blabBasic? and window.blabBasic
+		@page = if window.blabBasic then (new BasicPage(@location)) else (new Page(@location))
 		render = (wikyHtml) => @page.render wikyHtml
 		ready = => @page.ready @loader.resources
 		@loader = new Loader @location, render, ready
@@ -39,17 +40,17 @@ class Loader
 	###
 	
 	coreResources: [
-#		{url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
+		#		{url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
 		{url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
 		{url: "/puzlet/js/google_analytics.js"}
-#		{url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
+		#		{url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
 		{url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
 		{url: "/puzlet/js/wiky.js", var: "Wiky"}
 	]
 	
 	resourcesList: {url: "resources.json"}
 	
-	htmlResources: [
+	htmlResources: if window.blabBasic then [{url: ""}] else [
 		{url: "/puzlet/css/coffeelab.css"}
 	]
 	
@@ -60,7 +61,7 @@ class Loader
 		{url: "/puzlet/js/jquery.flot.min.js"}
 		{url: "/puzlet/js/compile.js"}
 		{url: "/puzlet/js/jquery.cookie.js"}
-#		{url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js", var: "jQuery.ui"}
+		#		{url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js", var: "jQuery.ui"}
 		{url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js", var: "jQuery.ui"}   # Alternative
 		# {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"}
 	]
@@ -142,6 +143,57 @@ class Loader
 		$blab.loadJSON = (url, callback) => @resources.loadJSON(url, callback)
 		$blab.resource = (id) => @resources.getContent id
 
+
+
+class BasicPage
+	
+	constructor: (@blabLocation) ->
+		@doneFirstHtml = false
+	
+	render: (wikyHtml) ->
+		console.log "render"
+		@mainContainer()
+		#console.log("HTML",  Wiky.toHtml(wikyHtml))
+#		@container.append Wiky.toHtml(wikyHtml)
+		new PageTitle unless @doneFirstHtml
+		@doneFirstHtml = true
+		
+	ready: (@resources) ->
+		console.log "ready"
+		#console.log @resources
+		new ResourceImages @resources
+		new ThumbImages
+		new SlideDeck
+		new MathJaxProcessor  # ZZZ should be after all html rendered?
+		new Notes
+		new FavIcon
+#		new GithubRibbon @container, @blabLocation
+#		new SaveButton @container, -> $.event.trigger "saveGitHub"
+		new GoogleAnalytics
+		@scrollToHashSection()
+		
+	rerender: ->
+		@empty()
+		@doneFirstHtml = false
+		@render html.content for html in @resources.select("html")
+		@resources.render()  # Render Ace editors
+		resource.compile() for resource in @resources.select "coffee"  # Compile and run all CoffeeScript
+		$.event.trigger "htmlOutputUpdated"
+	
+	mainContainer: ->
+		@container = $ "#container"
+	
+	empty: ->
+		@container.empty()
+	
+	scrollToHashSection: ->
+		hash = window.location.hash
+		return if not hash
+		section = $ "#"+hash.slice(1)
+		return unless section.length
+		$(document.body).animate(scrollTop: section.offset().top, 0)
+	
+	
 
 class Page
 	
