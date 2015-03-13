@@ -103,6 +103,8 @@ PaperScript = (function() {
 		// Track code insertions so their differences can be added to the
 		// original offsets.
 		var insertions = [];
+		
+		var enableOverloading = true;  // MVC
 
 		// Converts an original offset to the one in the current state of the 
 		// modified code.
@@ -117,7 +119,7 @@ PaperScript = (function() {
 			}
 			return offset;
 		}
-
+		
 		// Returns the node's code as a string, taking insertions into account.
 		function getCode(node) {
 			return code.substring(getOffset(node.range[0]),
@@ -127,6 +129,7 @@ PaperScript = (function() {
 		// Replaces the node's code with a new version and keeps insertions
 		// information up-to-date.
 		function replaceCode(node, str) {
+			if (!enableOverloading) return;
 			var start = getOffset(node.range[0]),
 				end = getOffset(node.range[1]),
 				insert = 0;
@@ -143,18 +146,23 @@ PaperScript = (function() {
 
 		// Recursively walks the AST and replaces the code of certain nodes
 		function walkAST(node, parent) {
-			// MVC
-			//console.log("parent/node", (parent ? parent.type : null), node);
-			//if (node.type==="ExpressionStatement" && node.expression.callee.name==="oo") {
-			//	console.log("***oo", parent);
-			//}
-			//if (node.type==="BlockStatement") {
-			//	console.log("===block parent", parent);
-			//}
-			//
-	
+			
 			if (!node)
 				return;
+			
+			// MVC
+			if (node.type==="CallExpression") {
+				callee = node.callee.name;
+				if (callee=="_disable_operator_overloading") {
+					replaceCode(node, "// Disable operator overloading");
+					enableOverloading = false;
+				}
+				if (callee=="_enable_operator_overloading") {
+					enableOverloading = true;
+					replaceCode(node, "// Enable operator overloading");
+				}
+			}
+
 			for (var key in node) {
 				if (key === 'range')
 					continue;
@@ -168,6 +176,9 @@ PaperScript = (function() {
 					walkAST(value, node);
 				}
 			}
+			
+			if (!enableOverloading) return;
+			
 			switch (node && node.type) {
 			case 'UnaryExpression': // -a
 				if (node.operator in unaryOperators

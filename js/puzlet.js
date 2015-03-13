@@ -38,7 +38,7 @@
     };
 
     BlabCoffee.prototype.compile = function(code, isMain, bare) {
-      var codeLines, firstLine, isMainStr, js, lf, preamble, vanilla;
+      var codeLines, firstLine, i, isMainStr, js, l, lf, preamble, vanilla, _i, _len;
       if (isMain == null) {
         isMain = true;
       }
@@ -54,6 +54,15 @@
       if (!vanilla) {
         this.initializeMath();
         preamble = preamble.concat(this.predefinedCoffeeLines);
+        for (i = _i = 0, _len = codeLines.length; _i < _len; i = ++_i) {
+          l = codeLines[i];
+          if (l === "#!no-math-sugar") {
+            codeLines[i] = "_disable_operator_overloading();";
+          }
+          if (l === "#!math-sugar") {
+            codeLines[i] = "_enable_operator_overloading();";
+          }
+        }
       }
       codeLines = preamble.concat(codeLines);
       code = codeLines.join(lf);

@@ -95,10 +95,16 @@ class BlabCoffee
 		
 		codeLines = code.split lf
 		firstLine = codeLines[0]
+		
 		vanilla = firstLine is "#!vanilla"
 		unless vanilla
 			@initializeMath()
 			preamble = preamble.concat @predefinedCoffeeLines
+			
+			for l, i in codeLines
+				codeLines[i] = "_disable_operator_overloading();" if l is "#!no-math-sugar"
+				codeLines[i] = "_enable_operator_overloading();" if l is "#!math-sugar"
+			
 		codeLines = preamble.concat(codeLines)
 		code = codeLines.join lf
 		js = CoffeeScript.compile code, bare: bare
