@@ -219,7 +219,7 @@ class ResourceLocation
                     #then 2
                 when @isPuzlet then 1
                 when @isGitHub
-                    if specOwner then 2 else 1
+                    if specOwner then 1 else 0
                     #then 1
                 when @isGitHubApi then 3
                 else null
@@ -256,6 +256,9 @@ class ResourceLocation
         else
             # Regular URL - assume source at same location.
             @source = @url
+            
+        # https://api.github.com/repos/puzlet-demo/resources.coffee/contents/resources.coffee
+        # https://api.github.com/repos/stemblab/puzlet-demo/contents/resources.coffee
         
         console.log this
         
