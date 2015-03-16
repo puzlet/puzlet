@@ -303,9 +303,9 @@
               return 1;
             case !this.isGitHub:
               if (specOwner) {
-                return 1;
+                return 2;
               } else {
-                return 0;
+                return 1;
               }
               break;
             case !this.isGitHubApi:

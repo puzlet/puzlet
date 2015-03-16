@@ -219,7 +219,7 @@ class ResourceLocation
                     #then 2
                 when @isPuzlet then 1
                 when @isGitHub
-                    if specOwner then 1 else 0
+                    if specOwner then 2 else 1
                     #then 1
                 when @isGitHubApi then 3
                 else null
