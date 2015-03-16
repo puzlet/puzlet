@@ -333,6 +333,7 @@
         branch = "gh-pages";
         this.source = ("https://github.com/" + this.owner + "/" + this.repo + s) + (this.file ? "/blob/" + branch + "/" + this.file : "");
         this.apiUrl = ("https://api.github.com/repos/" + this.owner + "/" + this.repo + "/contents" + s) + (this.file ? "/" + this.file : "");
+        this.linkedUrl = "https://" + this.owner + ".github.io/" + this.repo + s + "/" + this.file;
       } else {
         this.source = this.url;
       }
@@ -740,7 +741,11 @@
       };
       t = Date.now();
       cache = this.url.indexOf("/puzlet/js") !== -1 || this.url.indexOf("http://") !== -1;
-      return this.script.setAttribute("src", this.url + (cache ? "" : "?t=" + t));
+      if (this.location.isGitHub && this.location.linkedUrl) {
+        return this.script.setAttribute("src", this.linkedUrl);
+      } else {
+        return this.script.setAttribute("src", this.url + (cache ? "" : "?t=" + t));
+      }
     };
 
     return JsResourceLinked;

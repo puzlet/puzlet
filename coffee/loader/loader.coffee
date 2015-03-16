@@ -252,6 +252,7 @@ class ResourceLocation
             branch = "gh-pages"  # ZZZ bug: need to get branch - could be master or something else besides gh-pages.
             @source = "https://github.com/#{@owner}/#{@repo}#{s}" + (if @file then "/blob/#{branch}/#{@file}" else "")
             @apiUrl = "https://api.github.com/repos/#{@owner}/#{@repo}/contents#{s}" + (if @file then "/#{@file}" else "")
+            @linkedUrl = "https://#{@owner}.github.io/#{@repo}#{s}/#{@file}"
         else
             # Regular URL - assume source at same location.
             @source = @url
@@ -488,7 +489,10 @@ class JsResourceLinked extends Resource
         t = Date.now()
         # ZZZ need better way to handle caching
         cache = @url.indexOf("/puzlet/js") isnt -1 or @url.indexOf("http://") isnt -1  # ZZZ use ResourceLocation
-        @script.setAttribute "src", @url+(if cache then "" else "?t=#{t}")
+        if @location.isGitHub and @location.linkedUrl
+            @script.setAttribute "src", @linkedUrl
+        else
+            @script.setAttribute "src", @url+(if cache then "" else "?t=#{t}")
         #@script.setAttribute "data-url", @url
 
 
