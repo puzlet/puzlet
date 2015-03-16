@@ -214,8 +214,13 @@ class ResourceLocation
         @subf = null
         if hasPath
             repoIdx = switch
-                when @isLocalHost then 2
-                when (@isPuzlet or @isGitHub) then 1
+                when @isLocalHost
+                    if specOwner then 2 else 1
+                    #then 2
+                when @isPuzlet then 1
+                when @isGitHub
+                    if specOwner then 2 else 1
+                    #then 1
                 when @isGitHubApi then 3
                 else null
             if repoIdx

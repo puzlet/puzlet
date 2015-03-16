@@ -293,9 +293,21 @@
         repoIdx = (function() {
           switch (false) {
             case !this.isLocalHost:
-              return 2;
-            case !(this.isPuzlet || this.isGitHub):
+              if (specOwner) {
+                return 2;
+              } else {
+                return 1;
+              }
+              break;
+            case !this.isPuzlet:
               return 1;
+            case !this.isGitHub:
+              if (specOwner) {
+                return 2;
+              } else {
+                return 1;
+              }
+              break;
             case !this.isGitHubApi:
               return 3;
             default:
