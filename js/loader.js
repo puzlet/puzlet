@@ -252,7 +252,7 @@
   ResourceLocation = (function() {
 
     function ResourceLocation(url) {
-      var branch, f, hasPath, hostParts, match, pathIdx, repoIdx, s, _ref;
+      var branch, f, hasPath, hostParts, match, pathIdx, repoIdx, s, specOwner, _ref;
       this.url = url != null ? url : window.location.href;
       this.a = document.createElement("a");
       this.a.href = this.url;
@@ -263,18 +263,24 @@
       hostParts = this.host.split(".");
       this.pathParts = this.path ? this.path.split("/") : [];
       hasPath = this.pathParts.length;
+      specOwner = hasPath && this.pathParts[0] === "";
       this.isLocalHost = this.host === "localhost";
       this.isPuzlet = this.host === "puzlet.org";
       this.isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";
       this.isGitHubApi = this.host === "api.github.com" && this.pathParts.length === 6 && this.pathParts[1] === "repos" && this.pathParts[4] === "contents";
       this.owner = (function() {
         switch (false) {
-          case !(this.isLocalHost && hasPath):
+          case !(this.isLocalHost && specOwner):
             return this.pathParts[1];
           case !this.isPuzlet:
             return "puzlet";
           case !this.isGitHub:
-            return hostParts[0];
+            if (specOwner) {
+              return this.pathParts[1];
+            } else {
+              return hostParts[0];
+            }
+            break;
           case !(this.isGitHubApi && hasPath):
             return this.pathParts[2];
           default:

@@ -188,6 +188,7 @@ class ResourceLocation
         hostParts = @host.split "."
         @pathParts = if @path then @path.split "/" else []
         hasPath = @pathParts.length
+        specOwner = hasPath and @pathParts[0] is ""
         
         # Resource host type
         @isLocalHost = @host is "localhost"
@@ -198,10 +199,13 @@ class ResourceLocation
             
         # Owner/organization
         @owner = switch
-            when @isLocalHost and hasPath then @pathParts[1]
-#            when @isLocalHost and hasPath then @pathParts[1]
+            when @isLocalHost and specOwner then @pathParts[1]
             when @isPuzlet then "puzlet"
-            when @isGitHub then hostParts[0]
+            when @isGitHub
+                if specOwner
+                    @pathParts[1]
+                else
+                    hostParts[0]
             when @isGitHubApi and hasPath then @pathParts[2]
             else null
         
