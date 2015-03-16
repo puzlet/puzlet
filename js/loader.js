@@ -742,7 +742,7 @@
       t = Date.now();
       cache = this.url.indexOf("/puzlet/js") !== -1 || this.url.indexOf("http://") !== -1;
       if (this.location.isGitHub && this.location.linkedUrl) {
-        return this.script.setAttribute("src", this.linkedUrl);
+        return this.script.setAttribute("src", this.location.linkedUrl);
       } else {
         return this.script.setAttribute("src", this.url + (cache ? "" : "?t=" + t));
       }
