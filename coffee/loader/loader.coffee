@@ -45,28 +45,29 @@ class Loader
     coreResources: [
         #       {url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
         {url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
-        {url: "/puzlet/js/google_analytics.js"}
+        {url: "/puzlet/puzlet/js/google_analytics.js"}
         #       {url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
         {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
-        {url: "/puzlet/js/coffeescript.js"}  # TODO: get from coffeescript repo
-        {url: "http://localhost:8000/puzlet/coffeescript/compiler.js"}  # TODO: FIX!!!
-        {url: "/puzlet/js/wiky.js", var: "Wiky"}
+        {url: "/puzlet/puzlet/js/coffeescript.js"}  # TODO: get from coffeescript repo
+        {url: "/puzlet/coffeescript/compiler.js"}
+        # {url: "http://localhost:8000/puzlet/coffeescript/compiler.js"}  # TODO: FIX!!!
+        {url: "/puzlet/puzlet/js/wiky.js", var: "Wiky"}
     ]
     
     resourcesList: {url: "resources.json"}
     resourcesList2: {url: "resources.coffee"}
     
     htmlResources: if window.blabBasic then [{url: ""}] else [
-        {url: "/puzlet/css/coffeelab.css"}
+        {url: "/puzlet/puzlet/css/coffeelab.css"}
     ]
     
     scriptResources: [
 #        {url: "/puzlet/js/coffeescript.js"}
-        {url: "/puzlet/js/acorn.js"}
-        {url: "/puzlet/js/numeric-1.2.6.js"}
-        {url: "/puzlet/js/jquery.flot.min.js"}
-        {url: "/puzlet/js/compile.js"}
-        {url: "/puzlet/js/jquery.cookie.js"}
+        {url: "/puzlet/puzlet/js/acorn.js"}
+        {url: "/puzlet/puzlet/js/numeric-1.2.6.js"}
+        {url: "/puzlet/puzlet/js/jquery.flot.min.js"}
+        {url: "/puzlet/puzlet/js/compile.js"}
+        {url: "/puzlet/puzlet/js/jquery.cookie.js"}
         #       {url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js", var: "jQuery.ui"}
         {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js", var: "jQuery.ui"}   # Alternative
         # {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"}
@@ -108,7 +109,7 @@ class Loader
         res = @resources.add(url: @resourcesList2.url, doEval: true)
         @resources.loadUnloaded =>
             res.compile()
-            console.log "COFFEE", res
+            #console.log "COFFEE", res
             @resources.add @htmlResources
             @resources.add @scriptResources
             
@@ -198,6 +199,7 @@ class ResourceLocation
         # Owner/organization
         @owner = switch
             when @isLocalHost and hasPath then @pathParts[1]
+#            when @isLocalHost and hasPath then @pathParts[1]
             when @isPuzlet then "puzlet"
             when @isGitHub then hostParts[0]
             when @isGitHubApi and hasPath then @pathParts[2]
@@ -237,7 +239,8 @@ class ResourceLocation
             # Regular URL - assume source at same location.
             @source = @url
         
-        #console.log "resource", this
+        console.log this
+        
         
     getGistId: ->
         # ZZZ dup code - should really extend to get general URL params.
@@ -525,8 +528,8 @@ class ResourceFactory
             url = spec.url
         else
             {url, fileExt} = @extractUrl spec
-        console.log "URL", spec, url
-        url = @modifyPuzletUrl url
+        #console.log "URL", spec, url
+#        url = @modifyPuzletUrl url
         location = new ResourceLocation url
         fileExt ?= location.fileExt
         
@@ -567,6 +570,7 @@ class ResourceFactory
             fileExt = p
         {url, fileExt}
     
+    # TODO: not needed?
     modifyPuzletUrl: (url) ->
         # resources.json can use shorthand /puzlet/...
         # This function makes it:

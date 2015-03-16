@@ -54,16 +54,16 @@
         url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js",
         "var": "jQuery"
       }, {
-        url: "/puzlet/js/google_analytics.js"
+        url: "/puzlet/puzlet/js/google_analytics.js"
       }, {
         url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css",
         "var": "jQuery"
       }, {
-        url: "/puzlet/js/coffeescript.js"
+        url: "/puzlet/puzlet/js/coffeescript.js"
       }, {
-        url: "http://localhost:8000/puzlet/coffeescript/compiler.js"
+        url: "/puzlet/coffeescript/compiler.js"
       }, {
-        url: "/puzlet/js/wiky.js",
+        url: "/puzlet/puzlet/js/wiky.js",
         "var": "Wiky"
       }
     ];
@@ -82,21 +82,21 @@
       }
     ] : [
       {
-        url: "/puzlet/css/coffeelab.css"
+        url: "/puzlet/puzlet/css/coffeelab.css"
       }
     ];
 
     Loader.prototype.scriptResources = [
       {
-        url: "/puzlet/js/acorn.js"
+        url: "/puzlet/puzlet/js/acorn.js"
       }, {
-        url: "/puzlet/js/numeric-1.2.6.js"
+        url: "/puzlet/puzlet/js/numeric-1.2.6.js"
       }, {
-        url: "/puzlet/js/jquery.flot.min.js"
+        url: "/puzlet/puzlet/js/jquery.flot.min.js"
       }, {
-        url: "/puzlet/js/compile.js"
+        url: "/puzlet/puzlet/js/compile.js"
       }, {
-        url: "/puzlet/js/jquery.cookie.js"
+        url: "/puzlet/puzlet/js/jquery.cookie.js"
       }, {
         url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js",
         "var": "jQuery.ui"
@@ -164,7 +164,6 @@
       return this.resources.loadUnloaded(function() {
         var result, _i, _len, _ref;
         res.compile();
-        console.log("COFFEE", res);
         _this.resources.add(_this.htmlResources);
         _this.resources.add(_this.scriptResources);
         _ref = res.resultArray;
@@ -318,6 +317,7 @@
       } else {
         this.source = this.url;
       }
+      console.log(this);
     }
 
     ResourceLocation.prototype.getGistId = function() {
@@ -828,8 +828,6 @@
       } else {
         _ref = this.extractUrl(spec), url = _ref.url, fileExt = _ref.fileExt;
       }
-      console.log("URL", spec, url);
-      url = this.modifyPuzletUrl(url);
       location = new ResourceLocation(url);
       if (fileExt == null) {
         fileExt = location.fileExt;
