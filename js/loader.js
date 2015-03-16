@@ -263,7 +263,7 @@
       hostParts = this.host.split(".");
       this.pathParts = this.path ? this.path.split("/") : [];
       hasPath = this.pathParts.length;
-      specOwner = hasPath && this.url.indexOf("/") === -1;
+      specOwner = hasPath && this.url.indexOf("/") !== -1;
       this.isLocalHost = this.host === "localhost";
       this.isPuzlet = this.host === "puzlet.org";
       this.isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";

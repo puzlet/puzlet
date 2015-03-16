@@ -188,7 +188,7 @@ class ResourceLocation
         hostParts = @host.split "."
         @pathParts = if @path then @path.split "/" else []
         hasPath = @pathParts.length
-        specOwner = hasPath and @url.indexOf("/") is -1 #@pathParts[0] is ""
+        specOwner = hasPath and @url.indexOf("/") isnt -1 #@pathParts[0] is ""
         
         # Resource host type
         @isLocalHost = @host is "localhost"
