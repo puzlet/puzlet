@@ -380,6 +380,7 @@
         return;
       }
       thisHost = window.location.hostname;
+      console.log("location", this.location);
       if ((this.location.host !== thisHost || this.location.isGitHub) && this.location.apiUrl) {
         console.log("foreign");
         url = this.location.apiUrl;

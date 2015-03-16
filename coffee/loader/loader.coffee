@@ -291,6 +291,7 @@ class Resource
             return
         
         thisHost = window.location.hostname
+        console.log "location", @location
         if (@location.host isnt thisHost or @location.isGitHub) and @location.apiUrl
             # Foreign file - load via GitHub API.  Uses cache.
             console.log "foreign"
