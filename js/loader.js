@@ -381,6 +381,7 @@
       }
       thisHost = window.location.hostname;
       if ((this.location.host !== thisHost || this.location.isGitHub) && this.location.apiUrl) {
+        console.log("foreign");
         url = this.location.apiUrl;
         type = "json";
         process = function(data) {

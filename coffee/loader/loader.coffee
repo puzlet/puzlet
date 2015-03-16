@@ -293,7 +293,7 @@ class Resource
         thisHost = window.location.hostname
         if (@location.host isnt thisHost or @location.isGitHub) and @location.apiUrl
             # Foreign file - load via GitHub API.  Uses cache.
-            #console.log "foreign"
+            console.log "foreign"
             url = @location.apiUrl
             type = "json"
             process = (data) ->
