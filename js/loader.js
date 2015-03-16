@@ -314,6 +314,7 @@
               return null;
           }
         }).call(this);
+        this.repoIdx = repoIdx;
         if (repoIdx) {
           this.repo = this.pathParts[repoIdx];
           pathIdx = repoIdx + (this.isGitHubApi ? 2 : 1);
@@ -322,7 +323,7 @@
       }
       match = hasPath ? this.path.match(/\.[0-9a-z]+$/i) : null;
       this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
-      this.file = this.fileExt ? this.pathParts.slice(-1)[0] : null;
+      this.file = this.fileExt ? specOwner ? this.pathParts.slice(-1)[0] : this.pathParts.slice(-1)[0] : null;
       this.inBlab = this.file && this.url.indexOf("/") === -1;
       if (this.gistId) {
         f = (_ref = this.file) != null ? _ref.split(".") : void 0;
@@ -379,7 +380,7 @@
         return;
       }
       thisHost = window.location.hostname;
-      if (this.location.host !== thisHost && this.location.apiUrl) {
+      if ((this.location.host !== thisHost || this.location.isGitHub) && this.location.apiUrl) {
         url = this.location.apiUrl;
         type = "json";
         process = function(data) {

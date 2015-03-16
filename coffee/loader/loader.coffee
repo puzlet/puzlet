@@ -223,6 +223,7 @@ class ResourceLocation
                     #then 1
                 when @isGitHubApi then 3
                 else null
+            @repoIdx = repoIdx  # TODO: temp
             if repoIdx
                 @repo = @pathParts[repoIdx]
                 pathIdx = repoIdx + (if @isGitHubApi then 2 else 1)
@@ -231,8 +232,15 @@ class ResourceLocation
         # File and file extension
         match = if hasPath then @path.match /\.[0-9a-z]+$/i else null  # ZZZ dup code - more robust way?
         @fileExt = if match?.length then match[0].slice(1) else null
-        @file = if @fileExt then @pathParts[-1..][0] else null
-        @inBlab = @file and @url.indexOf("/") is -1
+        @file =
+            if @fileExt
+                if specOwner
+                    @pathParts[-1..][0]  # TODO: debug
+                else
+                    @pathParts[-1..][0]
+            else
+                null
+        @inBlab = @file and @url.indexOf("/") is -1  # TODO: redundant?
         
         if @gistId
             # Gist
@@ -283,7 +291,7 @@ class Resource
             return
         
         thisHost = window.location.hostname
-        if @location.host isnt thisHost and @location.apiUrl
+        if (@location.host isnt thisHost or @location.isGitHub) and @location.apiUrl
             # Foreign file - load via GitHub API.  Uses cache.
             #console.log "foreign"
             url = @location.apiUrl
