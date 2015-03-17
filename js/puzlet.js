@@ -2564,7 +2564,7 @@
 
     GitHub.prototype.redirect = function() {
       var blabUrl;
-      blabUrl = "/?gist=" + this.gistId;
+      blabUrl = window.location + ("?gist=" + this.gistId);
       return window.location = blabUrl;
     };
 

@@ -819,7 +819,7 @@ class GitHub
 		description += " [http://puzlet.org?gist=#{@gistId}]" if @gistId
 	
 	redirect: ->
-		blabUrl = "/?gist=#{@gistId}"
+		blabUrl = window.location+"?gist=#{@gistId}"
 		window.location = blabUrl
 	
 	getRepoMembers: (callback) ->
