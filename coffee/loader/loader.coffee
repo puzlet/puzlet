@@ -5,30 +5,6 @@ support {css: "..."} in resources.coffee
 
 console.log "LOADER"
 
-class OLD_Blab
-    
-    constructor: ->
-        @publicInterface()
-        @location = new ResourceLocation  # For current page
-        #window.blabBasic = window.blabBasic? and window.blabBasic
-        #@page = if window.blabBasic then (new BasicPage(@location)) else (new Page(@location))
-        #render = (wikyHtml) => @page.render wikyHtml
-        #ready = => @page.ready @loader.resources
-        render = ->
-        ready = ->
-        @loader = new Loader @location, render, ready
-        #$pz.renderHtml = => @page.rerender()
-    
-    publicInterface: ->
-        window.$pz = {}
-        window.$blab = {}  # Exported interface.
-        window.console = {} unless window.console?
-        window.console.log = (->) unless window.console.log?
-        #$pz.AceIdentifiers = Ace.Identifiers
-        $blab.codeDecoration = true
-
-
-
 class Loader
     
     #--- Example resources.json ---
@@ -49,9 +25,21 @@ class Loader
     ]
     ###
     
-    coreResources: [
+    coreResources1: [
         #       {url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
         {url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
+     #   {url: "/puzlet/puzlet/js/google_analytics.js"}
+        #       {url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
+     #   {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
+     #   {url: "/puzlet/puzlet/js/coffeescript.js"}  # TODO: get from coffeescript repo
+     #   {url: "/puzlet/coffeescript/compiler.js"}
+        # {url: "http://localhost:8000/puzlet/coffeescript/compiler.js"}  # TODO: FIX!!!
+     #   {url: "/puzlet/puzlet/js/wiky.js", var: "Wiky"}
+    ]
+    
+    coreResources2: [
+        #       {url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
+        # {url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
         {url: "/puzlet/puzlet/js/google_analytics.js"}
         #       {url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
         {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
@@ -90,9 +78,12 @@ class Loader
     
     # Dynamically load and run jQuery and Wiky.
     loadCoreResources: (callback) ->
-        @resources.add @coreResources
+        @resources.add @coreResources1
         @resources.loadUnloaded =>
-            callback?()
+            @resources.add @coreResources2
+            @resources.loadUnloaded =>
+                callback?()
+            #callback?()
     
     # Initiate GitHub object and load Gist files - these override blab files.
     loadGitHub: (callback) ->
@@ -149,6 +140,7 @@ class Loader
     # Note: for large JS file (even 3rd party), put in repo without gh-pages (web page).
     loadScripts: (callback) ->
         @resources.load ["json", "js", "coffee", "py", "m", "svg", "txt"], =>
+            console.log "*******RESOURCES", @resources
             # Before Ace loaded, compile any CoffeeScript that has no assocaited eval box.
             @compileCoffee (coffee) ->
                 not coffee.hasEval() and not coffee.spec.orig.doEval
@@ -174,52 +166,6 @@ class Loader
         $blab.resource = (id) => @resources.getContent id
 
 
-###
-class BaseHost
-    
-    @n: null
-    @match: (hostName) -> hostName is @n
-    @nameParts: (hostName) -> hostName.split "."
-    
-    constructor: (@hostName) ->
-    
-    
-class LocalHost extends BaseHost
-    
-    @n: "localhost"
-    
-    constructor: ->
-    
-    
-class PuzletHost extends BaseHost
-    
-    @n: "puzlet.org"
-
-
-class GitHubHost extends BaseHost
-    
-    @n: "org.github.io"
-    @match: (hostName) ->
-        p = @nameParts hostName
-        q = @nameParts @n
-        p.length is 3 and p[1] is q[1] and p[2] is q[2]  # Alternative: regex match
-
-
-class GitHubApiHost extends BaseHost
-    
-    @n: "api.github.com"
-    
-    
-Hosts = [LocalHost, PuzletHost, GitHubHost, GitHubApiHost]
-hostFactory = (hostName) ->
-    for Host in Hosts
-        return new Host(hostName) if Host.match hostName
-    return null
-    
-#Host = hostFactory 
-###
-        
-        
 ###
 *******SPECIFICATION*******
         
@@ -250,7 +196,8 @@ http://puzlet.org/org/repo/path/to/file.ext
 http://org.github.io/repo/path/to/file.ext
 http://rawgit ...
 
-Not supported. Use org/repo approach below instead.  Could support for backward compatibility?
+GitHub API link.  This needs to be used for foreign github JS/CSS resources
+that can't be accessed via github.io.
 http://api.github.com/...
 
 ---Special resource identifiers---
@@ -287,8 +234,9 @@ class URL
     onWeb: ->
         @url.indexOf("http://") is 0 or @url.indexOf("//") is 0
         
-    subFolder: (filePathIdx) ->
-        s = @path[(filePathIdx)..-2].join("/")
+    subfolder: (filePathIdx) ->
+        endIdx = if @file then -2 else -1
+        s = @path[(filePathIdx)..endIdx].join("/")
         if s then "/"+s else ""
 
 
@@ -309,383 +257,233 @@ class BlabLocation extends URL
             @repoIdx = 0
         
         # http://org.github.io/repo or http://org.github.io
-        if @host.length is 3 and @host[1] is "github" and @host[2] is "io"
+        if GitHub.isIoUrl(@url)
             @owner = @host[0]
             @repoIdx = 0
+            
+        return unless @owner  # Not a blab resource if no owner
         
         if @hasPath
             @repo = @path[@repoIdx]
-            @subf = @subFolder(@repoIdx + 1)
+            @subf = @subfolder(@repoIdx + 1)
         else
             @repo = null
             @subf = null
         
-        @source = "https://github.com/#{@owner}/#{@repo ? ''}" if @owner
+        @gitHub = new GitHub {@owner, @repo}
+        @source = @gitHub.sourcePageUrl() #"https://github.com/#{@owner}/#{@repo ? ''}" if @owner
         
 
-# TODO: rename
-class XResourceLocation extends URL
+
+class ResourceLocation extends URL
+    # Abstract class
     
-    branch: "gh-pages"  # ZZZ need to get branch - could be master or something else besides gh-pages.
+    owner: null
+    repo: null
+    subf: null
+    inBlab: false
+    source: null
+    gitHub: null
+    
+    constructor: (@url) ->
+        super @url
+        @subf = @subfolder(0)
+        @source = @url
+    
+    load: (callback) ->
+        # Ajax-load method.
+        url = @url+"?t=#{Date.now()}"
+        $.get(url, ((data) -> callback(data)), "text")
+
+
+class WebResourceLocation extends ResourceLocation
+    
+    loadType: "ext"
+    cache: true
+
+
+# TODO: Should this be called GitHubResourceLocation?
+class BlabResourceLocation extends ResourceLocation
+    
+    loadType: null  # Defined in constructor
+    cache: null  # Defined in constructor
+
+    constructor: (@url) ->
+        super @url
+        
+        @currentBlab = new BlabLocation  # TODO cache (or make class prop?)
+        
+        if @fullPath()
+            # /org/repo/path/to/file.ext
+            @owner = @path[0]
+            @repo = @path[1]
+            @subf = @subfolder(2)
+            @inBlab = @owner is @currentBlab.owner and @repo is @currentBlab.repo
+        else
+            # path/to/file.ext
+            @owner = @currentBlab.owner
+            @repo = @currentBlab.repo
+            @subf = @subfolder(@currentBlab.repoIdx+1)
+            @inBlab = true
+        
+        # loadType is used only to JS/CSS resources.
+        # if loadType="ext" and is on GitHub then resource must be accessible via github.io.
+        @loadType = if @inBlab then "blab" else "ext"
+        @cache = not @inBlab and @owner is "puzlet"  # TODO: better way?
+        
+        @gitHub = new GitHub {@owner, @repo, @subf, @file}
+        @source = @gitHub.sourcePageUrl()
+        
+    fullPath: -> @url?.indexOf("/") isnt -1
+
+class GitHubApiResourceLocation extends ResourceLocation
+    
+    loadType: "api"
+    cache: false
     
     constructor: (@url) ->
         
         super @url
         
-        @currentBlab = new BlabLocation  # TODO cache (or make class prop?)
+        @api = new GitHubApi @url
+        return unless @api.owner
+        @owner = @api.owner
+        @repo = @api.repo
+        @subf = @api.subf
+        @gitHub = new GitHub {@owner, @repo, @subf, @file}
+        @source = @gitHub.sourcePageUrl()
         
-        if @onWeb()
-            # http://... or //...
-            @webResource()
-        else
-            # /org/repo/path/to/file.ext or # path/to/file.ext
-            @blabResource()
-    
-    webResource: ->
-        @owner = null
-        @repo = null
-        @subf = @subfolder(0)  # Not used
-        @inBlab = false
-        @source = @url
+    load: (callback) -> @api.load callback
         
-    blabResource: ->
-        
-        fullPath = (@url.indexOf("/") isnt -1)
-        
-        if fullPath
-            # /org/repo/path/to/file.ext
-            @owner = @path[0]
-            @repo = @path[1]
-            @subf = @subfolder(2)
-        else
-            # path/to/file.ext
-            # TODO: can we get these from @host?
-            @owner = @currentBlab.owner
-            @repo = @currentBlab.repo
-            @subf = @subfolder(0)
-        
-        @inBlab = @owner is @currentBlab.owner and @repo is @currentBlab.repo
-            
-        @source = "https://github.com/#{@owner}/#{@repo}#{@subf}" + (if @file then "/blob/#{@branch}/#{@file}" else "")
-        @linkedUrl "https://#{@owner}.github.io/#{@repo}#{@subf}/#{@file}"
-        @apiUrl = "https://api.github.com/repos/#{@owner}/#{@repo}/contents#{@subf}" + (if @file then "/#{@file}" else "")
 
+# Factory function
+resourceLocation = (url) ->
+    
+    resource = new URL url
+    if GitHubApi.isApiUrl(resource.url)
+        # http://api.github.com/repos/org/repo/contents/path/to/file.ext
+        # This is for foreign JS/CSS resources that don't have github.io repo and need to be linked.
+        R = GitHubApiResourceLocation
+        #@gitHubApiResource()
+    else if resource.onWeb()
+        # http://... or //...
+        R = WebResourceLocation
+        #@webResource()
+    else
+        # /org/repo/path/to/file.ext or # path/to/file.ext
+        R = BlabResourceLocation
+        #@blabResource()
+    return new R(url)
+    
+
+# TODO: class for github io?
+class GitHub
+    
+    branch: "gh-pages"  # Default
+    
+    @isIoUrl: (url) ->
+        u = new URL url
+        host = u.host
+        host.length is 3 and host[1] is "github" and host[2] is "io" 
+    
+    constructor: (@spec) ->
+        {@owner, @repo, @subf, @file} = @spec
+    
+    sourcePageUrl: ->
+        "https://github.com/#{@owner}/#{@repo}#{@subf ? ''}" + (if @file then "/blob/#{@branch}/#{@file}" else "")
+        
+    linkedUrl: ->
+        "https://#{@owner}.github.io/#{@repo}#{@subf ? ''}" + (if @file then "/#{@file}" else "")
+        
+    apiUrl: ->
+        GitHubApi.getUrl {@owner, @repo, @subf, @file}
+    
+    urls: ->
+        sourcePageUrl: @sourcePageUrl()
+        linkedUrl: @linkedUrl()
+        apiUrl: @apiUrl()
+
+
+class GitHubApi extends URL
+    
+    @hostname: "api.github.com"
+    
+    @isApiUrl: (url) ->
+        u = new URL url
+        path = u.path
+        u.hostname is GitHubApi.hostname and path.length>=5 and path[0] is "repos" and path[3] is "contents"
+        
+    @getUrl: (spec) ->
+        {owner, repo, subf, file} = spec
+        "https://#{GitHubApi.hostname}/repos/#{owner}/#{repo}/contents#{subf ? ''}" + (if file then "/#{file}" else "")
+    
+    @loadParameters: (url) ->
+        type: "json"
+        process: (data) ->
+            content = data.content.replace(/\s/g, '')  # Remove whitespace. Fixes parsing issue for Safari.
+            atob(content)
+       
+    constructor: (@url) ->
+        super @url
+        return unless GitHubApi.isApiUrl(@url)
+        @owner = @path[1]
+        @repo = @path[2]
+        @subf = @subfolder(4)
+        
+    load: (callback) ->
+        success = (data) =>
+            content = data.content.replace(/\s/g, '')  # Remove whitespace. Fixes parsing issue for Safari.
+            callback(atob(content))
+        $.get(@url, success, "json")
 
 testBlabLocation = ->
     
-    loc = (url) -> new BlabLocation url
+    loc = (url) ->
+        b = new BlabLocation url
+        console.log b, b.gitHub?.urls()
     
-    l = loc null
-    console.log "&&&&&&&&", l
+    #    loc null
+        #console.log "&&&&&&&&", l
     
-    l = loc "http://puzlet.org/repo/path/to"
-    console.log "&&&&&&&&", l
+    #    loc "http://puzlet.org/repo/path/to"
+        #console.log "&&&&&&&&", l
     
-    l = loc "http://org.github.io/repo/path"
-    console.log "&&&&&&&&", l
+    #    loc "http://org.github.io/repo/path"
+        #console.log "&&&&&&&&", l
     
-    l = loc "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
-    console.log "&&&&&&&&", l
-    
-testBlabLocation()
-
-
-class BaseResourceLocation
-    
-    constructor: (@url=window.location.href) ->
-    
-        @a = document.createElement "a"
-        @a.href = @url
-    
-        # URL components
-        @hostname = @a.hostname
-        @pathname = @a.pathname
-        @search = @a.search 
-        #@getGistId()
+    #    loc "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
+        #console.log "&&&&&&&&", l
         
-        @host = @hostname.split "."
-        @path = if @pathname then @pathname.split("/")[1..] else []
-        # TODO: perhaps eliminate first element of path?  always ""?
-        
-        @hasPath = @path.length>0
-        
-    # TODO: need more stringent match
-    specOwner: ->
-        @hasPath and (@url.indexOf("/") isnt -1) and not (@hasWebUrl())
+    r = (url) ->
+        z = resourceLocation url
+        #        z = new XResourceLocation url
+        console.log z, z.gitHub?.urls()
     
-    # TODO: need more stringent match
-    hasWebUrl: ->
-        @url.indexOf("//") is 0 or @url.indexOf("http://") is 0  # TODO: regex
-        
-    #currentLocation: -> resourceLocationFactory()
+    r "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
+    #console.log "********", l
     
-    file: ->
-        if @fileExt() then @path[-1..][0] else null  # Does specOwner have influence?
-            
-    fileExt: ->
-        match = if @hasPath then @pathname.match /\.[0-9a-z]+$/i else null
-        if match?.length then match[0].slice(1) else null
+    r "http://puzlet.org/puzlet/coffee/main.coffee"
+    #console.log "********", l
     
-
-class WebResourceLocation extends BaseResourceLocation
+    r "/org/repo/main.coffee"
+    #console.log "********", l
     
-    source: -> @url
+    r "main.coffee"
+    #console.log "********", l
     
-    props: ->
-        obj: this
-        file: @file()
-        source: @source()
+    r "http://api.github.com/repos/org/repo/contents/path/to/file.ext"
+    #console.log "********", l
     
     
-class XBlabResourceLocation extends BaseResourceLocation
-    
-    # Abstract class
-    
-    owner: ->  # set by subclass
-        
-    repoIdx: null  # set by subclass
-    
-    repo: -> @path[@repoIdx]
-    
-    subf: ->
-        s = @path[(@repoIdx+1)..-2].join("/")
-        if s then "/"+s else ""
-
-    #s: -> if @subf() then "/#{@subf()}" else ""  # Subfolder path string
-    
-    branch: -> "gh-pages"  # ZZZ bug: need to get branch - could be master or something else besides gh-pages.
-    
-    # TODO: under component github object?
-    source: -> "https://github.com/#{@owner()}/#{@repo()}#{@subf()}" + (if @file() then "/blob/#{@branch()}/#{@file()}" else "")
-    apiUrl: -> "https://api.github.com/repos/#{@owner()}/#{@repo()}/contents#{@subf()}" + (if @file then "/#{@file()}" else "")
-    linkedUrl: -> "https://#{@owner()}.github.io/#{@repo()}#{@subf()}/#{@file()}"
-    
-    inCurrentBlab: ->
-        # TODO: use this in resource factory
-        current = Blab.location #@currentLocation()
-        current.owner() is @owner() and current.repo() is @repo()
-    
-    props: ->
-        obj: this
-        owner: @owner()
-        repo: @repo()
-        subf: @subf()
-        file: @file()
-        source: @source()
-        apiUrl: @apiUrl()
-        linkedUrl: @linkedUrl()
-        
-
-class AbsBlabResourceLocation extends XBlabResourceLocation
-    
-    # url = /org/repo/path/to/file.ext
-    
-    owner: -> @path[0]
-    
-    repoIdx: 1
-
-
-class LocalResourceLocation extends AbsBlabResourceLocation
-    
-    # url = http://localhost:port/org/repo/path/to/file
-
-
-class RelBlabResourceLocation extends XBlabResourceLocation
-    
-    # path = repo/path/to/file.ext
-    
-    owner: ->  # set by subclass
-    
-    repoIdx: 0
-
-
-class CurrentBlabResourceLocation extends RelBlabResourceLocation
-    
-    # url = path/file.ext
-    
-    owner: -> Blab.location.owner() #@currentLocation().owner
-
-
-class PuzletResourceLocation extends RelBlabResourceLocation
-    
-    # url = http://puzlet.org/repo/path/to/file
-    
-    owner: -> "puzlet"
-
-    
-class GitHubResourceLocation extends RelBlabResourceLocation
-    
-    # url = http://org.github.io/repo/path/file.ext
-    
-    owner: -> @host[0]
-    
-    
-resourceLocationFactory = (url=window.location.href) ->
-    
-    base = new BaseResourceLocation url
-    hostname = base.hostname
-    host = base.host
-    specOwner = base.specOwner()
-    hasWebUrl = base.hasWebUrl()
-    
-    # TODO: github api url?
-    
-    if specOwner
-        return new AbsBlabResourceLocation url
-    else if not hasWebUrl
-        return new CurrentBlabResourceLocation url
-    else if hostname is "localhost"
-        return new LocalResourceLocation url
-        # Note: local resource is the default.  May wind up from GitHub.
-    else if hostname is "puzlet.org"
-        return new PuzletResourceLocation url
-    else if host.length is 3 and host[1] is "github" and host[2] is "io"
-        return new GitHubResourceLocation url
-    else
-        return new WebResourceLocation url
-
-
-locationTests = ->
-    
-    l = resourceLocationFactory "/org/repo/path/to/file.ext"
-    console.log "&&&&&&&&", l.props()
-    
-    l = resourceLocationFactory "http://puzlet.org/repo/path/to/file.ext"
-    console.log "&&&&&&&&", l.props()
-    
-    l = resourceLocationFactory "http://org.github.io/repo/path/file.ext"
-    console.log "&&&&&&&&", l.props()
-    
-    l = resourceLocationFactory "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
-    console.log "&&&&&&&&", l.props()
-    
-    
-#locationTests()
-
-
-
-
-class ResourceLocation
-    
-    # This does not use jQuery. It can be used for before JQuery loaded.
-    
-    # ZZZ Handle github api path here.
-    # ZZZ Later, how to support custom domain for github io?
-    
-    ###
-    Locations:
-    localhost:8000/org/repo/path
-    puzlet.org/repo/path
-    org.github.io/repo/path
-    /org/repo/path
-    path
-    ...?gist=...
-    ###
-    
-    constructor: (@url=window.location.href) ->
-        
-        @a = document.createElement "a"
-        @a.href = @url
-        
-        # URL components
-        @hostname = @a.hostname
-        @path = @a.pathname
-        @search = @a.search 
-        @getGistId()
-        
-        # Decompose into parts
-        hostParts = @hostname.split "."
-        @pathParts = if @path then @path.split "/" else []
-        hasPath = @pathParts.length
-        specOwner = hasPath and @url.indexOf("/") isnt -1 #@pathParts[0] is ""
-        
-        # Resource host type
-        @isLocalHost = @hostname is "localhost"
-        @isPuzlet = @hostname is "puzlet.org"  # TODO: needed?
-        @isGitHub = hostParts.length is 3 and hostParts[1] is "github" and hostParts[2] is "io"  # TODO: needed?
-        # Example: https://api.github.com/repos/OWNER/REPO/contents/FILE.EXT
-        @isGitHubApi = @hostname is "api.github.com" and @pathParts.length is 6 and @pathParts[1] is "repos" and @pathParts[4] is "contents"
-            
-        # Owner/organization
-        @owner = switch
-            when @isLocalHost and specOwner then @pathParts[1]
-            when @isPuzlet then "puzlet"
-            when @isGitHub
-                if specOwner
-                    @pathParts[1]
-                else
-                    hostParts[0]
-            when @isGitHubApi and hasPath then @pathParts[2]
-            else null
-        
-        # Repo and subfolder path
-        @repo = null
-        @subf = null
-        if hasPath
-            repoIdx = switch
-                when @isLocalHost
-                    if specOwner then 2 else 1
-                    #then 2
-                when @isPuzlet then 1
-                when @isGitHub
-                    if specOwner then 2 else 1
-                    #then 1
-                when @isGitHubApi then 3
-                else null
-            @repoIdx = repoIdx  # TODO: temp
-            if repoIdx
-                @repo = @pathParts[repoIdx]
-                pathIdx = repoIdx + (if @isGitHubApi then 2 else 1)
-                @subf = @pathParts[pathIdx..-2].join "/"
-        
-        # File and file extension
-        match = if hasPath then @path.match /\.[0-9a-z]+$/i else null  # ZZZ dup code - more robust way?
-        @fileExt = if match?.length then match[0].slice(1) else null
-        @file =
-            if @fileExt
-                if specOwner
-                    @pathParts[-1..][0]  # TODO: debug
-                else
-                    @pathParts[-1..][0]
-            else
-                null
-        @inBlab = @file and @url.indexOf("/") is -1  # TODO: redundant?   !!! used in resource factory
-        
-        if @gistId
-            # Gist
-            f = @file?.split "."
-            @source = "https://gist.github.com/#{@gistId}" + (if @file then "#file-#{f[0]}-#{f[1]}" else "")
-        else if @owner and @repo
-            # GitHub repo (or puzlet.org).
-            s = if @subf then "/#{@subf}" else ""  # Subfolder path string
-            branch = "gh-pages"  # ZZZ bug: need to get branch - could be master or something else besides gh-pages.
-            @source = "https://github.com/#{@owner}/#{@repo}#{s}" + (if @file then "/blob/#{branch}/#{@file}" else "")
-            @apiUrl = "https://api.github.com/repos/#{@owner}/#{@repo}/contents#{s}" + (if @file then "/#{@file}" else "")
-            @linkedUrl = "https://#{@owner}.github.io/#{@repo}#{s}/#{@file}"
-        else
-            # Regular URL - assume source at same location.
-            @source = @url
-            
-        # https://api.github.com/repos/puzlet-demo/resources.coffee/contents/resources.coffee
-        # https://api.github.com/repos/stemblab/puzlet-demo/contents/resources.coffee
-        
-        console.log this
-        
-    getGistId: ->
-        # ZZZ dup code - should really extend to get general URL params.
-        @query = @search.slice(1)
-        return null unless @query
-        h = @query.split "&"
-        p = h?[0].split "="
-        @gistId = if p.length and p[0] is "gist" then p[1] else null
-        
-
+#
+#testBlabLocation()
 
 class Resource
     
     constructor: (@spec) ->
         # ZZZ option to pass string for url
-        @location = @spec.location ? new ResourceLocation @spec.url
+        @location = @spec.location ? resourceLocation @spec.url
+#        @location = @spec.location ? new XResourceLocation @spec.url
         @url = @location.url
         @fileExt = @spec.fileExt ? @location.fileExt
         @id = @spec.id
@@ -693,7 +491,7 @@ class Resource
         @head = document.head
         @containers = new ResourceContainers this
     
-    load: (callback, type="text") ->
+    load: (callback) ->
         # Default file load method.
         # Uses jQuery.
         
@@ -703,27 +501,8 @@ class Resource
             @postLoad callback
             return
         
-        thisHost = window.location.hostname
-        console.log "location", @location
-        if (@location.host isnt thisHost or @location.isGitHub) and @location.apiUrl
-            # Foreign file - load via GitHub API.  Uses cache.
-            console.log "foreign"
-            url = @location.apiUrl
-            type = "json"
-            process = (data) ->
-                content = data.content.replace(/\s/g, '')  # Remove whitespace. Fixes parsing issue for Safari.
-                atob(content)
-        else
-            # Regular load.  Doesn't use cache.  type as specified in call.
-            url = @url+"?t=#{Date.now()}"
-            process = null
-            
-        success = (data) =>
-            @content = if process then process(data) else data
-            @postLoad callback
-            
-        $.get(url, success, type)
-        
+        @location.load((@content) => @postLoad callback)
+    
     postLoad: (callback) ->
         @loaded = true
         callback?()
@@ -760,7 +539,7 @@ class Resource
                 for type in types
                     return true if resource.isType type
                 false
-
+#
 
 class ResourceContainers
     
@@ -898,14 +677,9 @@ class JsResourceLinked extends Resource
         @script.onload = => @postLoad callback
         #@script.onerror = => console.log "Load error: #{@url}"
         
-        t = Date.now()
-        # ZZZ need better way to handle caching
-        cache = @url.indexOf("/puzlet/js") isnt -1 or @url.indexOf("http://") isnt -1  # ZZZ use ResourceLocation
-        if @location.isGitHub and @location.linkedUrl
-            @script.setAttribute "src", @location.linkedUrl
-        else
-            @script.setAttribute "src", @url+(if cache then "" else "?t=#{t}")
-        #@script.setAttribute "data-url", @url
+        src = @location.gitHub?.linkedUrl?() ? @url
+        t = if @location.cache then "" else "?t=#{Date.now()}"
+        @script.setAttribute "src", src+t
 
 
 class CoffeeResource extends Resource
@@ -963,9 +737,9 @@ class ResourceFactory
             url = spec.url
         else
             {url, fileExt} = @extractUrl spec
-        #console.log "URL", spec, url
-#        url = @modifyPuzletUrl url
-        location = new ResourceLocation url
+        
+        location = resourceLocation url
+        
         fileExt ?= location.fileExt
         
         spec =
@@ -977,17 +751,10 @@ class ResourceFactory
         
         subTypes = @resourceTypes[fileExt]
         return null unless subTypes
-        if subTypes.all?
-            resource = new subTypes.all spec
-        else
-            subtype = switch
-                # TODO: !!!!!!!!!! location.inBlab is bug
-                when location.inBlab then "blab"  # File in current blab
-                when location.isGitHubApi then "api"  # Use GitHub API
-                else "ext"  # External file
-            resource = new subTypes[subtype](spec)
-        resource
-    
+        
+        subtype = if subTypes.all? then "all" else location.loadType
+        resource = new subTypes[subtype](spec)
+        
     checkExists: (spec) ->
         v = spec.var
         return false unless v
@@ -1005,19 +772,6 @@ class ResourceFactory
             url = v
             fileExt = p
         {url, fileExt}
-    
-    # TODO: not needed?
-    modifyPuzletUrl: (url) ->
-        # resources.json can use shorthand /puzlet/...
-        # This function makes it:
-        #    http://puzlet.org/puzlet/... (on puzlet server) or
-        #    /puzlet/puzlet/... (local dev).
-        puzletUrl = "http://puzlet.org"
-        @puzlet ?= if document.querySelectorAll("[src='#{puzletUrl}/puzlet/js/puzlet.js']").length then puzletUrl else null
-        puzletResource = url.match("^/puzlet")?.length
-        if puzletResource
-            url = if @puzlet then @puzlet+url else "/puzlet"+url
-        url
 
 
 class Resources
@@ -1115,7 +869,8 @@ class Resources
 
 class Blab
     
-    @location: resourceLocationFactory()
+    @location: new BlabLocation()
+    #@location: resourceLocationFactory()
     
 
 window.$blab = {}  # Exported interface.  
@@ -1123,5 +878,374 @@ render = ->
 ready = ->
 new Loader(render, ready)
 
+#-----------------------------------------------------------------------------------------------------------
+
 #new Blab
+
+# TODO: break into three subclasses?
+class OLD____XResourceLocation extends URL
+    
+    constructor: (@url) ->
+        
+        super @url
+        
+        @currentBlab = new BlabLocation  # TODO cache (or make class prop?)
+        
+        if GitHubApi.isApiUrl(@url)
+            # http://api.github.com/repos/org/repo/contents/path/to/file.ext
+            # This is for foreign JS/CSS resources that don't have github.io repo and need to be linked.
+            @gitHubApiResource()
+        else if @onWeb()
+            # http://... or //...
+            @webResource()
+        else
+            # /org/repo/path/to/file.ext or # path/to/file.ext
+            @blabResource()
+    
+    gitHubApiResource: ->
+        g = new GitHubApi @url
+        @owner = g.owner
+        @repo = g.repo
+        @subf = g.subf
+        @inBlab = false
+        @gitHub = new GitHub {@owner, @repo, @subf, @file}
+        
+    webResource: ->
+        @owner = null
+        @repo = null
+        @subf = @subfolder(0)  # Not used
+        @inBlab = false
+        @source = @url
+        
+    blabResource: ->
+        
+        fullPath = (@url.indexOf("/") isnt -1)
+        
+        if fullPath
+            # /org/repo/path/to/file.ext
+            @owner = @path[0]
+            @repo = @path[1]
+            @subf = @subfolder(2)
+        else
+            # path/to/file.ext
+            @owner = @currentBlab.owner
+            @repo = @currentBlab.repo
+            @subf = @subfolder(@currentBlab.repoIdx+1)
+        
+        @inBlab = @owner is @currentBlab.owner and @repo is @currentBlab.repo
+        @gitHub = new GitHub {@owner, @repo, @subf, @file}
+
+
+class OLD_Blab
+    
+    constructor: ->
+        @publicInterface()
+        @location = new ResourceLocation  # For current page
+        #window.blabBasic = window.blabBasic? and window.blabBasic
+        #@page = if window.blabBasic then (new BasicPage(@location)) else (new Page(@location))
+        #render = (wikyHtml) => @page.render wikyHtml
+        #ready = => @page.ready @loader.resources
+        render = ->
+        ready = ->
+        @loader = new Loader @location, render, ready
+        #$pz.renderHtml = => @page.rerender()
+    
+    publicInterface: ->
+        window.$pz = {}
+        window.$blab = {}  # Exported interface.
+        window.console = {} unless window.console?
+        window.console.log = (->) unless window.console.log?
+        #$pz.AceIdentifiers = Ace.Identifiers
+        $blab.codeDecoration = true
+
+
+
+class OLD_____ResourceLocation
+    
+    # This does not use jQuery. It can be used for before JQuery loaded.
+    
+    # ZZZ Handle github api path here.
+    # ZZZ Later, how to support custom domain for github io?
+    
+    ###
+    Locations:
+    localhost:8000/org/repo/path
+    puzlet.org/repo/path
+    org.github.io/repo/path
+    /org/repo/path
+    path
+    ...?gist=...
+    ###
+    
+    constructor: (@url=window.location.href) ->
+        
+        @a = document.createElement "a"
+        @a.href = @url
+        
+        # URL components
+        @hostname = @a.hostname
+        @path = @a.pathname
+        @search = @a.search 
+        @getGistId()
+        
+        # Decompose into parts
+        hostParts = @hostname.split "."
+        @pathParts = if @path then @path.split "/" else []
+        hasPath = @pathParts.length
+        specOwner = hasPath and @url.indexOf("/") isnt -1 #@pathParts[0] is ""
+        
+        # Resource host type
+        @isLocalHost = @hostname is "localhost"
+        @isPuzlet = @hostname is "puzlet.org"  # TODO: needed?
+        @isGitHub = hostParts.length is 3 and hostParts[1] is "github" and hostParts[2] is "io"  # TODO: needed?
+        # Example: https://api.github.com/repos/OWNER/REPO/contents/FILE.EXT
+        @isGitHubApi = @hostname is "api.github.com" and @pathParts.length is 6 and @pathParts[1] is "repos" and @pathParts[4] is "contents"
+            
+        # Owner/organization
+        @owner = switch
+            when @isLocalHost and specOwner then @pathParts[1]
+            when @isPuzlet then "puzlet"
+            when @isGitHub
+                if specOwner
+                    @pathParts[1]
+                else
+                    hostParts[0]
+            when @isGitHubApi and hasPath then @pathParts[2]
+            else null
+        
+        # Repo and subfolder path
+        @repo = null
+        @subf = null
+        if hasPath
+            repoIdx = switch
+                when @isLocalHost
+                    if specOwner then 2 else 1
+                    #then 2
+                when @isPuzlet then 1
+                when @isGitHub
+                    if specOwner then 2 else 1
+                    #then 1
+                when @isGitHubApi then 3
+                else null
+            @repoIdx = repoIdx  # TODO: temp
+            if repoIdx
+                @repo = @pathParts[repoIdx]
+                pathIdx = repoIdx + (if @isGitHubApi then 2 else 1)
+                @subf = @pathParts[pathIdx..-2].join "/"
+        
+        # File and file extension
+        match = if hasPath then @path.match /\.[0-9a-z]+$/i else null  # ZZZ dup code - more robust way?
+        @fileExt = if match?.length then match[0].slice(1) else null
+        @file =
+            if @fileExt
+                if specOwner
+                    @pathParts[-1..][0]  # TODO: debug
+                else
+                    @pathParts[-1..][0]
+            else
+                null
+        @inBlab = @file and @url.indexOf("/") is -1  # TODO: redundant?   !!! used in resource factory
+        
+        if @gistId
+            # Gist
+            f = @file?.split "."
+            @source = "https://gist.github.com/#{@gistId}" + (if @file then "#file-#{f[0]}-#{f[1]}" else "")
+        else if @owner and @repo
+            # GitHub repo (or puzlet.org).
+            s = if @subf then "/#{@subf}" else ""  # Subfolder path string
+            branch = "gh-pages"  # ZZZ bug: need to get branch - could be master or something else besides gh-pages.
+            @source = "https://github.com/#{@owner}/#{@repo}#{s}" + (if @file then "/blob/#{branch}/#{@file}" else "")
+            @apiUrl = "https://api.github.com/repos/#{@owner}/#{@repo}/contents#{s}" + (if @file then "/#{@file}" else "")
+            @linkedUrl = "https://#{@owner}.github.io/#{@repo}#{s}/#{@file}"
+        else
+            # Regular URL - assume source at same location.
+            @source = @url
+            
+        # https://api.github.com/repos/puzlet-demo/resources.coffee/contents/resources.coffee
+        # https://api.github.com/repos/stemblab/puzlet-demo/contents/resources.coffee
+        
+        console.log this
+        
+    getGistId: ->
+        # ZZZ dup code - should really extend to get general URL params.
+        @query = @search.slice(1)
+        return null unless @query
+        h = @query.split "&"
+        p = h?[0].split "="
+        @gistId = if p.length and p[0] is "gist" then p[1] else null
+   
+
+###
+class OLD___BaseResourceLocation
+    
+    constructor: (@url=window.location.href) ->
+    
+        @a = document.createElement "a"
+        @a.href = @url
+    
+        # URL components
+        @hostname = @a.hostname
+        @pathname = @a.pathname
+        @search = @a.search 
+        #@getGistId()
+        
+        @host = @hostname.split "."
+        @path = if @pathname then @pathname.split("/")[1..] else []
+        # TODO: perhaps eliminate first element of path?  always ""?
+        
+        @hasPath = @path.length>0
+        
+    # TODO: need more stringent match
+    specOwner: ->
+        @hasPath and (@url.indexOf("/") isnt -1) and not (@hasWebUrl())
+    
+    # TODO: need more stringent match
+    hasWebUrl: ->
+        @url.indexOf("//") is 0 or @url.indexOf("http://") is 0  # TODO: regex
+        
+    #currentLocation: -> resourceLocationFactory()
+    
+    file: ->
+        if @fileExt() then @path[-1..][0] else null  # Does specOwner have influence?
+            
+    fileExt: ->
+        match = if @hasPath then @pathname.match /\.[0-9a-z]+$/i else null
+        if match?.length then match[0].slice(1) else null
+    
+
+class OLD___WebResourceLocation extends BaseResourceLocation
+    
+    source: -> @url
+    
+    props: ->
+        obj: this
+        file: @file()
+        source: @source()
+    
+    
+class OLD___XBlabResourceLocation extends BaseResourceLocation
+    
+    # Abstract class
+    
+    owner: ->  # set by subclass
+        
+    repoIdx: null  # set by subclass
+    
+    repo: -> @path[@repoIdx]
+    
+    subf: ->
+        s = @path[(@repoIdx+1)..-2].join("/")
+        if s then "/"+s else ""
+
+    #s: -> if @subf() then "/#{@subf()}" else ""  # Subfolder path string
+    
+    branch: -> "gh-pages"  # ZZZ bug: need to get branch - could be master or something else besides gh-pages.
+    
+    # TODO: under component github object?
+    source: -> "https://github.com/#{@owner()}/#{@repo()}#{@subf()}" + (if @file() then "/blob/#{@branch()}/#{@file()}" else "")
+    apiUrl: -> "https://api.github.com/repos/#{@owner()}/#{@repo()}/contents#{@subf()}" + (if @file then "/#{@file()}" else "")
+    linkedUrl: -> "https://#{@owner()}.github.io/#{@repo()}#{@subf()}/#{@file()}"
+    
+    inCurrentBlab: ->
+        # TODO: use this in resource factory
+        current = Blab.location #@currentLocation()
+        current.owner() is @owner() and current.repo() is @repo()
+    
+    props: ->
+        obj: this
+        owner: @owner()
+        repo: @repo()
+        subf: @subf()
+        file: @file()
+        source: @source()
+        apiUrl: @apiUrl()
+        linkedUrl: @linkedUrl()
+        
+
+class OLD___AbsBlabResourceLocation extends XBlabResourceLocation
+    
+    # url = /org/repo/path/to/file.ext
+    
+    owner: -> @path[0]
+    
+    repoIdx: 1
+
+
+class OLD___LocalResourceLocation extends AbsBlabResourceLocation
+    
+    # url = http://localhost:port/org/repo/path/to/file
+
+
+class OLD___RelBlabResourceLocation extends XBlabResourceLocation
+    
+    # path = repo/path/to/file.ext
+    
+    owner: ->  # set by subclass
+    
+    repoIdx: 0
+
+
+class OLD___CurrentBlabResourceLocation extends RelBlabResourceLocation
+    
+    # url = path/file.ext
+    
+    owner: -> Blab.location.owner() #@currentLocation().owner
+
+
+class OLD___PuzletResourceLocation extends RelBlabResourceLocation
+    
+    # url = http://puzlet.org/repo/path/to/file
+    
+    owner: -> "puzlet"
+
+    
+class OLD___GitHubResourceLocation extends RelBlabResourceLocation
+    
+    # url = http://org.github.io/repo/path/file.ext
+    
+    owner: -> @host[0]
+    
+    
+OLD___resourceLocationFactory = (url=window.location.href) ->
+    
+    base = new BaseResourceLocation url
+    hostname = base.hostname
+    host = base.host
+    specOwner = base.specOwner()
+    hasWebUrl = base.hasWebUrl()
+    
+    # TODO: github api url?
+    
+    if specOwner
+        return new AbsBlabResourceLocation url
+    else if not hasWebUrl
+        return new CurrentBlabResourceLocation url
+    else if hostname is "localhost"
+        return new LocalResourceLocation url
+        # Note: local resource is the default.  May wind up from GitHub.
+    else if hostname is "puzlet.org"
+        return new PuzletResourceLocation url
+    else if host.length is 3 and host[1] is "github" and host[2] is "io"
+        return new GitHubResourceLocation url
+    else
+        return new WebResourceLocation url
+
+
+locationTests = ->
+    
+    l = resourceLocationFactory "/org/repo/path/to/file.ext"
+    console.log "&&&&&&&&", l.props()
+    
+    l = resourceLocationFactory "http://puzlet.org/repo/path/to/file.ext"
+    console.log "&&&&&&&&", l.props()
+    
+    l = resourceLocationFactory "http://org.github.io/repo/path/file.ext"
+    console.log "&&&&&&&&", l.props()
+    
+    l = resourceLocationFactory "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
+    console.log "&&&&&&&&", l.props()
+    
+    
+#locationTests()
+###
 

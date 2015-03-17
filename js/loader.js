@@ -7,38 +7,11 @@ support {css: "..."} in resources.coffee
 
 
 (function() {
-  var AbsBlabResourceLocation, BaseResourceLocation, Blab, BlabLocation, CoffeeResource, CssResourceInline, CssResourceLinked, CurrentBlabResourceLocation, EditorContainer, EvalContainer, GitHubResourceLocation, HtmlResource, JsResourceInline, JsResourceLinked, JsonResource, Loader, LocalResourceLocation, OLD_Blab, PuzletResourceLocation, RelBlabResourceLocation, Resource, ResourceContainers, ResourceFactory, ResourceInline, ResourceLocation, Resources, URL, WebResourceLocation, XBlabResourceLocation, XResourceLocation, locationTests, ready, render, resourceLocationFactory, testBlabLocation,
+  var Blab, BlabLocation, BlabResourceLocation, CoffeeResource, CssResourceInline, CssResourceLinked, EditorContainer, EvalContainer, GitHub, GitHubApi, GitHubApiResourceLocation, HtmlResource, JsResourceInline, JsResourceLinked, JsonResource, Loader, OLD_Blab, OLD____XResourceLocation, OLD_____ResourceLocation, Resource, ResourceContainers, ResourceFactory, ResourceInline, ResourceLocation, Resources, URL, WebResourceLocation, ready, render, resourceLocation, testBlabLocation,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   console.log("LOADER");
-
-  OLD_Blab = (function() {
-
-    function OLD_Blab() {
-      var ready, render;
-      this.publicInterface();
-      this.location = new ResourceLocation;
-      render = function() {};
-      ready = function() {};
-      this.loader = new Loader(this.location, render, ready);
-    }
-
-    OLD_Blab.prototype.publicInterface = function() {
-      window.$pz = {};
-      window.$blab = {};
-      if (window.console == null) {
-        window.console = {};
-      }
-      if (window.console.log == null) {
-        window.console.log = (function() {});
-      }
-      return $blab.codeDecoration = true;
-    };
-
-    return OLD_Blab;
-
-  })();
 
   Loader = (function() {
     /*
@@ -56,11 +29,15 @@ support {css: "..."} in resources.coffee
         ]
     */
 
-    Loader.prototype.coreResources = [
+    Loader.prototype.coreResources1 = [
       {
         url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js",
         "var": "jQuery"
-      }, {
+      }
+    ];
+
+    Loader.prototype.coreResources2 = [
+      {
         url: "/puzlet/puzlet/js/google_analytics.js"
       }, {
         url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css",
@@ -130,9 +107,12 @@ support {css: "..."} in resources.coffee
 
     Loader.prototype.loadCoreResources = function(callback) {
       var _this = this;
-      this.resources.add(this.coreResources);
+      this.resources.add(this.coreResources1);
       return this.resources.loadUnloaded(function() {
-        return typeof callback === "function" ? callback() : void 0;
+        _this.resources.add(_this.coreResources2);
+        return _this.resources.loadUnloaded(function() {
+          return typeof callback === "function" ? callback() : void 0;
+        });
       });
     };
 
@@ -202,6 +182,7 @@ support {css: "..."} in resources.coffee
     Loader.prototype.loadScripts = function(callback) {
       var _this = this;
       return this.resources.load(["json", "js", "coffee", "py", "m", "svg", "txt"], function() {
+        console.log("*******RESOURCES", _this.resources);
         _this.compileCoffee(function(coffee) {
           return !coffee.hasEval() && !coffee.spec.orig.doEval;
         });
@@ -257,52 +238,6 @@ support {css: "..."} in resources.coffee
   })();
 
   /*
-  class BaseHost
-      
-      @n: null
-      @match: (hostName) -> hostName is @n
-      @nameParts: (hostName) -> hostName.split "."
-      
-      constructor: (@hostName) ->
-      
-      
-  class LocalHost extends BaseHost
-      
-      @n: "localhost"
-      
-      constructor: ->
-      
-      
-  class PuzletHost extends BaseHost
-      
-      @n: "puzlet.org"
-  
-  
-  class GitHubHost extends BaseHost
-      
-      @n: "org.github.io"
-      @match: (hostName) ->
-          p = @nameParts hostName
-          q = @nameParts @n
-          p.length is 3 and p[1] is q[1] and p[2] is q[2]  # Alternative: regex match
-  
-  
-  class GitHubApiHost extends BaseHost
-      
-      @n: "api.github.com"
-      
-      
-  Hosts = [LocalHost, PuzletHost, GitHubHost, GitHubApiHost]
-  hostFactory = (hostName) ->
-      for Host in Hosts
-          return new Host(hostName) if Host.match hostName
-      return null
-      
-  #Host = hostFactory
-  */
-
-
-  /*
   *******SPECIFICATION*******
           
   ===Supported URLs for current blab location===
@@ -332,7 +267,8 @@ support {css: "..."} in resources.coffee
   http://org.github.io/repo/path/to/file.ext
   http://rawgit ...
   
-  Not supported. Use org/repo approach below instead.  Could support for backward compatibility?
+  GitHub API link.  This needs to be used for foreign github JS/CSS resources
+  that can't be accessed via github.io.
   http://api.github.com/...
   
   ---Special resource identifiers---
@@ -365,9 +301,10 @@ support {css: "..."} in resources.coffee
       return this.url.indexOf("http://") === 0 || this.url.indexOf("//") === 0;
     };
 
-    URL.prototype.subFolder = function(filePathIdx) {
-      var s;
-      s = this.path.slice(filePathIdx, -1).join("/");
+    URL.prototype.subfolder = function(filePathIdx) {
+      var endIdx, s;
+      endIdx = this.file ? -2 : -1;
+      s = this.path.slice(filePathIdx, endIdx + 1 || 9e9).join("/");
       if (s) {
         return "/" + s;
       } else {
@@ -384,7 +321,6 @@ support {css: "..."} in resources.coffee
     __extends(BlabLocation, _super);
 
     function BlabLocation(url) {
-      var _ref;
       this.url = url != null ? url : window.location.href;
       BlabLocation.__super__.constructor.call(this, this.url);
       if (this.hostname === "localhost") {
@@ -395,133 +331,65 @@ support {css: "..."} in resources.coffee
         this.owner = "puzlet";
         this.repoIdx = 0;
       }
-      if (this.host.length === 3 && this.host[1] === "github" && this.host[2] === "io") {
+      if (GitHub.isIoUrl(this.url)) {
         this.owner = this.host[0];
         this.repoIdx = 0;
       }
+      if (!this.owner) {
+        return;
+      }
       if (this.hasPath) {
         this.repo = this.path[this.repoIdx];
-        this.subf = this.subFolder(this.repoIdx + 1);
+        this.subf = this.subfolder(this.repoIdx + 1);
       } else {
         this.repo = null;
         this.subf = null;
       }
-      if (this.owner) {
-        this.source = "https://github.com/" + this.owner + "/" + ((_ref = this.repo) != null ? _ref : '');
-      }
+      this.gitHub = new GitHub({
+        owner: this.owner,
+        repo: this.repo
+      });
+      this.source = this.gitHub.sourcePageUrl();
     }
 
     return BlabLocation;
 
   })(URL);
 
-  XResourceLocation = (function(_super) {
+  ResourceLocation = (function(_super) {
 
-    __extends(XResourceLocation, _super);
+    __extends(ResourceLocation, _super);
 
-    XResourceLocation.prototype.branch = "gh-pages";
+    ResourceLocation.prototype.owner = null;
 
-    function XResourceLocation(url) {
+    ResourceLocation.prototype.repo = null;
+
+    ResourceLocation.prototype.subf = null;
+
+    ResourceLocation.prototype.inBlab = false;
+
+    ResourceLocation.prototype.source = null;
+
+    ResourceLocation.prototype.gitHub = null;
+
+    function ResourceLocation(url) {
       this.url = url;
-      XResourceLocation.__super__.constructor.call(this, this.url);
-      this.currentBlab = new BlabLocation;
-      if (this.onWeb()) {
-        this.webResource();
-      } else {
-        this.blabResource();
-      }
+      ResourceLocation.__super__.constructor.call(this, this.url);
+      this.subf = this.subfolder(0);
+      this.source = this.url;
     }
 
-    XResourceLocation.prototype.webResource = function() {
-      this.owner = null;
-      this.repo = null;
-      this.subf = this.subfolder(0);
-      this.inBlab = false;
-      return this.source = this.url;
+    ResourceLocation.prototype.load = function(callback) {
+      var url;
+      url = this.url + ("?t=" + (Date.now()));
+      return $.get(url, (function(data) {
+        return callback(data);
+      }), "text");
     };
 
-    XResourceLocation.prototype.blabResource = function() {
-      var fullPath;
-      fullPath = this.url.indexOf("/") !== -1;
-      if (fullPath) {
-        this.owner = this.path[0];
-        this.repo = this.path[1];
-        this.subf = this.subfolder(2);
-      } else {
-        this.owner = this.currentBlab.owner;
-        this.repo = this.currentBlab.repo;
-        this.subf = this.subfolder(0);
-      }
-      this.inBlab = this.owner === this.currentBlab.owner && this.repo === this.currentBlab.repo;
-      this.source = ("https://github.com/" + this.owner + "/" + this.repo + this.subf) + (this.file ? "/blob/" + this.branch + "/" + this.file : "");
-      this.linkedUrl("https://" + this.owner + ".github.io/" + this.repo + this.subf + "/" + this.file);
-      return this.apiUrl = ("https://api.github.com/repos/" + this.owner + "/" + this.repo + "/contents" + this.subf) + (this.file ? "/" + this.file : "");
-    };
-
-    return XResourceLocation;
+    return ResourceLocation;
 
   })(URL);
-
-  testBlabLocation = function() {
-    var l, loc;
-    loc = function(url) {
-      return new BlabLocation(url);
-    };
-    l = loc(null);
-    console.log("&&&&&&&&", l);
-    l = loc("http://puzlet.org/repo/path/to");
-    console.log("&&&&&&&&", l);
-    l = loc("http://org.github.io/repo/path");
-    console.log("&&&&&&&&", l);
-    l = loc("http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js");
-    return console.log("&&&&&&&&", l);
-  };
-
-  testBlabLocation();
-
-  BaseResourceLocation = (function() {
-
-    function BaseResourceLocation(url) {
-      this.url = url != null ? url : window.location.href;
-      this.a = document.createElement("a");
-      this.a.href = this.url;
-      this.hostname = this.a.hostname;
-      this.pathname = this.a.pathname;
-      this.search = this.a.search;
-      this.host = this.hostname.split(".");
-      this.path = this.pathname ? this.pathname.split("/").slice(1) : [];
-      this.hasPath = this.path.length > 0;
-    }
-
-    BaseResourceLocation.prototype.specOwner = function() {
-      return this.hasPath && (this.url.indexOf("/") !== -1) && !(this.hasWebUrl());
-    };
-
-    BaseResourceLocation.prototype.hasWebUrl = function() {
-      return this.url.indexOf("//") === 0 || this.url.indexOf("http://") === 0;
-    };
-
-    BaseResourceLocation.prototype.file = function() {
-      if (this.fileExt()) {
-        return this.path.slice(-1)[0];
-      } else {
-        return null;
-      }
-    };
-
-    BaseResourceLocation.prototype.fileExt = function() {
-      var match;
-      match = this.hasPath ? this.pathname.match(/\.[0-9a-z]+$/i) : null;
-      if (match != null ? match.length : void 0) {
-        return match[0].slice(1);
-      } else {
-        return null;
-      }
-    };
-
-    return BaseResourceLocation;
-
-  })();
 
   WebResourceLocation = (function(_super) {
 
@@ -531,339 +399,234 @@ support {css: "..."} in resources.coffee
       return WebResourceLocation.__super__.constructor.apply(this, arguments);
     }
 
-    WebResourceLocation.prototype.source = function() {
-      return this.url;
-    };
+    WebResourceLocation.prototype.loadType = "ext";
 
-    WebResourceLocation.prototype.props = function() {
-      return {
-        obj: this,
-        file: this.file(),
-        source: this.source()
-      };
-    };
+    WebResourceLocation.prototype.cache = true;
 
     return WebResourceLocation;
 
-  })(BaseResourceLocation);
+  })(ResourceLocation);
 
-  XBlabResourceLocation = (function(_super) {
+  BlabResourceLocation = (function(_super) {
 
-    __extends(XBlabResourceLocation, _super);
+    __extends(BlabResourceLocation, _super);
 
-    function XBlabResourceLocation() {
-      return XBlabResourceLocation.__super__.constructor.apply(this, arguments);
+    BlabResourceLocation.prototype.loadType = null;
+
+    BlabResourceLocation.prototype.cache = null;
+
+    function BlabResourceLocation(url) {
+      this.url = url;
+      BlabResourceLocation.__super__.constructor.call(this, this.url);
+      this.currentBlab = new BlabLocation;
+      if (this.fullPath()) {
+        this.owner = this.path[0];
+        this.repo = this.path[1];
+        this.subf = this.subfolder(2);
+        this.inBlab = this.owner === this.currentBlab.owner && this.repo === this.currentBlab.repo;
+      } else {
+        this.owner = this.currentBlab.owner;
+        this.repo = this.currentBlab.repo;
+        this.subf = this.subfolder(this.currentBlab.repoIdx + 1);
+        this.inBlab = true;
+      }
+      this.loadType = this.inBlab ? "blab" : "ext";
+      this.cache = !this.inBlab && this.owner === "puzlet";
+      this.gitHub = new GitHub({
+        owner: this.owner,
+        repo: this.repo,
+        subf: this.subf,
+        file: this.file
+      });
+      this.source = this.gitHub.sourcePageUrl();
     }
 
-    XBlabResourceLocation.prototype.owner = function() {};
-
-    XBlabResourceLocation.prototype.repoIdx = null;
-
-    XBlabResourceLocation.prototype.repo = function() {
-      return this.path[this.repoIdx];
+    BlabResourceLocation.prototype.fullPath = function() {
+      var _ref;
+      return ((_ref = this.url) != null ? _ref.indexOf("/") : void 0) !== -1;
     };
 
-    XBlabResourceLocation.prototype.subf = function() {
-      var s;
-      s = this.path.slice(this.repoIdx + 1, -1).join("/");
-      if (s) {
-        return "/" + s;
-      } else {
-        return "";
+    return BlabResourceLocation;
+
+  })(ResourceLocation);
+
+  GitHubApiResourceLocation = (function(_super) {
+
+    __extends(GitHubApiResourceLocation, _super);
+
+    GitHubApiResourceLocation.prototype.loadType = "api";
+
+    GitHubApiResourceLocation.prototype.cache = false;
+
+    function GitHubApiResourceLocation(url) {
+      this.url = url;
+      GitHubApiResourceLocation.__super__.constructor.call(this, this.url);
+      this.api = new GitHubApi(this.url);
+      if (!this.api.owner) {
+        return;
       }
+      this.owner = this.api.owner;
+      this.repo = this.api.repo;
+      this.subf = this.api.subf;
+      this.gitHub = new GitHub({
+        owner: this.owner,
+        repo: this.repo,
+        subf: this.subf,
+        file: this.file
+      });
+      this.source = this.gitHub.sourcePageUrl();
+    }
+
+    GitHubApiResourceLocation.prototype.load = function(callback) {
+      return this.api.load(callback);
     };
 
-    XBlabResourceLocation.prototype.branch = function() {
-      return "gh-pages";
+    return GitHubApiResourceLocation;
+
+  })(ResourceLocation);
+
+  resourceLocation = function(url) {
+    var R, resource;
+    resource = new URL(url);
+    if (GitHubApi.isApiUrl(resource.url)) {
+      R = GitHubApiResourceLocation;
+    } else if (resource.onWeb()) {
+      R = WebResourceLocation;
+    } else {
+      R = BlabResourceLocation;
+    }
+    return new R(url);
+  };
+
+  GitHub = (function() {
+
+    GitHub.prototype.branch = "gh-pages";
+
+    GitHub.isIoUrl = function(url) {
+      var host, u;
+      u = new URL(url);
+      host = u.host;
+      return host.length === 3 && host[1] === "github" && host[2] === "io";
     };
 
-    XBlabResourceLocation.prototype.source = function() {
-      return ("https://github.com/" + (this.owner()) + "/" + (this.repo()) + (this.subf())) + (this.file() ? "/blob/" + (this.branch()) + "/" + (this.file()) : "");
+    function GitHub(spec) {
+      var _ref;
+      this.spec = spec;
+      _ref = this.spec, this.owner = _ref.owner, this.repo = _ref.repo, this.subf = _ref.subf, this.file = _ref.file;
+    }
+
+    GitHub.prototype.sourcePageUrl = function() {
+      var _ref;
+      return ("https://github.com/" + this.owner + "/" + this.repo + ((_ref = this.subf) != null ? _ref : '')) + (this.file ? "/blob/" + this.branch + "/" + this.file : "");
     };
 
-    XBlabResourceLocation.prototype.apiUrl = function() {
-      return ("https://api.github.com/repos/" + (this.owner()) + "/" + (this.repo()) + "/contents" + (this.subf())) + (this.file ? "/" + (this.file()) : "");
+    GitHub.prototype.linkedUrl = function() {
+      var _ref;
+      return ("https://" + this.owner + ".github.io/" + this.repo + ((_ref = this.subf) != null ? _ref : '')) + (this.file ? "/" + this.file : "");
     };
 
-    XBlabResourceLocation.prototype.linkedUrl = function() {
-      return "https://" + (this.owner()) + ".github.io/" + (this.repo()) + (this.subf()) + "/" + (this.file());
+    GitHub.prototype.apiUrl = function() {
+      return GitHubApi.getUrl({
+        owner: this.owner,
+        repo: this.repo,
+        subf: this.subf,
+        file: this.file
+      });
     };
 
-    XBlabResourceLocation.prototype.inCurrentBlab = function() {
-      var current;
-      current = Blab.location;
-      return current.owner() === this.owner() && current.repo() === this.repo();
-    };
-
-    XBlabResourceLocation.prototype.props = function() {
+    GitHub.prototype.urls = function() {
       return {
-        obj: this,
-        owner: this.owner(),
-        repo: this.repo(),
-        subf: this.subf(),
-        file: this.file(),
-        source: this.source(),
-        apiUrl: this.apiUrl(),
-        linkedUrl: this.linkedUrl()
+        sourcePageUrl: this.sourcePageUrl(),
+        linkedUrl: this.linkedUrl(),
+        apiUrl: this.apiUrl()
       };
     };
 
-    return XBlabResourceLocation;
-
-  })(BaseResourceLocation);
-
-  AbsBlabResourceLocation = (function(_super) {
-
-    __extends(AbsBlabResourceLocation, _super);
-
-    function AbsBlabResourceLocation() {
-      return AbsBlabResourceLocation.__super__.constructor.apply(this, arguments);
-    }
-
-    AbsBlabResourceLocation.prototype.owner = function() {
-      return this.path[0];
-    };
-
-    AbsBlabResourceLocation.prototype.repoIdx = 1;
-
-    return AbsBlabResourceLocation;
-
-  })(XBlabResourceLocation);
-
-  LocalResourceLocation = (function(_super) {
-
-    __extends(LocalResourceLocation, _super);
-
-    function LocalResourceLocation() {
-      return LocalResourceLocation.__super__.constructor.apply(this, arguments);
-    }
-
-    return LocalResourceLocation;
-
-  })(AbsBlabResourceLocation);
-
-  RelBlabResourceLocation = (function(_super) {
-
-    __extends(RelBlabResourceLocation, _super);
-
-    function RelBlabResourceLocation() {
-      return RelBlabResourceLocation.__super__.constructor.apply(this, arguments);
-    }
-
-    RelBlabResourceLocation.prototype.owner = function() {};
-
-    RelBlabResourceLocation.prototype.repoIdx = 0;
-
-    return RelBlabResourceLocation;
-
-  })(XBlabResourceLocation);
-
-  CurrentBlabResourceLocation = (function(_super) {
-
-    __extends(CurrentBlabResourceLocation, _super);
-
-    function CurrentBlabResourceLocation() {
-      return CurrentBlabResourceLocation.__super__.constructor.apply(this, arguments);
-    }
-
-    CurrentBlabResourceLocation.prototype.owner = function() {
-      return Blab.location.owner();
-    };
-
-    return CurrentBlabResourceLocation;
-
-  })(RelBlabResourceLocation);
-
-  PuzletResourceLocation = (function(_super) {
-
-    __extends(PuzletResourceLocation, _super);
-
-    function PuzletResourceLocation() {
-      return PuzletResourceLocation.__super__.constructor.apply(this, arguments);
-    }
-
-    PuzletResourceLocation.prototype.owner = function() {
-      return "puzlet";
-    };
-
-    return PuzletResourceLocation;
-
-  })(RelBlabResourceLocation);
-
-  GitHubResourceLocation = (function(_super) {
-
-    __extends(GitHubResourceLocation, _super);
-
-    function GitHubResourceLocation() {
-      return GitHubResourceLocation.__super__.constructor.apply(this, arguments);
-    }
-
-    GitHubResourceLocation.prototype.owner = function() {
-      return this.host[0];
-    };
-
-    return GitHubResourceLocation;
-
-  })(RelBlabResourceLocation);
-
-  resourceLocationFactory = function(url) {
-    var base, hasWebUrl, host, hostname, specOwner;
-    if (url == null) {
-      url = window.location.href;
-    }
-    base = new BaseResourceLocation(url);
-    hostname = base.hostname;
-    host = base.host;
-    specOwner = base.specOwner();
-    hasWebUrl = base.hasWebUrl();
-    if (specOwner) {
-      return new AbsBlabResourceLocation(url);
-    } else if (!hasWebUrl) {
-      return new CurrentBlabResourceLocation(url);
-    } else if (hostname === "localhost") {
-      return new LocalResourceLocation(url);
-    } else if (hostname === "puzlet.org") {
-      return new PuzletResourceLocation(url);
-    } else if (host.length === 3 && host[1] === "github" && host[2] === "io") {
-      return new GitHubResourceLocation(url);
-    } else {
-      return new WebResourceLocation(url);
-    }
-  };
-
-  locationTests = function() {
-    var l;
-    l = resourceLocationFactory("/org/repo/path/to/file.ext");
-    console.log("&&&&&&&&", l.props());
-    l = resourceLocationFactory("http://puzlet.org/repo/path/to/file.ext");
-    console.log("&&&&&&&&", l.props());
-    l = resourceLocationFactory("http://org.github.io/repo/path/file.ext");
-    console.log("&&&&&&&&", l.props());
-    l = resourceLocationFactory("http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js");
-    return console.log("&&&&&&&&", l.props());
-  };
-
-  ResourceLocation = (function() {
-    /*
-        Locations:
-        localhost:8000/org/repo/path
-        puzlet.org/repo/path
-        org.github.io/repo/path
-        /org/repo/path
-        path
-        ...?gist=...
-    */
-
-    function ResourceLocation(url) {
-      var branch, f, hasPath, hostParts, match, pathIdx, repoIdx, s, specOwner, _ref;
-      this.url = url != null ? url : window.location.href;
-      this.a = document.createElement("a");
-      this.a.href = this.url;
-      this.hostname = this.a.hostname;
-      this.path = this.a.pathname;
-      this.search = this.a.search;
-      this.getGistId();
-      hostParts = this.hostname.split(".");
-      this.pathParts = this.path ? this.path.split("/") : [];
-      hasPath = this.pathParts.length;
-      specOwner = hasPath && this.url.indexOf("/") !== -1;
-      this.isLocalHost = this.hostname === "localhost";
-      this.isPuzlet = this.hostname === "puzlet.org";
-      this.isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";
-      this.isGitHubApi = this.hostname === "api.github.com" && this.pathParts.length === 6 && this.pathParts[1] === "repos" && this.pathParts[4] === "contents";
-      this.owner = (function() {
-        switch (false) {
-          case !(this.isLocalHost && specOwner):
-            return this.pathParts[1];
-          case !this.isPuzlet:
-            return "puzlet";
-          case !this.isGitHub:
-            if (specOwner) {
-              return this.pathParts[1];
-            } else {
-              return hostParts[0];
-            }
-            break;
-          case !(this.isGitHubApi && hasPath):
-            return this.pathParts[2];
-          default:
-            return null;
-        }
-      }).call(this);
-      this.repo = null;
-      this.subf = null;
-      if (hasPath) {
-        repoIdx = (function() {
-          switch (false) {
-            case !this.isLocalHost:
-              if (specOwner) {
-                return 2;
-              } else {
-                return 1;
-              }
-              break;
-            case !this.isPuzlet:
-              return 1;
-            case !this.isGitHub:
-              if (specOwner) {
-                return 2;
-              } else {
-                return 1;
-              }
-              break;
-            case !this.isGitHubApi:
-              return 3;
-            default:
-              return null;
-          }
-        }).call(this);
-        this.repoIdx = repoIdx;
-        if (repoIdx) {
-          this.repo = this.pathParts[repoIdx];
-          pathIdx = repoIdx + (this.isGitHubApi ? 2 : 1);
-          this.subf = this.pathParts.slice(pathIdx, -1).join("/");
-        }
-      }
-      match = hasPath ? this.path.match(/\.[0-9a-z]+$/i) : null;
-      this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
-      this.file = this.fileExt ? specOwner ? this.pathParts.slice(-1)[0] : this.pathParts.slice(-1)[0] : null;
-      this.inBlab = this.file && this.url.indexOf("/") === -1;
-      if (this.gistId) {
-        f = (_ref = this.file) != null ? _ref.split(".") : void 0;
-        this.source = ("https://gist.github.com/" + this.gistId) + (this.file ? "#file-" + f[0] + "-" + f[1] : "");
-      } else if (this.owner && this.repo) {
-        s = this.subf ? "/" + this.subf : "";
-        branch = "gh-pages";
-        this.source = ("https://github.com/" + this.owner + "/" + this.repo + s) + (this.file ? "/blob/" + branch + "/" + this.file : "");
-        this.apiUrl = ("https://api.github.com/repos/" + this.owner + "/" + this.repo + "/contents" + s) + (this.file ? "/" + this.file : "");
-        this.linkedUrl = "https://" + this.owner + ".github.io/" + this.repo + s + "/" + this.file;
-      } else {
-        this.source = this.url;
-      }
-      console.log(this);
-    }
-
-    ResourceLocation.prototype.getGistId = function() {
-      var h, p;
-      this.query = this.search.slice(1);
-      if (!this.query) {
-        return null;
-      }
-      h = this.query.split("&");
-      p = h != null ? h[0].split("=") : void 0;
-      return this.gistId = p.length && p[0] === "gist" ? p[1] : null;
-    };
-
-    return ResourceLocation;
+    return GitHub;
 
   })();
+
+  GitHubApi = (function(_super) {
+
+    __extends(GitHubApi, _super);
+
+    GitHubApi.hostname = "api.github.com";
+
+    GitHubApi.isApiUrl = function(url) {
+      var path, u;
+      u = new URL(url);
+      path = u.path;
+      return u.hostname === GitHubApi.hostname && path.length >= 5 && path[0] === "repos" && path[3] === "contents";
+    };
+
+    GitHubApi.getUrl = function(spec) {
+      var file, owner, repo, subf;
+      owner = spec.owner, repo = spec.repo, subf = spec.subf, file = spec.file;
+      return ("https://" + GitHubApi.hostname + "/repos/" + owner + "/" + repo + "/contents" + (subf != null ? subf : '')) + (file ? "/" + file : "");
+    };
+
+    GitHubApi.loadParameters = function(url) {
+      return {
+        type: "json",
+        process: function(data) {
+          var content;
+          content = data.content.replace(/\s/g, '');
+          return atob(content);
+        }
+      };
+    };
+
+    function GitHubApi(url) {
+      this.url = url;
+      GitHubApi.__super__.constructor.call(this, this.url);
+      if (!GitHubApi.isApiUrl(this.url)) {
+        return;
+      }
+      this.owner = this.path[1];
+      this.repo = this.path[2];
+      this.subf = this.subfolder(4);
+    }
+
+    GitHubApi.prototype.load = function(callback) {
+      var success,
+        _this = this;
+      success = function(data) {
+        var content;
+        content = data.content.replace(/\s/g, '');
+        return callback(atob(content));
+      };
+      return $.get(this.url, success, "json");
+    };
+
+    return GitHubApi;
+
+  })(URL);
+
+  testBlabLocation = function() {
+    var loc, r;
+    loc = function(url) {
+      var b, _ref;
+      b = new BlabLocation(url);
+      return console.log(b, (_ref = b.gitHub) != null ? _ref.urls() : void 0);
+    };
+    r = function(url) {
+      var z, _ref;
+      z = resourceLocation(url);
+      return console.log(z, (_ref = z.gitHub) != null ? _ref.urls() : void 0);
+    };
+    r("http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js");
+    r("http://puzlet.org/puzlet/coffee/main.coffee");
+    r("/org/repo/main.coffee");
+    r("main.coffee");
+    return r("http://api.github.com/repos/org/repo/contents/path/to/file.ext");
+  };
 
   Resource = (function() {
 
     function Resource(spec) {
       var _ref, _ref1;
       this.spec = spec;
-      this.location = (_ref = this.spec.location) != null ? _ref : new ResourceLocation(this.spec.url);
+      this.location = (_ref = this.spec.location) != null ? _ref : resourceLocation(this.spec.url);
       this.url = this.location.url;
       this.fileExt = (_ref1 = this.spec.fileExt) != null ? _ref1 : this.location.fileExt;
       this.id = this.spec.id;
@@ -872,37 +635,17 @@ support {css: "..."} in resources.coffee
       this.containers = new ResourceContainers(this);
     }
 
-    Resource.prototype.load = function(callback, type) {
-      var process, success, thisHost, url,
-        _this = this;
-      if (type == null) {
-        type = "text";
-      }
+    Resource.prototype.load = function(callback) {
+      var _this = this;
       if (this.spec.gistSource) {
         this.content = this.spec.gistSource;
         this.postLoad(callback);
         return;
       }
-      thisHost = window.location.hostname;
-      console.log("location", this.location);
-      if ((this.location.host !== thisHost || this.location.isGitHub) && this.location.apiUrl) {
-        console.log("foreign");
-        url = this.location.apiUrl;
-        type = "json";
-        process = function(data) {
-          var content;
-          content = data.content.replace(/\s/g, '');
-          return atob(content);
-        };
-      } else {
-        url = this.url + ("?t=" + (Date.now()));
-        process = null;
-      }
-      success = function(data) {
-        _this.content = process ? process(data) : data;
+      return this.location.load(function(content) {
+        _this.content = content;
         return _this.postLoad(callback);
-      };
-      return $.get(url, success, type);
+      });
     };
 
     Resource.prototype.postLoad = function(callback) {
@@ -1234,7 +977,7 @@ support {css: "..."} in resources.coffee
     }
 
     JsResourceLinked.prototype.load = function(callback) {
-      var cache, t,
+      var src, t, _ref, _ref1,
         _this = this;
       this.script = document.createElement("script");
       this.script.setAttribute("type", "text/javascript");
@@ -1242,13 +985,9 @@ support {css: "..."} in resources.coffee
       this.script.onload = function() {
         return _this.postLoad(callback);
       };
-      t = Date.now();
-      cache = this.url.indexOf("/puzlet/js") !== -1 || this.url.indexOf("http://") !== -1;
-      if (this.location.isGitHub && this.location.linkedUrl) {
-        return this.script.setAttribute("src", this.location.linkedUrl);
-      } else {
-        return this.script.setAttribute("src", this.url + (cache ? "" : "?t=" + t));
-      }
+      src = (_ref = (_ref1 = this.location.gitHub) != null ? typeof _ref1.linkedUrl === "function" ? _ref1.linkedUrl() : void 0 : void 0) != null ? _ref : this.url;
+      t = this.location.cache ? "" : "?t=" + (Date.now());
+      return this.script.setAttribute("src", src + t);
     };
 
     return JsResourceLinked;
@@ -1357,7 +1096,7 @@ support {css: "..."} in resources.coffee
       } else {
         _ref = this.extractUrl(spec), url = _ref.url, fileExt = _ref.fileExt;
       }
-      location = new ResourceLocation(url);
+      location = resourceLocation(url);
       if (fileExt == null) {
         fileExt = location.fileExt;
       }
@@ -1372,22 +1111,8 @@ support {css: "..."} in resources.coffee
       if (!subTypes) {
         return null;
       }
-      if (subTypes.all != null) {
-        resource = new subTypes.all(spec);
-      } else {
-        subtype = (function() {
-          switch (false) {
-            case !location.inBlab:
-              return "blab";
-            case !location.isGitHubApi:
-              return "api";
-            default:
-              return "ext";
-          }
-        })();
-        resource = new subTypes[subtype](spec);
-      }
-      return resource;
+      subtype = subTypes.all != null ? "all" : location.loadType;
+      return resource = new subTypes[subtype](spec);
     };
 
     ResourceFactory.prototype.checkExists = function(spec) {
@@ -1420,19 +1145,6 @@ support {css: "..."} in resources.coffee
         url: url,
         fileExt: fileExt
       };
-    };
-
-    ResourceFactory.prototype.modifyPuzletUrl = function(url) {
-      var puzletResource, puzletUrl, _ref, _ref1;
-      puzletUrl = "http://puzlet.org";
-      if ((_ref = this.puzlet) == null) {
-        this.puzlet = document.querySelectorAll("[src='" + puzletUrl + "/puzlet/js/puzlet.js']").length ? puzletUrl : null;
-      }
-      puzletResource = (_ref1 = url.match("^/puzlet")) != null ? _ref1.length : void 0;
-      if (puzletResource) {
-        url = this.puzlet ? this.puzlet + url : "/puzlet" + url;
-      }
-      return url;
     };
 
     return ResourceFactory;
@@ -1650,7 +1362,7 @@ support {css: "..."} in resources.coffee
 
     function Blab() {}
 
-    Blab.location = resourceLocationFactory();
+    Blab.location = new BlabLocation();
 
     return Blab;
 
@@ -1663,5 +1375,386 @@ support {css: "..."} in resources.coffee
   ready = function() {};
 
   new Loader(render, ready);
+
+  OLD____XResourceLocation = (function(_super) {
+
+    __extends(OLD____XResourceLocation, _super);
+
+    function OLD____XResourceLocation(url) {
+      this.url = url;
+      OLD____XResourceLocation.__super__.constructor.call(this, this.url);
+      this.currentBlab = new BlabLocation;
+      if (GitHubApi.isApiUrl(this.url)) {
+        this.gitHubApiResource();
+      } else if (this.onWeb()) {
+        this.webResource();
+      } else {
+        this.blabResource();
+      }
+    }
+
+    OLD____XResourceLocation.prototype.gitHubApiResource = function() {
+      var g;
+      g = new GitHubApi(this.url);
+      this.owner = g.owner;
+      this.repo = g.repo;
+      this.subf = g.subf;
+      this.inBlab = false;
+      return this.gitHub = new GitHub({
+        owner: this.owner,
+        repo: this.repo,
+        subf: this.subf,
+        file: this.file
+      });
+    };
+
+    OLD____XResourceLocation.prototype.webResource = function() {
+      this.owner = null;
+      this.repo = null;
+      this.subf = this.subfolder(0);
+      this.inBlab = false;
+      return this.source = this.url;
+    };
+
+    OLD____XResourceLocation.prototype.blabResource = function() {
+      var fullPath;
+      fullPath = this.url.indexOf("/") !== -1;
+      if (fullPath) {
+        this.owner = this.path[0];
+        this.repo = this.path[1];
+        this.subf = this.subfolder(2);
+      } else {
+        this.owner = this.currentBlab.owner;
+        this.repo = this.currentBlab.repo;
+        this.subf = this.subfolder(this.currentBlab.repoIdx + 1);
+      }
+      this.inBlab = this.owner === this.currentBlab.owner && this.repo === this.currentBlab.repo;
+      return this.gitHub = new GitHub({
+        owner: this.owner,
+        repo: this.repo,
+        subf: this.subf,
+        file: this.file
+      });
+    };
+
+    return OLD____XResourceLocation;
+
+  })(URL);
+
+  OLD_Blab = (function() {
+
+    function OLD_Blab() {
+      this.publicInterface();
+      this.location = new ResourceLocation;
+      render = function() {};
+      ready = function() {};
+      this.loader = new Loader(this.location, render, ready);
+    }
+
+    OLD_Blab.prototype.publicInterface = function() {
+      window.$pz = {};
+      window.$blab = {};
+      if (window.console == null) {
+        window.console = {};
+      }
+      if (window.console.log == null) {
+        window.console.log = (function() {});
+      }
+      return $blab.codeDecoration = true;
+    };
+
+    return OLD_Blab;
+
+  })();
+
+  OLD_____ResourceLocation = (function() {
+    /*
+        Locations:
+        localhost:8000/org/repo/path
+        puzlet.org/repo/path
+        org.github.io/repo/path
+        /org/repo/path
+        path
+        ...?gist=...
+    */
+
+    function OLD_____ResourceLocation(url) {
+      var branch, f, hasPath, hostParts, match, pathIdx, repoIdx, s, specOwner, _ref;
+      this.url = url != null ? url : window.location.href;
+      this.a = document.createElement("a");
+      this.a.href = this.url;
+      this.hostname = this.a.hostname;
+      this.path = this.a.pathname;
+      this.search = this.a.search;
+      this.getGistId();
+      hostParts = this.hostname.split(".");
+      this.pathParts = this.path ? this.path.split("/") : [];
+      hasPath = this.pathParts.length;
+      specOwner = hasPath && this.url.indexOf("/") !== -1;
+      this.isLocalHost = this.hostname === "localhost";
+      this.isPuzlet = this.hostname === "puzlet.org";
+      this.isGitHub = hostParts.length === 3 && hostParts[1] === "github" && hostParts[2] === "io";
+      this.isGitHubApi = this.hostname === "api.github.com" && this.pathParts.length === 6 && this.pathParts[1] === "repos" && this.pathParts[4] === "contents";
+      this.owner = (function() {
+        switch (false) {
+          case !(this.isLocalHost && specOwner):
+            return this.pathParts[1];
+          case !this.isPuzlet:
+            return "puzlet";
+          case !this.isGitHub:
+            if (specOwner) {
+              return this.pathParts[1];
+            } else {
+              return hostParts[0];
+            }
+            break;
+          case !(this.isGitHubApi && hasPath):
+            return this.pathParts[2];
+          default:
+            return null;
+        }
+      }).call(this);
+      this.repo = null;
+      this.subf = null;
+      if (hasPath) {
+        repoIdx = (function() {
+          switch (false) {
+            case !this.isLocalHost:
+              if (specOwner) {
+                return 2;
+              } else {
+                return 1;
+              }
+              break;
+            case !this.isPuzlet:
+              return 1;
+            case !this.isGitHub:
+              if (specOwner) {
+                return 2;
+              } else {
+                return 1;
+              }
+              break;
+            case !this.isGitHubApi:
+              return 3;
+            default:
+              return null;
+          }
+        }).call(this);
+        this.repoIdx = repoIdx;
+        if (repoIdx) {
+          this.repo = this.pathParts[repoIdx];
+          pathIdx = repoIdx + (this.isGitHubApi ? 2 : 1);
+          this.subf = this.pathParts.slice(pathIdx, -1).join("/");
+        }
+      }
+      match = hasPath ? this.path.match(/\.[0-9a-z]+$/i) : null;
+      this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
+      this.file = this.fileExt ? specOwner ? this.pathParts.slice(-1)[0] : this.pathParts.slice(-1)[0] : null;
+      this.inBlab = this.file && this.url.indexOf("/") === -1;
+      if (this.gistId) {
+        f = (_ref = this.file) != null ? _ref.split(".") : void 0;
+        this.source = ("https://gist.github.com/" + this.gistId) + (this.file ? "#file-" + f[0] + "-" + f[1] : "");
+      } else if (this.owner && this.repo) {
+        s = this.subf ? "/" + this.subf : "";
+        branch = "gh-pages";
+        this.source = ("https://github.com/" + this.owner + "/" + this.repo + s) + (this.file ? "/blob/" + branch + "/" + this.file : "");
+        this.apiUrl = ("https://api.github.com/repos/" + this.owner + "/" + this.repo + "/contents" + s) + (this.file ? "/" + this.file : "");
+        this.linkedUrl = "https://" + this.owner + ".github.io/" + this.repo + s + "/" + this.file;
+      } else {
+        this.source = this.url;
+      }
+      console.log(this);
+    }
+
+    OLD_____ResourceLocation.prototype.getGistId = function() {
+      var h, p;
+      this.query = this.search.slice(1);
+      if (!this.query) {
+        return null;
+      }
+      h = this.query.split("&");
+      p = h != null ? h[0].split("=") : void 0;
+      return this.gistId = p.length && p[0] === "gist" ? p[1] : null;
+    };
+
+    return OLD_____ResourceLocation;
+
+  })();
+
+  /*
+  class OLD___BaseResourceLocation
+      
+      constructor: (@url=window.location.href) ->
+      
+          @a = document.createElement "a"
+          @a.href = @url
+      
+          # URL components
+          @hostname = @a.hostname
+          @pathname = @a.pathname
+          @search = @a.search 
+          #@getGistId()
+          
+          @host = @hostname.split "."
+          @path = if @pathname then @pathname.split("/")[1..] else []
+          # TODO: perhaps eliminate first element of path?  always ""?
+          
+          @hasPath = @path.length>0
+          
+      # TODO: need more stringent match
+      specOwner: ->
+          @hasPath and (@url.indexOf("/") isnt -1) and not (@hasWebUrl())
+      
+      # TODO: need more stringent match
+      hasWebUrl: ->
+          @url.indexOf("//") is 0 or @url.indexOf("http://") is 0  # TODO: regex
+          
+      #currentLocation: -> resourceLocationFactory()
+      
+      file: ->
+          if @fileExt() then @path[-1..][0] else null  # Does specOwner have influence?
+              
+      fileExt: ->
+          match = if @hasPath then @pathname.match /\.[0-9a-z]+$/i else null
+          if match?.length then match[0].slice(1) else null
+      
+  
+  class OLD___WebResourceLocation extends BaseResourceLocation
+      
+      source: -> @url
+      
+      props: ->
+          obj: this
+          file: @file()
+          source: @source()
+      
+      
+  class OLD___XBlabResourceLocation extends BaseResourceLocation
+      
+      # Abstract class
+      
+      owner: ->  # set by subclass
+          
+      repoIdx: null  # set by subclass
+      
+      repo: -> @path[@repoIdx]
+      
+      subf: ->
+          s = @path[(@repoIdx+1)..-2].join("/")
+          if s then "/"+s else ""
+  
+      #s: -> if @subf() then "/#{@subf()}" else ""  # Subfolder path string
+      
+      branch: -> "gh-pages"  # ZZZ bug: need to get branch - could be master or something else besides gh-pages.
+      
+      # TODO: under component github object?
+      source: -> "https://github.com/#{@owner()}/#{@repo()}#{@subf()}" + (if @file() then "/blob/#{@branch()}/#{@file()}" else "")
+      apiUrl: -> "https://api.github.com/repos/#{@owner()}/#{@repo()}/contents#{@subf()}" + (if @file then "/#{@file()}" else "")
+      linkedUrl: -> "https://#{@owner()}.github.io/#{@repo()}#{@subf()}/#{@file()}"
+      
+      inCurrentBlab: ->
+          # TODO: use this in resource factory
+          current = Blab.location #@currentLocation()
+          current.owner() is @owner() and current.repo() is @repo()
+      
+      props: ->
+          obj: this
+          owner: @owner()
+          repo: @repo()
+          subf: @subf()
+          file: @file()
+          source: @source()
+          apiUrl: @apiUrl()
+          linkedUrl: @linkedUrl()
+          
+  
+  class OLD___AbsBlabResourceLocation extends XBlabResourceLocation
+      
+      # url = /org/repo/path/to/file.ext
+      
+      owner: -> @path[0]
+      
+      repoIdx: 1
+  
+  
+  class OLD___LocalResourceLocation extends AbsBlabResourceLocation
+      
+      # url = http://localhost:port/org/repo/path/to/file
+  
+  
+  class OLD___RelBlabResourceLocation extends XBlabResourceLocation
+      
+      # path = repo/path/to/file.ext
+      
+      owner: ->  # set by subclass
+      
+      repoIdx: 0
+  
+  
+  class OLD___CurrentBlabResourceLocation extends RelBlabResourceLocation
+      
+      # url = path/file.ext
+      
+      owner: -> Blab.location.owner() #@currentLocation().owner
+  
+  
+  class OLD___PuzletResourceLocation extends RelBlabResourceLocation
+      
+      # url = http://puzlet.org/repo/path/to/file
+      
+      owner: -> "puzlet"
+  
+      
+  class OLD___GitHubResourceLocation extends RelBlabResourceLocation
+      
+      # url = http://org.github.io/repo/path/file.ext
+      
+      owner: -> @host[0]
+      
+      
+  OLD___resourceLocationFactory = (url=window.location.href) ->
+      
+      base = new BaseResourceLocation url
+      hostname = base.hostname
+      host = base.host
+      specOwner = base.specOwner()
+      hasWebUrl = base.hasWebUrl()
+      
+      # TODO: github api url?
+      
+      if specOwner
+          return new AbsBlabResourceLocation url
+      else if not hasWebUrl
+          return new CurrentBlabResourceLocation url
+      else if hostname is "localhost"
+          return new LocalResourceLocation url
+          # Note: local resource is the default.  May wind up from GitHub.
+      else if hostname is "puzlet.org"
+          return new PuzletResourceLocation url
+      else if host.length is 3 and host[1] is "github" and host[2] is "io"
+          return new GitHubResourceLocation url
+      else
+          return new WebResourceLocation url
+  
+  
+  locationTests = ->
+      
+      l = resourceLocationFactory "/org/repo/path/to/file.ext"
+      console.log "&&&&&&&&", l.props()
+      
+      l = resourceLocationFactory "http://puzlet.org/repo/path/to/file.ext"
+      console.log "&&&&&&&&", l.props()
+      
+      l = resourceLocationFactory "http://org.github.io/repo/path/file.ext"
+      console.log "&&&&&&&&", l.props()
+      
+      l = resourceLocationFactory "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
+      console.log "&&&&&&&&", l.props()
+      
+      
+  #locationTests()
+  */
+
 
 }).call(this);
