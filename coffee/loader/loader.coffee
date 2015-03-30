@@ -1,16 +1,27 @@
 ###
+TODO: use full file path instead of subf - is subf by itself ever really needed?
+TODO: see if we can do without blabLocation, if we have org/repo name in resources.json.
+###
+
+
+###
 TODO: if localhost, try loading resource locally first.  if fails, from github.
 support {css: "..."} in resources.coffee
+loadJSON broken - Resource.load no longer supports type?
+
+TODO: have local env file so we know whether to try loading locally (localhost or deployed host)?
+TODO: for deployed host, may also need to know root folder?
 ###
 
 console.log "LOADER"
 
 class Loader
     
-    #--- Example resources.json ---
+    #--- Example resources.coffee ---
     # Note that order is important for html rendering order, css cascade order, and script execution order.
     # But blab resources can go at top because always loaded after external resources.
     ###
+    # TODO:
     [
         "main.html",
         "style.css",
@@ -24,127 +35,40 @@ class Loader
         "/ode-fixed/ode.coffee"
     ]
     ###
-    
-    coreResources1: [
-        #       {url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
-        {url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
-     #   {url: "/puzlet/puzlet/js/google_analytics.js"}
-        #       {url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
-     #   {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
-     #   {url: "/puzlet/puzlet/js/coffeescript.js"}  # TODO: get from coffeescript repo
-     #   {url: "/puzlet/coffeescript/compiler.js"}
-        # {url: "http://localhost:8000/puzlet/coffeescript/compiler.js"}  # TODO: FIX!!!
-     #   {url: "/puzlet/puzlet/js/wiky.js", var: "Wiky"}
-    ]
-    
-    coreResources2: [
-        #       {url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
-        # {url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
-        {url: "/puzlet/puzlet/js/google_analytics.js"}
-        #       {url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
-        {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
-        {url: "/puzlet/puzlet/js/coffeescript.js"}  # TODO: get from coffeescript repo
-        {url: "/puzlet/coffeescript/compiler.js"}
-        # {url: "http://localhost:8000/puzlet/coffeescript/compiler.js"}  # TODO: FIX!!!
-        {url: "/puzlet/puzlet/js/wiky.js", var: "Wiky"}
-    ]
-    
-    resourcesList: {url: "resources.json"}
-    resourcesList2: {url: "resources.coffee"}
-    
+        
+    # TODO: load jquery ui if balb basic?
     htmlResources: if window.blabBasic then [{url: ""}] else [
         {url: "/puzlet/puzlet/css/coffeelab.css"}
+        {url: "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
     ]
     
+    # TODO: most of these will become part of puzlet math package.  jquery ui loaded by user?
     scriptResources: [
-#        {url: "/puzlet/js/coffeescript.js"}
         {url: "/puzlet/puzlet/js/acorn.js"}
         {url: "/puzlet/puzlet/js/numeric-1.2.6.js"}
         {url: "/puzlet/puzlet/js/jquery.flot.min.js"}
         {url: "/puzlet/puzlet/js/compile.js"}
         {url: "/puzlet/puzlet/js/jquery.cookie.js"}
-        #       {url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js", var: "jQuery.ui"}
-        {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js", var: "jQuery.ui"}   # Alternative
-        # {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"}
+        {url: "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js", var: "jQuery.ui"}   # Alternative
     ]
-    # {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.css"}
     
     constructor: (@render, @done) ->
-        @blabLocation = Blab.location
-        @resources = new Resources @blabLocation
-        @publicInterface()
-        @loadCoreResources => @loadResourceList2 => @loadHtmlCss => @loadScripts => @done()
-#        @loadCoreResources => @loadGitHub => @loadResourceList => @loadHtmlCss => @loadScripts => @loadAce => @done()
-    
-    # Dynamically load and run jQuery and Wiky.
-    loadCoreResources: (callback) ->
-        @resources.add @coreResources1
-        @resources.loadUnloaded =>
-            @resources.add @coreResources2
-            @resources.loadUnloaded =>
-                callback?()
-            #callback?()
+        @resources = $blab.resources
+        @resources.init
+            preload: (callback) => @loadCssAndScripts(callback)
+            postload: (callback) => @done()
     
     # Initiate GitHub object and load Gist files - these override blab files.
-    loadGitHub: (callback) ->
+    TO_ADD_loadGitHub: (callback) ->
         @github = new GitHub @resources
         @github.loadGist callback
     
-    # Load and parse resources.json.  (Need jQuery to do this; uses ajax $.get.)
-    # Get ordered list of resources (html, css, js, coffee).
     # Prepend /puzlet/css/puzlet.css to list; prepend script resources (CoffeeScript compiler; math).
-    loadResourceList: (callback) ->
-        list = @resources.add @resourcesList
-        @resources.loadUnloaded =>
-            @resources.add @htmlResources
-            @resources.add @scriptResources
-            listResources = JSON.parse list.content
-            for r in listResources
-                spec = if typeof r is "string" then {url: r} else r
-                @resources.add spec
-            callback?()
-            
-    loadResourceList2: (callback) ->
-        res = @resources.add(url: @resourcesList2.url, doEval: true)
-        @resources.loadUnloaded =>
-            res.compile()
-            #console.log "COFFEE", res
-            @resources.add @htmlResources
-            @resources.add @scriptResources
-            
-            for result in res.resultArray
-                if typeof result is "string" and result.length
-                    @resources.add {url: result}
-            callback?()
-    
-    # Async load html and css:
-    #   * all html via ajax.
-    #   * external css via <link>; auto-appended to dom as soon as resource loaded.
-    #   * blab css via ajax; auto-appended to dom (inline) after *all* html/css loaded.
-    # After all html/css loaded, render html via Wiky.
-    # html and blab css available as source to be edited in browser.
-    loadHtmlCss: (callback) ->
-        @resources.load ["html", "css"], =>
-            @render html.content for html in @resources.select("html")
-            callback?()
-    
-    # Async load js and coffee; and py/m:
-    #   * external js via <script>; auto-appended to dom, and run.
-    #   * blab js and all coffee via ajax; auto-appended to dom (inline) after *all* js/coffee loaded.
-    #   * py/m via ajax; no action loading.
-    # After all scripts loaded: 
-    #   * compile each coffee file, with post-js processing if not #!vanilla.
-    #   * append JS (blab js or compiled coffee) to dom: external js (from coffee) first, then current blab js.
-    # coffee and blab js available as source to be edited in browser.
-    # (Loading scripts after HTML/CSS improves html rendering speed.)
-    # Note: for large JS file (even 3rd party), put in repo without gh-pages (web page).
-    loadScripts: (callback) ->
-        @resources.load ["json", "js", "coffee", "py", "m", "svg", "txt"], =>
-            console.log "*******RESOURCES", @resources
-            # Before Ace loaded, compile any CoffeeScript that has no assocaited eval box.
-            @compileCoffee (coffee) ->
-                not coffee.hasEval() and not coffee.spec.orig.doEval
-            callback?()
+    # TODO: Some of these will wind up in resources.coffee.
+    loadCssAndScripts: (callback) ->
+        @resources.add @htmlResources
+        @resources.add @scriptResources
+        @resources.loadUnloaded => callback?()
     
     loadAce: (callback) ->
         load = (resources, callback) =>
@@ -152,70 +76,62 @@ class Loader
             @resources.load ["js", "css"], => callback?()
         new Ace.Resources load, =>
             @resources.render()  # Render Ace editors
-            @compileCoffee (coffee) -> coffee.hasEval()  # Compile any CoffeeScript that has associated eval box.
+            @resources.compileCoffee (coffee) -> coffee.hasEval()  # Compile any CoffeeScript that has associated eval box.
             callback?()
-    
-    compileCoffee: (coffeeFilter) ->
-        # ZZZ do external first; then blabs.
-        filter = (resource) -> resource.isType("coffee") and coffeeFilter(resource)
-        coffee.compile() for coffee in @resources.select filter
-        
-    publicInterface: ->
-        $blab.resources = @resources
-        $blab.loadJSON = (url, callback) => @resources.loadJSON(url, callback)
-        $blab.resource = (id) => @resources.getContent id
-
 
 ###
 *******SPECIFICATION*******
         
 ===Supported URLs for current blab location===
-http://localhost:port/org/repo (note: repo could be org.github.io)
+http://localhost:port/owner/repo (note: repo could be owner.github.io)
 http://puzlet.org
 http://puzlet.org/repo
-http://org.github.io
-http://org.github.io/repo
+http://owner.github.io
+http://owner.github.io/repo
 (We could also support subfolders)
+TODO: should work on any domain (http://domain.com/path/to/owner[/repo]), if blabs deployed there.
 
 From these, we derive:
-org, repo names of current page (index.html).
+owner, repo names of current page (index.html).
 
 ===For resources.coffee, support these URLs===
 
 File extension affects whether resource is linked or inlined.
 JS/CSS files are linked (not inlined), unless they come from current blab (then they are inlined).
-All other file types are loaded via Ajax (if possible), and inlined.
-Also need {css/js: generalUrl}.
+All other file types are loaded via Ajax (if possible), and inlined.  Use GitHub API if foreign.  IE issue here.
+TODO: Also need {css/js: generalUrl}.
 
 ---General URLs---
 Must begin with http:// or //
-(No special interpretation of org/repo.)
+(No special interpretation of owner/repo.)
 
 http://general.com/path/to/file.ext (general URL)
-http://puzlet.org/org/repo/path/to/file.ext
-http://org.github.io/repo/path/to/file.ext
+http://puzlet.org/repo/path/to/file.ext
+http://owner.github.io/repo/path/to/file.ext
 http://rawgit ...
 
 GitHub API link.  This needs to be used for foreign github JS/CSS resources
 that can't be accessed via github.io.
+This does not work with IE, and so it may be better to copy such resource to location in same org,
+so it is accessible locally or via github.io.
 http://api.github.com/...
 
 ---Special resource identifiers---
-Load locally if localhost and file available; otherwise get from github.
+Load locally if localhost (TODO: or deployment domain) and file available; otherwise get from github.
 
-/org/repo/path/to/file.ext 
-path/to/file.ext (use current page's host org/repo)
+/owner/repo/path/to/file.ext 
+path/to/file.ext (use current page's host owner/repo)
 
 ###
 
+#-----------------Blab and Resource Locations---------------------------------#
 
 class URL
     
     constructor: (@url) ->
-        
         @a = document.createElement "a"
         @a.href = @url
-    
+        
         # URL components
         @hostname = @a.hostname
         @pathname = @a.pathname
@@ -232,7 +148,13 @@ class URL
         @file = if @fileExt then @path[-1..][0] else null
         
     onWeb: ->
-        @url.indexOf("http://") is 0 or @url.indexOf("//") is 0
+        w = (url) => @url.indexOf(url) is 0
+        w("http://") or w("https://") or w("//")
+        
+    filePath: ->
+        # TODO: call "relFilePath" ?
+        base = new URL "."
+        @pathname.replace(base.pathname, "")
         
     subfolder: (filePathIdx) ->
         endIdx = if @file then -2 else -1
@@ -240,23 +162,27 @@ class URL
         if s then "/"+s else ""
 
 
-class BlabLocation extends URL
+class OLD___BlabLocation extends URL  # TODO: call this PageLocation?
     
     constructor: (@url=window.location.href) ->
         
         super @url
         
-        # http://localhost:port/org/repo
+        # http://localhost:port/owner/repo (note: no support for http://localhost:port/owner - instead http://localhost:port/owner/homepage)
         if @hostname is "localhost"
             @owner = @path[0]
             @repoIdx = 1
+            
+        # http://domain.com/path/to/owner/repo | http://domain.com/path/to/owner
+        # TODO: need some kind of env variable (incl in .gitignore?) to configure where repoIdx is (and ownerIdx) in path.
+        # TODO ...
         
-        # http://puzlet.org/repo or http://puzlet.org
+        # http://puzlet.org/repo | http://puzlet.org
         if @hostname is "puzlet.org"
             @owner = "puzlet"
             @repoIdx = 0
         
-        # http://org.github.io/repo or http://org.github.io
+        # http://owner.github.io/repo | http://owner.github.io
         if GitHub.isIoUrl(@url)
             @owner = @host[0]
             @repoIdx = 0
@@ -277,24 +203,29 @@ class BlabLocation extends URL
 
 class ResourceLocation extends URL
     # Abstract class
+        
+    # TODO: handle load error
     
     owner: null
     repo: null
-    subf: null
+    #subf: null
+    filepath: null
     inBlab: false
     source: null
     gitHub: null
     
     constructor: (@url) ->
         super @url
-        @subf = @subfolder(0)
+        # TODO: @filepath?
+        #@subf = @subfolder(0)
         @source = @url
-    
+        @loadUrl = @url
+        
     load: (callback) ->
-        # Ajax-load method.
+        # Ajax-load method.  TODO: continue if load error.
         url = @url+"?t=#{Date.now()}"
+        console.log "LOAD #{url}"
         $.get(url, ((data) -> callback(data)), "text")
-
 
 class WebResourceLocation extends ResourceLocation
     
@@ -307,34 +238,54 @@ class BlabResourceLocation extends ResourceLocation
     
     loadType: null  # Defined in constructor
     cache: null  # Defined in constructor
-
+    
     constructor: (@url) ->
         super @url
         
-        @currentBlab = new BlabLocation  # TODO cache (or make class prop?)
+        @blabOwner = $blab.gitHub.owner
+        @blabRepo = $blab.gitHub.repo
         
         if @fullPath()
-            # /org/repo/path/to/file.ext
+            # /owner/repo/path/to/file.ext
             @owner = @path[0]
             @repo = @path[1]
-            @subf = @subfolder(2)
-            @inBlab = @owner is @currentBlab.owner and @repo is @currentBlab.repo
+            @filepath = @path[2..].join("/")
+            @inBlab = @owner is @blabOwner and @repo is @blabRepo
         else
             # path/to/file.ext
-            @owner = @currentBlab.owner
-            @repo = @currentBlab.repo
-            @subf = @subfolder(@currentBlab.repoIdx+1)
-            @inBlab = true
+            @owner = @blabOwner
+            @repo = @blabRepo
+            @filepath = @filePath()
+            @inBlab = true  # TODO: what if ../relative/path ?
+        
+        @localOrgPath = $blab.gitHub?.localConfig?.orgs?[@owner]
+        path = @filepath
+        @gitHub = new GitHub {@owner, @repo, path}
+        
+        if @inBlab
+            @loadUrl = @filepath
+        else
+            @loadUrl = if @localOrgPath then "#{@localOrgPath}/#{@repo}/#{@filepath}" else @gitHub.linkedUrl()
         
         # loadType is used only to JS/CSS resources.
         # if loadType="ext" and is on GitHub then resource must be accessible via github.io.
         @loadType = if @inBlab then "blab" else "ext"
         @cache = not @inBlab and @owner is "puzlet"  # TODO: better way?
         
-        @gitHub = new GitHub {@owner, @repo, @subf, @file}
-        @source = @gitHub.sourcePageUrl()
+        console.log @owner, @repo, @filepath, @loadUrl
         
-    fullPath: -> @url?.indexOf("/") isnt -1
+        console.log @gitHub.linkedUrl()
+        @source = @gitHub.sourcePageUrl()
+    
+    load: (callback) ->
+        # ZZZ what if not coffee?  JS/CSS handled elsewhere?
+        console.log "*** Blab load #{@url} => #{@loadUrl}"
+        url = @loadUrl + "?t=#{Date.now()}"  # No cache
+        # Ajax-load method.  TODO: continue if load error.
+        $.get(url, ((data) -> callback(data)), "text")
+    
+    fullPath: -> @url?.indexOf("/") is 0
+
 
 class GitHubApiResourceLocation extends ResourceLocation
     
@@ -349,32 +300,32 @@ class GitHubApiResourceLocation extends ResourceLocation
         return unless @api.owner
         @owner = @api.owner
         @repo = @api.repo
-        @subf = @api.subf
-        @gitHub = new GitHub {@owner, @repo, @subf, @file}
+        @path = @api.path
+        @gitHub = new GitHub {@owner, @repo, @path}
         @source = @gitHub.sourcePageUrl()
         
     load: (callback) -> @api.load callback
-        
+
 
 # Factory function
 resourceLocation = (url) ->
     
     resource = new URL url
     if GitHubApi.isApiUrl(resource.url)
-        # http://api.github.com/repos/org/repo/contents/path/to/file.ext
+        # http://api.github.com/repos/owner/repo/contents/path/to/file.ext
         # This is for foreign JS/CSS resources that don't have github.io repo and need to be linked.
         R = GitHubApiResourceLocation
-        #@gitHubApiResource()
     else if resource.onWeb()
         # http://... or //...
         R = WebResourceLocation
-        #@webResource()
     else
-        # /org/repo/path/to/file.ext or # path/to/file.ext
+        # /owner/repo/path/to/file.ext or # path/to/file.ext
         R = BlabResourceLocation
-        #@blabResource()
     return new R(url)
     
+
+
+#-----------------------------------------------------------------------------#
 
 # TODO: class for github io?
 class GitHub
@@ -387,16 +338,19 @@ class GitHub
         host.length is 3 and host[1] is "github" and host[2] is "io" 
     
     constructor: (@spec) ->
-        {@owner, @repo, @subf, @file} = @spec
+        {@owner, @repo, @path} = @spec
     
     sourcePageUrl: ->
-        "https://github.com/#{@owner}/#{@repo}#{@subf ? ''}" + (if @file then "/blob/#{@branch}/#{@file}" else "")
+        return null unless @owner
+        "https://github.com/#{@owner}/#{@repo}/blob/#{@branch}/#{@path}"
         
     linkedUrl: ->
-        "https://#{@owner}.github.io/#{@repo}#{@subf ? ''}" + (if @file then "/#{@file}" else "")
+        return null unless @owner
+        "https://#{@owner}.github.io/#{@repo}/#{@path}"
         
     apiUrl: ->
-        GitHubApi.getUrl {@owner, @repo, @subf, @file}
+        return null unless @owner
+        GitHubApi.getUrl {@owner, @repo, @path}
     
     urls: ->
         sourcePageUrl: @sourcePageUrl()
@@ -414,8 +368,8 @@ class GitHubApi extends URL
         u.hostname is GitHubApi.hostname and path.length>=5 and path[0] is "repos" and path[3] is "contents"
         
     @getUrl: (spec) ->
-        {owner, repo, subf, file} = spec
-        "https://#{GitHubApi.hostname}/repos/#{owner}/#{repo}/contents#{subf ? ''}" + (if file then "/#{file}" else "")
+        {owner, repo, path} = spec
+        "https://#{GitHubApi.hostname}/repos/#{owner}/#{repo}/contents/#{path}"
     
     @loadParameters: (url) ->
         type: "json"
@@ -428,13 +382,15 @@ class GitHubApi extends URL
         return unless GitHubApi.isApiUrl(@url)
         @owner = @path[1]
         @repo = @path[2]
-        @subf = @subfolder(4)
+        # TODO: @filepath ?
+        #@subf = @subfolder(4)
         
     load: (callback) ->
         success = (data) =>
             content = data.content.replace(/\s/g, '')  # Remove whitespace. Fixes parsing issue for Safari.
             callback(atob(content))
         $.get(@url, success, "json")
+
 
 testBlabLocation = ->
     
@@ -448,7 +404,7 @@ testBlabLocation = ->
     #    loc "http://puzlet.org/repo/path/to"
         #console.log "&&&&&&&&", l
     
-    #    loc "http://org.github.io/repo/path"
+    #    loc "http://owner.github.io/repo/path"
         #console.log "&&&&&&&&", l
     
     #    loc "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
@@ -465,26 +421,29 @@ testBlabLocation = ->
     r "http://puzlet.org/puzlet/coffee/main.coffee"
     #console.log "********", l
     
-    r "/org/repo/main.coffee"
+    r "/owner/repo/main.coffee"
     #console.log "********", l
     
     r "main.coffee"
     #console.log "********", l
     
-    r "http://api.github.com/repos/org/repo/contents/path/to/file.ext"
+    r "http://api.github.com/repos/owner/repo/contents/path/to/file.ext"
     #console.log "********", l
     
     
 #
 #testBlabLocation()
 
+
+#-----------------------------------------------------------------------------#
+
 class Resource
     
     constructor: (@spec) ->
         # ZZZ option to pass string for url
         @location = @spec.location ? resourceLocation @spec.url
-#        @location = @spec.location ? new XResourceLocation @spec.url
         @url = @location.url
+        @loadUrl = @location.loadUrl
         @fileExt = @spec.fileExt ? @location.fileExt
         @id = @spec.id
         @loaded = false
@@ -539,71 +498,13 @@ class Resource
                 for type in types
                     return true if resource.isType type
                 false
-#
-
-class ResourceContainers
-    
-    # <div> attribute names for source and eval nodes. 
-    fileContainerAttr: "data-file"
-    evalContainerAttr: "data-eval"
-    
-    constructor: (@resource) ->
-        @url = @resource.url
-    
-    render: ->
-        @fileNodes = (new Ace.EditorNode $(node), @resource for node in @files())
-        @evalNodes = (new Ace.EvalNode $(node), @resource, @fileNodes[idx] for node, idx in @evals())
-        $pz.codeNode ?= {}
-        $pz.codeNode[file.editor.id] = file.editor for file in @files
-        
-    getEvalContainer: ->
-        # Get eval container if there is one (and only one).
-        return null unless @evalNodes?.length is 1
-        @evalNodes[0].container
-        
-    setEditorContent: (content) ->
-        triggerChange = false
-        node.setCode(triggerChange) for node in @fileNodes
-        
-    setFromEditor: (editor) ->
-        triggerChange = false
-        for node in @fileNodes
-            node.setCode(triggerChange) unless node.editor.id is editor.id
-        
-    updateResource: ->
-        return unless @fileNodes.length
-        console.log "Multiple editor nodes for resource.  Updating resource from only first editor node.", @resource if @fileNodes.length>1
-        @resource.update(@fileNodes[0].code())
-        #console.log "Potential update issue because more than one editor for a resource", @resource if @fileNodes.length>1
-        #for fileNode in @fileNodes
-        #   @resource.update(fileNode.code())
-    
-    files: -> $("div[#{@fileContainerAttr}='#{@url}']")
-    
-    evals: -> $("div[#{@evalContainerAttr}='#{@url}']")
 
 
-# ZZZ needed?
-class EditorContainer
-    
-    constructor: (@resource, @div) ->
-        @node = new Ace.EditorNode @div, @resource
-        
-    updateResource: ->
-        # ZZZ need event/listeners here for other related containers.
-        @resource.update(@node.code())
+# Classes that override the Resource load method:
+# CssResourceInline, JsResourceInline (creates HTML element before regular load)
+# CssResourceLinked, JsResourceLinked (regular <link>/<script> load)
+# CoffeeResource (compiler callback)
 
-
-class EvalContainer
-    
-    constructor: (@resource, @div) ->
-        @node = new Ace.EvalNode @div, @resource
-        
-    getContainer: ->
-        @node.container
-    
-
-        
 class HtmlResource extends Resource
     
     update: (@content) ->
@@ -622,7 +523,7 @@ class ResourceInline extends Resource
             
     createElement: ->
         @element = $ "<#{@tag}>",
-            type: @mime
+            type: @mime if @mime
             "data-url": @url
         @element.text @content
     
@@ -643,14 +544,16 @@ class CssResourceInline extends ResourceInline
     mime: "text/css"
 
 
+
 class CssResourceLinked extends Resource
     
     load: (callback) ->
         @style = document.createElement "link"
-        @style.setAttribute "type", "text/css"
+        #@style.setAttribute "type", "text/css"
         @style.setAttribute "rel", "stylesheet"
         t = Date.now()
-        @style.setAttribute "href", @url  #+"?t=#{t}"
+        @style.setAttribute "href", @loadUrl  #+"?t=#{t}"
+#        @style.setAttribute "href", @url  #+"?t=#{t}"
         #@style.setAttribute "data-url", @url
         
         # Old browsers (e.g., old iOS) don't support onload for CSS.
@@ -665,34 +568,42 @@ class CssResourceLinked extends Resource
 class JsResourceInline extends ResourceInline
     
     tag: "script"
-    mime: "text/javascript"
+    #mime: "text/javascript"
 
 
 class JsResourceLinked extends Resource
     
     load: (callback) ->
         @script = document.createElement "script"
-        @script.setAttribute "type", "text/javascript"
+        #@script.setAttribute "type", "text/javascript"
         @head.appendChild @script
         @script.onload = => @postLoad callback
         #@script.onerror = => console.log "Load error: #{@url}"
         
-        src = @location.gitHub?.linkedUrl?() ? @url
+        src = @loadUrl  # TODO: if this fails, try loading from github
+#        src = @url  # TODO: if this fails, try loading from github
+        console.log "JsResourceLinked load", src
         t = if @location.cache then "" else "?t=#{Date.now()}"
         @script.setAttribute "src", src+t
 
 
 class CoffeeResource extends Resource
     
-    load: (callback) ->
+    load: (callback) -> 
         super =>
-            spec = {id: @url}
+            # Map url to valid DOM id: /owner/repo/path/to/file.ext -> owner:repo:path:to:file.ext
+            # No longer used.
+            #@id = @url.replace(/^\//g, "")
+            #@id = @id.replace(/\//g, ":")
+            spec = {id: @url, preProcess: @spec.orig?.preProcess}
             @compiler = if @hasEval() or @spec.orig.doEval then $coffee.evaluator(spec) else $coffee.compiler(spec)
+            @compiled = false
             callback?()
             
     compile: ->
         $blab.evaluatingResource = this
         @compiler.compile @content
+        @compiled = true
         @resultArray = @compiler.resultArray
         @resultStr = @compiler.result
         $.event.trigger("compiledCoffeeScript", {url: @url})
@@ -700,8 +611,8 @@ class CoffeeResource extends Resource
     update: (@content) -> @compile()
 
 
-
 class JsonResource extends Resource
+
 
 class ResourceFactory
     
@@ -727,9 +638,11 @@ class ResourceFactory
         svg: {all: Resource}
         txt: {all: Resource}
     
-    constructor: (@blabLocation, @getGistSource) ->
+    constructor: (@getGistSource) ->
     
     create: (spec) ->
+        
+        console.log "===== LOAD", spec.url
         
         return null if @checkExists spec
         
@@ -774,12 +687,114 @@ class ResourceFactory
         {url, fileExt}
 
 
+#-----------------------------------------------------------------------------#
+
+class ResourceContainers
+    
+    # <div> attribute names for source and eval nodes. 
+    fileContainerAttr: "data-file"
+    evalContainerAttr: "data-eval"
+    
+    constructor: (@resource) ->
+        @url = @resource.url
+    
+    render: ->
+        @fileNodes = (new Ace.EditorNode $(node), @resource for node in @files())
+        @evalNodes = (new Ace.EvalNode $(node), @resource, @fileNodes[idx] for node, idx in @evals())
+        $pz.codeNode ?= {}
+        $pz.codeNode[file.editor.id] = file.editor for file in @files
+        
+    getEvalContainer: ->
+        # Get eval container if there is one (and only one).
+        return null unless @evalNodes?.length is 1
+        @evalNodes[0].container
+        
+    setEditorContent: (content) ->
+        triggerChange = false
+        node.setCode(triggerChange) for node in @fileNodes
+        
+    setFromEditor: (editor) ->
+        triggerChange = false
+        for node in @fileNodes
+            node.setCode(triggerChange) unless node.editor.id is editor.id
+        
+    updateResource: ->
+        return unless @fileNodes.length
+        console.log "Multiple editor nodes for resource.  Updating resource from only first editor node.", @resource if @fileNodes.length>1
+        @resource.update(@fileNodes[0].code())
+        #console.log "Potential update issue because more than one editor for a resource", @resource if @fileNodes.length>1
+        #for fileNode in @fileNodes
+        #   @resource.update(fileNode.code())
+    
+    files: -> $("div[#{@fileContainerAttr}='#{@url}']")
+    
+    evals: -> $("div[#{@evalContainerAttr}='#{@url}']")
+
+
+# TODO: Not used?
+class EditorContainer
+    
+    constructor: (@resource, @div) ->
+        @node = new Ace.EditorNode @div, @resource
+        
+    updateResource: ->
+        # ZZZ need event/listeners here for other related containers.
+        @resource.update(@node.code())
+
+
+# TODO: Not used?
+class EvalContainer
+    
+    constructor: (@resource, @div) ->
+        @node = new Ace.EvalNode @div, @resource
+        
+    getContainer: ->
+        @node.container
+    
+
+
+#-----------------------------------------------------------------------------#
+
 class Resources
     
-    constructor: (@blabLocation) ->
+    # jQuery and puzlet.json (if local/deployment) are loaded in Puzlet bootstrap script (//puzlet.org/puzlet.js).
+    coreResources: [
+        {url: "/puzlet/coffeescript/coffeescript.js"}
+        {url: "/puzlet/coffeescript/compiler.js"}
+        {url: "/puzlet/puzlet/js/wiky.js", var: "Wiky"}  # TODO: does this need to be here?
+        {url: "/puzlet/puzlet/js/google_analytics.js"}  # TODO: does this need to be here?
+    ]
+    
+    #OLD gitHubFile: "../github.json"
+    
+    resourcesSpec: "resources.coffee"
+    
+    constructor: (spec) ->
         @resources = []
-        @factory = new ResourceFactory @blabLocation, (url) => @getGistSource url
+        @factory = new ResourceFactory (url) => @getGistSource url
         @changed = false
+        
+    # Load coffeescript compiler and other core resources.
+    # Supports preload and postload callbacks (before/after resources.coffee loaded).
+    init: (spec) ->
+        
+        core = (cb) => @addAndLoad @coreResources, cb
+        
+        preload = spec.preload ? (f) -> f()
+        postload = spec.postload ? (f) -> (f)
+        
+        resources = (cb) =>
+            @loadFromSpecFile
+                url: @resourcesSpec
+                callback: => cb()
+                #    @loadHtmlCss => @loadScripts => cb()
+        
+        core -> preload -> resources -> postload()
+    
+    addAndLoad: (resourceSpecs, callback) ->
+        resources = @add resourceSpecs
+        @loadUnloaded callback
+        resources
     
     add: (resourceSpecs) ->
         resourceSpecs = [resourceSpecs] unless resourceSpecs.length
@@ -814,6 +829,62 @@ class Resources
         # Loads all unloaded resources.
         @load (-> true), loaded
         
+    # Load from resources.coffee specification.
+    # Get ordered list of resources (html, css, js, coffee).
+    loadFromSpecFile: (spec) ->
+        url = spec.url
+        specFile = @add(url: url, preProcess: @specFilePreProcessCode(url))
+        @load ((resource) -> resource.url is url), =>
+            specFile.compile()  # TODO: check valid coffee?
+            @loadHtmlCss => @loadScripts => spec.callback?()
+    
+    # Process specification in resources.coffee.
+    processSpec: (resources) ->
+        console.log "----Process files in resources.coffee"
+        #inBlab = specUrl.indexOf("/") is -1  # Current blab's resources.coffee
+        #@currentBlab = resources.github if inBlab
+        for url in resources.load
+            @add {url} if typeof url is "string" and url.length
+        #@loadHtmlCss => @loadScripts => #spec.callback?()
+    
+    # Defines helper function "resources" for preamble JS of resources.coffee. 
+    specFilePreProcessCode: (url) ->
+        (code) -> "resources = (obj) -> $blab.resources.processSpec obj\n\n"+code
+        
+    # Load html and css:
+    #   * all html via ajax.
+    #   * external css via <link>; auto-appended to dom as soon as resource loaded.
+    #   * blab css via ajax; auto-appended to dom (inline) after *all* html/css loaded.
+    # After all html/css loaded, render html via Wiky.
+    # html and blab css available as source to be edited in browser.
+    loadHtmlCss: (callback) ->
+        @load ["html", "css"], =>
+            # TODO: add render
+            #@render html.content for html in @resources.select("html")  # TODO: callback for HTMLResource?
+            callback?()
+            
+    # Async load js and coffee; and py/m:
+    #   * external js via <script>; auto-appended to dom, and run.
+    #   * blab js and all coffee via ajax; auto-appended to dom (inline) after *all* js/coffee loaded.
+    #   * py/m via ajax; no action loading.
+    # After all scripts loaded: 
+    #   * compile each coffee file, with post-js processing if not #!vanilla.
+    #   * append JS (blab js or compiled coffee) to dom: external js (from coffee) first, then current blab js.
+    # coffee and blab js available as source to be edited in browser.
+    # (Loading scripts after HTML/CSS improves html rendering speed.)
+    # Note: for large JS file (even 3rd party), put in repo without gh-pages (web page).
+    loadScripts: (callback) ->
+        @load ["json", "js", "coffee", "py", "m", "svg", "txt"], =>
+            # Before Ace loaded, compile any CoffeeScript that has no associated eval box.
+            @compileCoffee (coffee) -> not(coffee.hasEval() or coffee.spec.orig.doEval or coffee.compiled)
+            callback?()
+            
+    # TODO: duplicate code?
+    compileCoffee: (coffeeFilter) ->
+        # ZZZ do external first; then blabs.
+        filter = (resource) -> resource.isType("coffee") and coffeeFilter(resource)
+        coffee.compile() for coffee in @select filter
+    
     appendToHead: (filter) ->
         filter = @filterFunction filter
         resources = @select((resource) -> not resource.inDom?() and resource.appendToHead? and filter(resource))
@@ -858,7 +929,7 @@ class Resources
         resource.render() for resource in @resources
     
     setGistResources: (@gistFiles) ->
-        
+    
     getGistSource: (url) ->
         @gistFiles?[url]?.content ? null
     
@@ -867,74 +938,24 @@ class Resources
             resource.updateFromContainers() if resource.edited
 
 
-class Blab
-    
-    @location: new BlabLocation()
-    #@location: resourceLocationFactory()
-    
+#-----------------------------------------------------------------------------#
 
-window.$blab = {}  # Exported interface.  
+resources = new Resources
+    #gitHub: $blab.gitHub  # From Puzlet bootstrap
+    # TODO: gist source
+
+# Public interface.  $blab is defined in Puzlet bootstrap script (//puzlet.org/puzlet.js)
+console.log "$blab", $blab
+
+$blab.resources = resources
+$blab.loadJSON = (url, callback) => resources.loadJSON(url, callback)
+$blab.resource = (id) => resources.getContent id
+
 render = ->
 ready = ->
 new Loader(render, ready)
 
 #-----------------------------------------------------------------------------------------------------------
-
-#new Blab
-
-# TODO: break into three subclasses?
-class OLD____XResourceLocation extends URL
-    
-    constructor: (@url) ->
-        
-        super @url
-        
-        @currentBlab = new BlabLocation  # TODO cache (or make class prop?)
-        
-        if GitHubApi.isApiUrl(@url)
-            # http://api.github.com/repos/org/repo/contents/path/to/file.ext
-            # This is for foreign JS/CSS resources that don't have github.io repo and need to be linked.
-            @gitHubApiResource()
-        else if @onWeb()
-            # http://... or //...
-            @webResource()
-        else
-            # /org/repo/path/to/file.ext or # path/to/file.ext
-            @blabResource()
-    
-    gitHubApiResource: ->
-        g = new GitHubApi @url
-        @owner = g.owner
-        @repo = g.repo
-        @subf = g.subf
-        @inBlab = false
-        @gitHub = new GitHub {@owner, @repo, @subf, @file}
-        
-    webResource: ->
-        @owner = null
-        @repo = null
-        @subf = @subfolder(0)  # Not used
-        @inBlab = false
-        @source = @url
-        
-    blabResource: ->
-        
-        fullPath = (@url.indexOf("/") isnt -1)
-        
-        if fullPath
-            # /org/repo/path/to/file.ext
-            @owner = @path[0]
-            @repo = @path[1]
-            @subf = @subfolder(2)
-        else
-            # path/to/file.ext
-            @owner = @currentBlab.owner
-            @repo = @currentBlab.repo
-            @subf = @subfolder(@currentBlab.repoIdx+1)
-        
-        @inBlab = @owner is @currentBlab.owner and @repo is @currentBlab.repo
-        @gitHub = new GitHub {@owner, @repo, @subf, @file}
-
 
 class OLD_Blab
     
@@ -949,7 +970,7 @@ class OLD_Blab
         ready = ->
         @loader = new Loader @location, render, ready
         #$pz.renderHtml = => @page.rerender()
-    
+        
     publicInterface: ->
         window.$pz = {}
         window.$blab = {}  # Exported interface.
@@ -957,10 +978,10 @@ class OLD_Blab
         window.console.log = (->) unless window.console.log?
         #$pz.AceIdentifiers = Ace.Identifiers
         $blab.codeDecoration = true
+        
 
 
-
-class OLD_____ResourceLocation
+class OLD_ResourceLocation
     
     # This does not use jQuery. It can be used for before JQuery loaded.
     
@@ -969,10 +990,10 @@ class OLD_____ResourceLocation
     
     ###
     Locations:
-    localhost:8000/org/repo/path
+    localhost:8000/owner/repo/path
     puzlet.org/repo/path
-    org.github.io/repo/path
-    /org/repo/path
+    owner.github.io/repo/path
+    /owner/repo/path
     path
     ...?gist=...
     ###
@@ -1073,179 +1094,177 @@ class OLD_____ResourceLocation
         h = @query.split "&"
         p = h?[0].split "="
         @gistId = if p.length and p[0] is "gist" then p[1] else null
-   
+        
 
-###
-class OLD___BaseResourceLocation
+
+class OLD_Loader
     
-    constructor: (@url=window.location.href) ->
+    #--- Example resources.json ---
+    # Note that order is important for html rendering order, css cascade order, and script execution order.
+    # But blab resources can go at top because always loaded after external resources.
+    ###
+    [
+        "main.html",
+        "style.css",
+        "bar.js",
+        "foo.coffee",
+        "main.coffee",
+        "/some-repo/snippet.html",
+        "/other-repo/foo.css",
+        "/puzlet/js/d3.min.js",
+        "http://domain.com/script.js",
+        "/ode-fixed/ode.coffee"
+    ]
+    ###
     
-        @a = document.createElement "a"
-        @a.href = @url
+    # Now in Resources class
+    OLD_coreResources1: [
+        #       {url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
+        {url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
+     #   {url: "/puzlet/puzlet/js/google_analytics.js"}
+        #       {url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
+     #   {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
+     #   {url: "/puzlet/puzlet/js/coffeescript.js"}  # TODO: get from coffeescript repo
+     #   {url: "/puzlet/coffeescript/compiler.js"}
+        # {url: "http://localhost:8000/puzlet/coffeescript/compiler.js"}  # TODO: FIX!!!
+     #   {url: "/puzlet/puzlet/js/wiky.js", var: "Wiky"}
+    ]
     
-        # URL components
-        @hostname = @a.hostname
-        @pathname = @a.pathname
-        @search = @a.search 
-        #@getGistId()
+    # Now in Resources class
+    OLD_coreResources2: [
+        #       {url: "http://code.jquery.com/jquery-1.8.3.min.js", var: "jQuery"}
+        # {url: "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js", var: "jQuery"}  # Alternative
+        {url: "/puzlet/puzlet/js/google_analytics.js"}
+        #       {url: "http://code.jquery.com/ui/1.9.2/themes/smoothness/jquery-ui.css", var: "jQuery"}
+        # {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
+        {url: "/puzlet/coffeescript/coffeescript.js"}
+        {url: "/puzlet/coffeescript/compiler.js"}
+        # {url: "http://localhost:8000/puzlet/coffeescript/compiler.js"}  # TODO: FIX!!!
+        {url: "/puzlet/puzlet/js/wiky.js", var: "Wiky"}
+    ]
+    
+    resourcesList: {url: "resources.json"}
+    resourcesList2: {url: "resources.coffee"}
+    
+    htmlResources: if window.blabBasic then [{url: ""}] else [
+        {url: "/puzlet/puzlet/css/coffeelab.css"}
+        {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css", var: "jQuery"}  # Alternative
+    ]
+    
+    # TODO: most of these will become part of puzlet math package.  jquery ui loaded by user?
+    scriptResources: [
+        #        {url: "/puzlet/js/coffeescript.js"}
+        {url: "/puzlet/puzlet/js/acorn.js"}
+        {url: "/puzlet/puzlet/js/numeric-1.2.6.js"}
+        {url: "/puzlet/puzlet/js/jquery.flot.min.js"}
+        {url: "/puzlet/puzlet/js/compile.js"}
+        {url: "/puzlet/puzlet/js/jquery.cookie.js"}
+        #       {url: "http://code.jquery.com/ui/1.9.2/jquery-ui.min.js", var: "jQuery.ui"}
+        {url: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js", var: "jQuery.ui"}   # Alternative
+        # {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.js"}
+    ]
+    # {url: "http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.3/jquery.mobile.min.css"}
+    
+    constructor: (@render, @done) ->
+        @resources = $blab.resources #new Resources
+        #@publicInterface()
+        @resources.init => @loadCssAndScripts => @loadResourceList3 => @done()
+        #@loadCoreResources => @loadCssAndScripts => @loadResourceList3 => @done()
+#        @loadCoreResources => @loadCssAndScripts => @loadResourceList2 => @loadHtmlCss => @loadScripts => @done()
+        #        @loadCoreResources => @loadGitHub => @loadResourceList => @loadHtmlCss => @loadScripts => @loadAce => @done()
+    
+    # Dynamically load and run jQuery and Wiky.
+    OLD_loadCoreResources: (callback) ->
+        @resources.add @coreResources1  # Could this be part of resources boot?
+        @resources.loadUnloaded =>
+            @resources.loadGitHubFile =>
+                @resources.add @coreResources2
+                @resources.loadUnloaded =>
+                    callback?()
+    
+    # Initiate GitHub object and load Gist files - these override blab files.
+    OLD_loadGitHub: (callback) ->
+        @github = new GitHub @resources
+        @github.loadGist callback
+    
+    # Prepend /puzlet/css/puzlet.css to list; prepend script resources (CoffeeScript compiler; math).
+    # TODO: Some of these will wind up in resources.coffee.
+    loadCssAndScripts: (callback) ->
+        @resources.add @htmlResources
+        @resources.add @scriptResources
+        @resources.loadUnloaded => callback?()
         
-        @host = @hostname.split "."
-        @path = if @pathname then @pathname.split("/")[1..] else []
-        # TODO: perhaps eliminate first element of path?  always ""?
-        
-        @hasPath = @path.length>0
-        
-    # TODO: need more stringent match
-    specOwner: ->
-        @hasPath and (@url.indexOf("/") isnt -1) and not (@hasWebUrl())
+    # Load and parse resources.json.  (Need jQuery to do this; uses ajax $.get.)
+    # Get ordered list of resources (html, css, js, coffee).
+    OLD_loadResourceList: (callback) ->
+        list = @resources.add @resourcesList
+        @resources.loadUnloaded =>
+            @resources.add @htmlResources
+            @resources.add @scriptResources
+            listResources = JSON.parse list.content
+            for r in listResources
+                spec = if typeof r is "string" then {url: r} else r
+                @resources.add spec
+            callback?()
     
-    # TODO: need more stringent match
-    hasWebUrl: ->
-        @url.indexOf("//") is 0 or @url.indexOf("http://") is 0  # TODO: regex
-        
-    #currentLocation: -> resourceLocationFactory()
-    
-    file: ->
-        if @fileExt() then @path[-1..][0] else null  # Does specOwner have influence?
+    OLD_loadResourceList2: (callback) ->
+        p = (code) -> "resources = (obj) -> $blab.resources.processSpec obj, 'main'\n"+code
+        res = @resources.add(url: @resourcesList2.url, preProcess: p)
+        @resources.loadUnloaded =>
+            res.compile()   # TODO: callback?
+            callback?()
             
-    fileExt: ->
-        match = if @hasPath then @pathname.match /\.[0-9a-z]+$/i else null
-        if match?.length then match[0].slice(1) else null
+    loadResourceList3: (callback) ->
+        @resources.loadFromSpecFile
+            url: @resourcesList2.url
+            callback: callback
     
-
-class OLD___WebResourceLocation extends BaseResourceLocation
+    # Async load html and css:
+    #   * all html via ajax.
+    #   * external css via <link>; auto-appended to dom as soon as resource loaded.
+    #   * blab css via ajax; auto-appended to dom (inline) after *all* html/css loaded.
+    # After all html/css loaded, render html via Wiky.
+    # html and blab css available as source to be edited in browser.
+    OLD_loadHtmlCss: (callback) ->
+        @resources.load ["html", "css"], =>
+            @render html.content for html in @resources.select("html")
+            callback?()
     
-    source: -> @url
+    # Async load js and coffee; and py/m:
+    #   * external js via <script>; auto-appended to dom, and run.
+    #   * blab js and all coffee via ajax; auto-appended to dom (inline) after *all* js/coffee loaded.
+    #   * py/m via ajax; no action loading.
+    # After all scripts loaded: 
+    #   * compile each coffee file, with post-js processing if not #!vanilla.
+    #   * append JS (blab js or compiled coffee) to dom: external js (from coffee) first, then current blab js.
+    # coffee and blab js available as source to be edited in browser.
+    # (Loading scripts after HTML/CSS improves html rendering speed.)
+    # Note: for large JS file (even 3rd party), put in repo without gh-pages (web page).
+    OLD_loadScripts: (callback) ->
+        @resources.load ["json", "js", "coffee", "py", "m", "svg", "txt"], =>
+            console.log "*******RESOURCES", @resources
+            # Before Ace loaded, compile any CoffeeScript that has no associated eval box.
+            @compileCoffee (coffee) ->
+                not coffee.hasEval() and not coffee.spec.orig.doEval
+            callback?()
     
-    props: ->
-        obj: this
-        file: @file()
-        source: @source()
+    loadAce: (callback) ->
+        load = (resources, callback) =>
+            @resources.add resources
+            @resources.load ["js", "css"], => callback?()
+        new Ace.Resources load, =>
+            @resources.render()  # Render Ace editors
+            @resources.compileCoffee (coffee) -> coffee.hasEval()  # Compile any CoffeeScript that has associated eval box.
+            callback?()
     
-    
-class OLD___XBlabResourceLocation extends BaseResourceLocation
-    
-    # Abstract class
-    
-    owner: ->  # set by subclass
+    OLD_compileCoffee: (coffeeFilter) ->
+        # ZZZ do external first; then blabs.
+        filter = (resource) -> resource.isType("coffee") and coffeeFilter(resource)
+        coffee.compile() for coffee in @resources.select filter
         
-    repoIdx: null  # set by subclass
-    
-    repo: -> @path[@repoIdx]
-    
-    subf: ->
-        s = @path[(@repoIdx+1)..-2].join("/")
-        if s then "/"+s else ""
+    OLD_publicInterface: ->
+        #$blab.resources = @resources
+        $blab.loadJSON = (url, callback) => @resources.loadJSON(url, callback)
+        $blab.resource = (id) => @resources.getContent id
 
-    #s: -> if @subf() then "/#{@subf()}" else ""  # Subfolder path string
-    
-    branch: -> "gh-pages"  # ZZZ bug: need to get branch - could be master or something else besides gh-pages.
-    
-    # TODO: under component github object?
-    source: -> "https://github.com/#{@owner()}/#{@repo()}#{@subf()}" + (if @file() then "/blob/#{@branch()}/#{@file()}" else "")
-    apiUrl: -> "https://api.github.com/repos/#{@owner()}/#{@repo()}/contents#{@subf()}" + (if @file then "/#{@file()}" else "")
-    linkedUrl: -> "https://#{@owner()}.github.io/#{@repo()}#{@subf()}/#{@file()}"
-    
-    inCurrentBlab: ->
-        # TODO: use this in resource factory
-        current = Blab.location #@currentLocation()
-        current.owner() is @owner() and current.repo() is @repo()
-    
-    props: ->
-        obj: this
-        owner: @owner()
-        repo: @repo()
-        subf: @subf()
-        file: @file()
-        source: @source()
-        apiUrl: @apiUrl()
-        linkedUrl: @linkedUrl()
-        
-
-class OLD___AbsBlabResourceLocation extends XBlabResourceLocation
-    
-    # url = /org/repo/path/to/file.ext
-    
-    owner: -> @path[0]
-    
-    repoIdx: 1
-
-
-class OLD___LocalResourceLocation extends AbsBlabResourceLocation
-    
-    # url = http://localhost:port/org/repo/path/to/file
-
-
-class OLD___RelBlabResourceLocation extends XBlabResourceLocation
-    
-    # path = repo/path/to/file.ext
-    
-    owner: ->  # set by subclass
-    
-    repoIdx: 0
-
-
-class OLD___CurrentBlabResourceLocation extends RelBlabResourceLocation
-    
-    # url = path/file.ext
-    
-    owner: -> Blab.location.owner() #@currentLocation().owner
-
-
-class OLD___PuzletResourceLocation extends RelBlabResourceLocation
-    
-    # url = http://puzlet.org/repo/path/to/file
-    
-    owner: -> "puzlet"
-
-    
-class OLD___GitHubResourceLocation extends RelBlabResourceLocation
-    
-    # url = http://org.github.io/repo/path/file.ext
-    
-    owner: -> @host[0]
-    
-    
-OLD___resourceLocationFactory = (url=window.location.href) ->
-    
-    base = new BaseResourceLocation url
-    hostname = base.hostname
-    host = base.host
-    specOwner = base.specOwner()
-    hasWebUrl = base.hasWebUrl()
-    
-    # TODO: github api url?
-    
-    if specOwner
-        return new AbsBlabResourceLocation url
-    else if not hasWebUrl
-        return new CurrentBlabResourceLocation url
-    else if hostname is "localhost"
-        return new LocalResourceLocation url
-        # Note: local resource is the default.  May wind up from GitHub.
-    else if hostname is "puzlet.org"
-        return new PuzletResourceLocation url
-    else if host.length is 3 and host[1] is "github" and host[2] is "io"
-        return new GitHubResourceLocation url
-    else
-        return new WebResourceLocation url
-
-
-locationTests = ->
-    
-    l = resourceLocationFactory "/org/repo/path/to/file.ext"
-    console.log "&&&&&&&&", l.props()
-    
-    l = resourceLocationFactory "http://puzlet.org/repo/path/to/file.ext"
-    console.log "&&&&&&&&", l.props()
-    
-    l = resourceLocationFactory "http://org.github.io/repo/path/file.ext"
-    console.log "&&&&&&&&", l.props()
-    
-    l = resourceLocationFactory "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
-    console.log "&&&&&&&&", l.props()
-    
-    
-#locationTests()
-###
 
