@@ -215,46 +215,6 @@ TODO: for deployed host, may also need to know root folder?
 
   })();
 
-  OLD___BlabLocation = (function(_super) {
-
-    __extends(OLD___BlabLocation, _super);
-
-    function OLD___BlabLocation(url) {
-      this.url = url != null ? url : window.location.href;
-      OLD___BlabLocation.__super__.constructor.call(this, this.url);
-      if (this.hostname === "localhost") {
-        this.owner = this.path[0];
-        this.repoIdx = 1;
-      }
-      if (this.hostname === "puzlet.org") {
-        this.owner = "puzlet";
-        this.repoIdx = 0;
-      }
-      if (GitHub.isIoUrl(this.url)) {
-        this.owner = this.host[0];
-        this.repoIdx = 0;
-      }
-      if (!this.owner) {
-        return;
-      }
-      if (this.hasPath) {
-        this.repo = this.path[this.repoIdx];
-        this.subf = this.subfolder(this.repoIdx + 1);
-      } else {
-        this.repo = null;
-        this.subf = null;
-      }
-      this.gitHub = new GitHub({
-        owner: this.owner,
-        repo: this.repo
-      });
-      this.source = this.gitHub.sourcePageUrl();
-    }
-
-    return OLD___BlabLocation;
-
-  })(URL);
-
   ResourceLocation = (function(_super) {
 
     __extends(ResourceLocation, _super);
@@ -311,6 +271,8 @@ TODO: for deployed host, may also need to know root folder?
 
     __extends(BlabResourceLocation, _super);
 
+    BlabResourceLocation.prototype.localOrgPath = null;
+
     BlabResourceLocation.prototype.loadType = null;
 
     BlabResourceLocation.prototype.cache = null;
@@ -353,7 +315,7 @@ TODO: for deployed host, may also need to know root folder?
 
     BlabResourceLocation.prototype.load = function(callback) {
       var url;
-      console.log("*** Blab load " + this.url + " => " + this.loadUrl);
+      console.log("Blab load " + this.url + " => " + this.loadUrl);
       url = this.loadUrl + ("?t=" + (Date.now()));
       return $.get(url, (function(data) {
         return callback(data);
@@ -1427,6 +1389,46 @@ TODO: for deployed host, may also need to know root folder?
   ready = function() {};
 
   new Loader(render, ready);
+
+  OLD___BlabLocation = (function(_super) {
+
+    __extends(OLD___BlabLocation, _super);
+
+    function OLD___BlabLocation(url) {
+      this.url = url != null ? url : window.location.href;
+      OLD___BlabLocation.__super__.constructor.call(this, this.url);
+      if (this.hostname === "localhost") {
+        this.owner = this.path[0];
+        this.repoIdx = 1;
+      }
+      if (this.hostname === "puzlet.org") {
+        this.owner = "puzlet";
+        this.repoIdx = 0;
+      }
+      if (GitHub.isIoUrl(this.url)) {
+        this.owner = this.host[0];
+        this.repoIdx = 0;
+      }
+      if (!this.owner) {
+        return;
+      }
+      if (this.hasPath) {
+        this.repo = this.path[this.repoIdx];
+        this.subf = this.subfolder(this.repoIdx + 1);
+      } else {
+        this.repo = null;
+        this.subf = null;
+      }
+      this.gitHub = new GitHub({
+        owner: this.owner,
+        repo: this.repo
+      });
+      this.source = this.gitHub.sourcePageUrl();
+    }
+
+    return OLD___BlabLocation;
+
+  })(URL);
 
   OLD_Blab = (function() {
 

@@ -162,45 +162,6 @@ class URL
         if s then "/"+s else ""
 
 
-class OLD___BlabLocation extends URL  # TODO: call this PageLocation?
-    
-    constructor: (@url=window.location.href) ->
-        
-        super @url
-        
-        # http://localhost:port/owner/repo (note: no support for http://localhost:port/owner - instead http://localhost:port/owner/homepage)
-        if @hostname is "localhost"
-            @owner = @path[0]
-            @repoIdx = 1
-            
-        # http://domain.com/path/to/owner/repo | http://domain.com/path/to/owner
-        # TODO: need some kind of env variable (incl in .gitignore?) to configure where repoIdx is (and ownerIdx) in path.
-        # TODO ...
-        
-        # http://puzlet.org/repo | http://puzlet.org
-        if @hostname is "puzlet.org"
-            @owner = "puzlet"
-            @repoIdx = 0
-        
-        # http://owner.github.io/repo | http://owner.github.io
-        if GitHub.isIoUrl(@url)
-            @owner = @host[0]
-            @repoIdx = 0
-            
-        return unless @owner  # Not a blab resource if no owner
-        
-        if @hasPath
-            @repo = @path[@repoIdx]
-            @subf = @subfolder(@repoIdx + 1)
-        else
-            @repo = null
-            @subf = null
-        
-        @gitHub = new GitHub {@owner, @repo}
-        @source = @gitHub.sourcePageUrl() #"https://github.com/#{@owner}/#{@repo ? ''}" if @owner
-        
-
-
 class ResourceLocation extends URL
     # Abstract class
         
@@ -208,7 +169,6 @@ class ResourceLocation extends URL
     
     owner: null
     repo: null
-    #subf: null
     filepath: null
     inBlab: false
     source: null
@@ -217,7 +177,6 @@ class ResourceLocation extends URL
     constructor: (@url) ->
         super @url
         # TODO: @filepath?
-        #@subf = @subfolder(0)
         @source = @url
         @loadUrl = @url
         
@@ -236,6 +195,7 @@ class WebResourceLocation extends ResourceLocation
 # TODO: Should this be called GitHubResourceLocation?
 class BlabResourceLocation extends ResourceLocation
     
+    localOrgPath: null
     loadType: null  # Defined in constructor
     cache: null  # Defined in constructor
     
@@ -273,15 +233,14 @@ class BlabResourceLocation extends ResourceLocation
         @cache = not @inBlab and @owner is "puzlet"  # TODO: better way?
         
         console.log @owner, @repo, @filepath, @loadUrl
-        
         console.log @gitHub.linkedUrl()
+        
         @source = @gitHub.sourcePageUrl()
     
     load: (callback) ->
-        # ZZZ what if not coffee?  JS/CSS handled elsewhere?
-        console.log "*** Blab load #{@url} => #{@loadUrl}"
+        console.log "Blab load #{@url} => #{@loadUrl}"
         url = @loadUrl + "?t=#{Date.now()}"  # No cache
-        # Ajax-load method.  TODO: continue if load error.
+        # Ajax-load method.  TODO: continue if load error.  OR try guthub if localpath load fail
         $.get(url, ((data) -> callback(data)), "text")
     
     fullPath: -> @url?.indexOf("/") is 0
@@ -544,7 +503,6 @@ class CssResourceInline extends ResourceInline
     mime: "text/css"
 
 
-
 class CssResourceLinked extends Resource
     
     load: (callback) ->
@@ -552,7 +510,7 @@ class CssResourceLinked extends Resource
         #@style.setAttribute "type", "text/css"
         @style.setAttribute "rel", "stylesheet"
         t = Date.now()
-        @style.setAttribute "href", @loadUrl  #+"?t=#{t}"
+        @style.setAttribute "href", @loadUrl
 #        @style.setAttribute "href", @url  #+"?t=#{t}"
         #@style.setAttribute "data-url", @url
         
@@ -569,6 +527,7 @@ class JsResourceInline extends ResourceInline
     
     tag: "script"
     #mime: "text/javascript"
+    
 
 
 class JsResourceLinked extends Resource
@@ -765,8 +724,6 @@ class Resources
         {url: "/puzlet/puzlet/js/google_analytics.js"}  # TODO: does this need to be here?
     ]
     
-    #OLD gitHubFile: "../github.json"
-    
     resourcesSpec: "resources.coffee"
     
     constructor: (spec) ->
@@ -845,7 +802,6 @@ class Resources
         #@currentBlab = resources.github if inBlab
         for url in resources.load
             @add {url} if typeof url is "string" and url.length
-        #@loadHtmlCss => @loadScripts => #spec.callback?()
     
     # Defines helper function "resources" for preamble JS of resources.coffee. 
     specFilePreProcessCode: (url) ->
@@ -956,6 +912,45 @@ ready = ->
 new Loader(render, ready)
 
 #-----------------------------------------------------------------------------------------------------------
+
+class OLD___BlabLocation extends URL  # TODO: call this PageLocation?
+    
+    constructor: (@url=window.location.href) ->
+        
+        super @url
+        
+        # http://localhost:port/owner/repo (note: no support for http://localhost:port/owner - instead http://localhost:port/owner/homepage)
+        if @hostname is "localhost"
+            @owner = @path[0]
+            @repoIdx = 1
+            
+        # http://domain.com/path/to/owner/repo | http://domain.com/path/to/owner
+        # TODO: need some kind of env variable (incl in .gitignore?) to configure where repoIdx is (and ownerIdx) in path.
+        # TODO ...
+        
+        # http://puzlet.org/repo | http://puzlet.org
+        if @hostname is "puzlet.org"
+            @owner = "puzlet"
+            @repoIdx = 0
+        
+        # http://owner.github.io/repo | http://owner.github.io
+        if GitHub.isIoUrl(@url)
+            @owner = @host[0]
+            @repoIdx = 0
+            
+        return unless @owner  # Not a blab resource if no owner
+        
+        if @hasPath
+            @repo = @path[@repoIdx]
+            @subf = @subfolder(@repoIdx + 1)
+        else
+            @repo = null
+            @subf = null
+        
+        @gitHub = new GitHub {@owner, @repo}
+        @source = @gitHub.sourcePageUrl() #"https://github.com/#{@owner}/#{@repo ? ''}" if @owner
+        
+
 
 class OLD_Blab
     
