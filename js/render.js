@@ -170,6 +170,42 @@
       };
     };
 
+    Notes.prototype.processText = function(method) {
+      var txt, _i, _len, _ref1, _results;
+      _ref1 = $(".pz_text");
+      _results = [];
+      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+        txt = _ref1[_i];
+        _results.push(method($(txt)));
+      }
+      return _results;
+    };
+
+    Notes.prototype.init = function(t) {
+      if (t.attr("title") != null) {
+        t.removeAttr("title");
+        t.tooltip();
+        t.tooltip("destroy");
+      }
+      $pz.persistentTooltip(t);
+      return t.attr({
+        title: this.html(t)
+      });
+    };
+
+    Notes.prototype.set = function(t) {
+      if (!t.data("tooltipset")) {
+        $pz.persistentTooltip(t);
+      }
+      return t.tooltip("option", "content", this.html(t));
+    };
+
+    Notes.prototype.html = function(t) {
+      var ref;
+      ref = t.attr("ref");
+      return $("#" + ref).html();
+    };
+
     return Notes;
 
   })();

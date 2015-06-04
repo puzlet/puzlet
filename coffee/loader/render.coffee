@@ -112,3 +112,21 @@ class Notes
 				tip.on "mouseenter", (-> clear())
 				tip.on "mouseleave", (-> set())
 			)
+
+	processText: (method) -> method($ txt) for txt in $ ".pz_text"
+	
+	init: (t) ->
+		if t.attr("title")?
+			t.removeAttr "title"
+			t.tooltip()
+			t.tooltip "destroy"
+		$pz.persistentTooltip t
+		t.attr title: @html(t)
+		
+	set: (t) ->
+		$pz.persistentTooltip t if not t.data("tooltipset")
+		t.tooltip "option", "content", @html(t)
+		
+	html: (t) ->
+		ref = t.attr "ref"
+		$("##{ref}").html()
