@@ -1,44 +1,39 @@
 ###
-TODO: use full file path instead of subf - is subf by itself ever really needed?
-TODO: see if we can do without blabLocation, if we have org/repo name in resources.json.
-###
-
-
-###
-TODO: if localhost, try loading resource locally first.  if fails, from github.
-support {css: "..."} in resources.coffee
-loadJSON broken - Resource.load no longer supports type?
-
-TODO: have local env file so we know whether to try loading locally (localhost or deployed host)?
-TODO: for deployed host, may also need to know root folder?
+TODO:
+* use full file path instead of subf - is subf by itself ever really needed?
+* if localhost, try loading resource locally first.  if fails, from github.
+* support {css: "..."} in resources.coffee
+* loadJSON broken - Resource.load no longer supports type?
+* have local env file so we know whether to try loading locally (localhost or deployed host)?
+* for deployed host, may also need to know root folder?
 ###
 
 console.log "LOADER"
 
-    #--- Example resources.coffee ---
-    # Note that order is important for html rendering order, css cascade order, and script execution order.
-    # But blab resources can go at top because always loaded after external resources.
+#--- Example resources.coffee ---
+# Note that order is important for html rendering order, css cascade order, and script execution order.
+# But blab resources can go at top because always loaded after external resources.
+# A blab resource can now go directly in <div data-file='...'>, rather than in resources.coffee.
 
 ###
-# TODO:
-[
-    "main.html",
-    "style.css",
-    "bar.js",
-    "foo.coffee",
-    "main.coffee",
-    "/some-repo/snippet.html",
-    "/other-repo/foo.css",
-    "/puzlet/js/d3.min.js",
+resources
+  load: [
+    "main.html"
+    "style.css"
+    "bar.js"
+    "foo.coffee"
+    "main.coffee"
+    "/some-org/some-repo/snippet.html",
+    "/other-org/other-repo/foo.css",
+    "/puzlet/puzlet/js/d3.min.js", # check this
     "http://domain.com/script.js",
-    "/ode-fixed/ode.coffee"
-]
-###
-    
-###
-*******SPECIFICATION*******
+    "/org/ode-fixed/ode.coffee"
+]    
+
+******* SPECIFICATION *******
         
 ===Supported URLs for current blab location===
+TODO: is stuff below for puzlet bootstrap?
 http://localhost:port/owner/repo (note: repo could be owner.github.io)
 http://puzlet.org
 http://puzlet.org/repo

@@ -67,6 +67,7 @@ class MathJaxProcessor
 class Notes
 	
 	constructor: ->
+		return unless $(document).tooltip?
 		@initTooltip()
 		@processText((t) => @init t)
 		$(document).on "mathjaxPreConfig", =>

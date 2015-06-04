@@ -88,6 +88,9 @@
 
   Notes = (function() {
     function Notes() {
+      if ($(document).tooltip == null) {
+        return;
+      }
       this.initTooltip();
       this.processText((function(_this) {
         return function(t) {
