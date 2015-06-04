@@ -243,6 +243,10 @@ resourceLocation = (url) ->
 # TODO: class for github io?
 class GitHub
     
+    knownGitHubOrgDomains: [
+      {domain: "puzlet.org", org: "puzlet"}
+    ]
+    
     branch: "gh-pages"  # Default
     
     @isIoUrl: (url) ->
@@ -259,8 +263,9 @@ class GitHub
         
     linkedUrl: ->
         return null unless @owner
+        known = @knownGitHubOrgDomains.filter((d) => @owner is d.org)
 #        host = "#{@owner}.github.io"  # Causes 301 response -> puzlet.org
-        host = if @owner is "puzlet" then "puzlet.org" else "#{@owner}.github.io"  # Fails - inseciure
+        host = if known.length then known[0].domain else "#{@owner}.github.io"
         "http://#{host}/#{@repo}/#{@path}"
 #        "https://#{host}/#{@repo}/#{@path}"
         

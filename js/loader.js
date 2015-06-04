@@ -282,6 +282,13 @@ TODO:
   };
 
   GitHub = (function() {
+    GitHub.prototype.knownGitHubOrgDomains = [
+      {
+        domain: "puzlet.org",
+        org: "puzlet"
+      }
+    ];
+
     GitHub.prototype.branch = "gh-pages";
 
     GitHub.isIoUrl = function(url) {
@@ -305,11 +312,16 @@ TODO:
     };
 
     GitHub.prototype.linkedUrl = function() {
-      var host;
+      var host, known;
       if (!this.owner) {
         return null;
       }
-      host = this.owner === "puzlet" ? "puzlet.org" : "" + this.owner + ".github.io";
+      known = this.knownGitHubOrgDomains.filter((function(_this) {
+        return function(d) {
+          return _this.owner === d.org;
+        };
+      })(this));
+      host = known.length ? known[0].domain : "" + this.owner + ".github.io";
       return "http://" + host + "/" + this.repo + "/" + this.path;
     };
 
