@@ -221,7 +221,7 @@ class Ace.Editor
 			fontFamily: "Consolas, Menlo, DejaVu Sans Mono, Monaco, monospace" 
 			fontSize: "11pt" 
 			lineHeight: "150%"
-		char = $ "<span>"
+		char = $ "<span>",
 			css: css
 			html: "m"
 		$("body").append char
@@ -427,7 +427,7 @@ class Ace.Resources
 	
 	customStyles: ->
 		# These styles don't work if added via ace.css.
-		custom = $ "<style>"
+		custom = $ "<style>",
 			type: "text/css"
 			id: "puzlet_ace_custom_styles"
 			html: """
@@ -629,7 +629,7 @@ class CodeNodeFunction
 		#re = new RegExp(pattern, "g")
 		#txt = @originalText.replace(re, " ")
 		txt = @originalText
-		link = $ "<a>"
+		link = $ "<a>",
 			href: @link.href
 			target: @link.target
 			text: txt
