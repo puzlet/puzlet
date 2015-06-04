@@ -309,7 +309,7 @@ TODO:
       if (!this.owner) {
         return null;
       }
-      host = this.owner === "puzlet" ? "puzlet.org" : "" + this.owner + ".github.io";
+      host = "" + this.owner + ".github.io";
       return "https://" + host + "/" + this.repo + "/" + this.path;
     };
 

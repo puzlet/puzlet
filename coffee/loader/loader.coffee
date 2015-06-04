@@ -259,7 +259,8 @@ class GitHub
         
     linkedUrl: ->
         return null unless @owner
-        host = if @owner is "puzlet" then "puzlet.org" else "#{@owner}.github.io"
+        host = "#{@owner}.github.io"  # Causes 301 response -> puzlet.org
+#        host = if @owner is "puzlet" then "puzlet.org" else "#{@owner}.github.io"  # Fails - inseciure
         "https://#{host}/#{@repo}/#{@path}"
         
     apiUrl: ->
