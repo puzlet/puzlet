@@ -15,7 +15,7 @@ TODO:
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  console.log("LOADER");
+  console.log("Puzlet loader");
 
 
   /*
@@ -305,10 +305,12 @@ TODO:
     };
 
     GitHub.prototype.linkedUrl = function() {
+      var host;
       if (!this.owner) {
         return null;
       }
-      return "https://" + this.owner + ".github.io/" + this.repo + "/" + this.path;
+      host = this.owner === "puzlet" ? "puzlet.org" : "" + this.owner + ".github.io";
+      return "https://" + host + "/" + this.repo + "/" + this.path;
     };
 
     GitHub.prototype.apiUrl = function() {
@@ -388,25 +390,6 @@ TODO:
     return GitHubApi;
 
   })(URL);
-
-  testBlabLocation = function() {
-    var loc, r;
-    loc = function(url) {
-      var b, _ref;
-      b = new BlabLocation(url);
-      return console.log(b, (_ref = b.gitHub) != null ? _ref.urls() : void 0);
-    };
-    r = function(url) {
-      var z, _ref;
-      z = resourceLocation(url);
-      return console.log(z, (_ref = z.gitHub) != null ? _ref.urls() : void 0);
-    };
-    r("http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js");
-    r("http://puzlet.org/puzlet/coffee/main.coffee");
-    r("/owner/repo/main.coffee");
-    r("main.coffee");
-    return r("http://api.github.com/repos/owner/repo/contents/path/to/file.ext");
-  };
 
   Resource = (function() {
     function Resource(spec) {
@@ -836,7 +819,7 @@ TODO:
           });
         };
       })(this);
-      preload = (_ref = spec.preload) != null ? _ref : function(f) {
+      preload = (_ref = spec != null ? spec.preload : void 0) != null ? _ref : function(f) {
         return f();
       };
       postload = (function(_this) {
@@ -847,8 +830,10 @@ TODO:
             observer = _ref1[_i];
             observer();
           }
-          if (typeof spec.postload === "function") {
-            spec.postload();
+          if (spec != null) {
+            if (typeof spec.postload === "function") {
+              spec.postload();
+            }
           }
           return typeof cb === "function" ? cb() : void 0;
         };
@@ -856,6 +841,7 @@ TODO:
       ready = (function(_this) {
         return function() {
           var observer, _i, _len, _ref1, _results;
+          console.log("Loaded all resources specified in resources.coffee");
           _ref1 = _this.readyObservers;
           _results = [];
           for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
@@ -1238,22 +1224,30 @@ TODO:
     };
   })(this);
 
-  resources.onReady(function() {
-    return console.log("======= All resources loaded =======");
-  });
-
-  resources.init({
-    preload: (function(_this) {
-      return function(callback) {
-        return typeof callback === "function" ? callback() : void 0;
-      };
-    })(this),
-    postload: function() {}
-  });
+  resources.init();
 
   TO_ADD_loadGitHub = function(callback) {
     this.github = new GitHub(this.resources);
     return this.github.loadGist(callback);
+  };
+
+  testBlabLocation = function() {
+    var loc, r;
+    loc = function(url) {
+      var b, _ref;
+      b = new BlabLocation(url);
+      return console.log(b, (_ref = b.gitHub) != null ? _ref.urls() : void 0);
+    };
+    r = function(url) {
+      var z, _ref;
+      z = resourceLocation(url);
+      return console.log(z, (_ref = z.gitHub) != null ? _ref.urls() : void 0);
+    };
+    r("http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js");
+    r("http://puzlet.org/puzlet/coffee/main.coffee");
+    r("/owner/repo/main.coffee");
+    r("main.coffee");
+    return r("http://api.github.com/repos/owner/repo/contents/path/to/file.ext");
   };
 
 }).call(this);

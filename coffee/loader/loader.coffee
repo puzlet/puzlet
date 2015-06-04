@@ -8,7 +8,7 @@ TODO:
 * for deployed host, may also need to know root folder?
 ###
 
-console.log "LOADER"
+console.log "Puzlet loader"
 
 #--- Example resources.coffee ---
 # Note that order is important for html rendering order, css cascade order, and script execution order.
@@ -195,7 +195,9 @@ class BlabResourceLocation extends ResourceLocation
         # Ajax-load method.  TODO: continue if load error.  OR try guthub if localpath load fail
         $.get(url, ((data) -> callback(data)), "text")
     
-    fullPath: -> @url?.indexOf("/") is 0
+    fullPath: ->
+        @url?.indexOf("/") is 0
+        # ZZZ need to check that second char not "/"
 
 
 class GitHubApiResourceLocation extends ResourceLocation
@@ -257,7 +259,8 @@ class GitHub
         
     linkedUrl: ->
         return null unless @owner
-        "https://#{@owner}.github.io/#{@repo}/#{@path}"
+        host = if @owner is "puzlet" then "puzlet.org" else "#{@owner}.github.io"
+        "https://#{host}/#{@repo}/#{@path}"
         
     apiUrl: ->
         return null unless @owner
@@ -301,49 +304,6 @@ class GitHubApi extends URL
             content = data.content.replace(/\s/g, '')  # Remove whitespace. Fixes parsing issue for Safari.
             callback(atob(content))
         $.get(@url, success, "json")
-
-
-testBlabLocation = ->
-    
-    loc = (url) ->
-        b = new BlabLocation url
-        console.log b, b.gitHub?.urls()
-    
-    #    loc null
-        #console.log "&&&&&&&&", l
-    
-    #    loc "http://puzlet.org/repo/path/to"
-        #console.log "&&&&&&&&", l
-    
-    #    loc "http://owner.github.io/repo/path"
-        #console.log "&&&&&&&&", l
-    
-    #    loc "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
-        #console.log "&&&&&&&&", l
-        
-    r = (url) ->
-        z = resourceLocation url
-        #        z = new XResourceLocation url
-        console.log z, z.gitHub?.urls()
-    
-    r "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
-    #console.log "********", l
-    
-    r "http://puzlet.org/puzlet/coffee/main.coffee"
-    #console.log "********", l
-    
-    r "/owner/repo/main.coffee"
-    #console.log "********", l
-    
-    r "main.coffee"
-    #console.log "********", l
-    
-    r "http://api.github.com/repos/owner/repo/contents/path/to/file.ext"
-    #console.log "********", l
-    
-    
-#
-#testBlabLocation()
 
 
 #-----------------------------------------------------------------------------#
@@ -620,13 +580,14 @@ class Resources
                 url: @resourcesSpec
                 callback: => cb()
         
-        preload = spec.preload ? (f) -> f()
+        preload = spec?.preload ? (f) -> f()
         postload = (cb) =>
             observer() for observer in @postLoadObservers
-            spec.postload?()
+            spec?.postload?()
             cb?()
             
         ready = =>
+            console.log "Loaded all resources specified in resources.coffee"
             observer() for observer in @readyObservers
         
         core -> preload -> resources -> postload -> ready()
@@ -827,10 +788,9 @@ class Resources
 
 
 #-----------------------------------------------------------------------------#
-window.$pz ={}
+window.$pz = {}
 
 resources = new Resources
-    #gitHub: $blab.gitHub  # From Puzlet bootstrap
 
 # Public interface.  $blab is defined in Puzlet bootstrap script (//puzlet.org/puzlet.js)
 console.log "$blab", $blab
@@ -839,12 +799,7 @@ $blab.resources = resources
 $blab.loadJSON = (url, callback) => resources.loadJSON(url, callback)
 $blab.resource = (id) => resources.getContent id
 
-resources.onReady ->
-    console.log "======= All resources loaded ======="
-
-resources.init
-    preload: (callback) => callback?()  # ZZZ should be default
-    postload: ->
+resources.init()
 
 # TODO: gist source
 # Initiate GitHub object and load Gist files - these override blab files.
@@ -852,3 +807,46 @@ TO_ADD_loadGitHub = (callback) ->
     # Needs: {url: "/puzlet/puzlet/js/jquery.cookie.js"}
     @github = new GitHub @resources  # ZZZ need different GitHub class (dup name)
     @github.loadGist callback
+
+
+testBlabLocation = ->
+    
+    loc = (url) ->
+        b = new BlabLocation url
+        console.log b, b.gitHub?.urls()
+    
+    #    loc null
+        #console.log "&&&&&&&&", l
+    
+    #    loc "http://puzlet.org/repo/path/to"
+        #console.log "&&&&&&&&", l
+    
+    #    loc "http://owner.github.io/repo/path"
+        #console.log "&&&&&&&&", l
+    
+    #    loc "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
+        #console.log "&&&&&&&&", l
+        
+    r = (url) ->
+        z = resourceLocation url
+        #        z = new XResourceLocation url
+        console.log z, z.gitHub?.urls()
+    
+    r "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
+    #console.log "********", l
+    
+    r "http://puzlet.org/puzlet/coffee/main.coffee"
+    #console.log "********", l
+    
+    r "/owner/repo/main.coffee"
+    #console.log "********", l
+    
+    r "main.coffee"
+    #console.log "********", l
+    
+    r "http://api.github.com/repos/owner/repo/contents/path/to/file.ext"
+    #console.log "********", l
+    
+    
+#
+#testBlabLocation()
