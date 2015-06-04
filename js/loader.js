@@ -309,8 +309,8 @@ TODO:
       if (!this.owner) {
         return null;
       }
-      host = "" + this.owner + ".github.io";
-      return "https://" + host + "/" + this.repo + "/" + this.path;
+      host = this.owner === "puzlet" ? "puzlet.org" : "" + this.owner + ".github.io";
+      return "http://" + host + "/" + this.repo + "/" + this.path;
     };
 
     GitHub.prototype.apiUrl = function() {
