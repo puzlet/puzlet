@@ -800,7 +800,7 @@ TODO:
       }
     ];
 
-    Resources.prototype.resourcesSpec = "resources.coffee";
+    Resources.prototype.resourcesSpec = "/puzlet/puzlet/resources.coffee";
 
     function Resources(spec) {
       this.resources = [];
@@ -815,16 +815,28 @@ TODO:
     }
 
     Resources.prototype.init = function(spec) {
-      var core, postload, preload, ready, resources, _ref;
+      var core, getResourcesUrl, postload, preload, ready, resources, _ref;
       core = (function(_this) {
         return function(cb) {
           return _this.addAndLoad(_this.coreResources, cb);
         };
       })(this);
+      getResourcesUrl = (function(_this) {
+        return function() {
+          var pzAttr, pzScript;
+          pzAttr = "data-resources";
+          pzScript = $("script[" + pzAttr + "]");
+          if (pzScript.length) {
+            return pzScript.attr(pzAttr);
+          } else {
+            return _this.resourcesSpec;
+          }
+        };
+      })(this);
       resources = (function(_this) {
         return function(cb) {
           return _this.loadFromSpecFile({
-            url: _this.resourcesSpec,
+            url: getResourcesUrl(),
             callback: function() {
               return cb();
             }

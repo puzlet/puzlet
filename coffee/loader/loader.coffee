@@ -567,7 +567,7 @@ class Resources
         {url: "/puzlet/puzlet/js/google_analytics.js"}  # TODO: does this need to be here?
     ]
     
-    resourcesSpec: "resources.coffee"
+    resourcesSpec: "/puzlet/puzlet/resources.coffee"  # Default
     
     constructor: (spec) ->
         @resources = []
@@ -582,9 +582,14 @@ class Resources
         
         core = (cb) => @addAndLoad @coreResources, cb
         
+        getResourcesUrl = =>
+          pzAttr = "data-resources"
+          pzScript = $("script[#{pzAttr}]")
+          if pzScript.length then pzScript.attr(pzAttr) else @resourcesSpec
+        
         resources = (cb) =>
             @loadFromSpecFile
-                url: @resourcesSpec
+                url: getResourcesUrl()
                 callback: => cb()
         
         preload = spec?.preload ? (f) -> f()
