@@ -331,6 +331,11 @@ class Resource
         # Default file load method.
         # Uses jQuery.
         
+        if @spec.orig.source?
+            @content = @spec.orig.source
+            @postLoad callback
+            return
+        
         if @spec.gistSource
             # Load Gist
             @content = @spec.gistSource
@@ -449,7 +454,7 @@ class JsResourceLinked extends Resource
 
 class CoffeeResource extends Resource
     
-    load: (callback) -> 
+    load: (callback) ->
         super =>
             @setEval false
             @setCompilerSpec {}
@@ -630,17 +635,16 @@ class Resources
         #   * Inline resources (with appendToHead method): *after* all resources are loaded.
         filter = @filterFunction filter
         resources = @select((resource) -> not resource.loaded and filter(resource))
-        if resources.length is 0
+        resourcesToLoad = resources.length
+        if resourcesToLoad is 0
             loaded?([])
             return
-        resourcesToLoad = 0
         resourceLoaded = (resource) =>
             resourcesToLoad--
             if resourcesToLoad is 0
                 @appendToHead filter  # Append to head if the appendToHead method exists for a resource, and if not aleady appended.
                 loaded?(resources)
         for resource in resources
-            resourcesToLoad++
             resource.load -> resourceLoaded(resource)
     
     loadUnloaded: (loaded) ->

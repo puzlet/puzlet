@@ -417,6 +417,11 @@ TODO:
     }
 
     Resource.prototype.load = function(callback) {
+      if (this.spec.orig.source != null) {
+        this.content = this.spec.orig.source;
+        this.postLoad(callback);
+        return;
+      }
       if (this.spec.gistSource) {
         this.content = this.spec.gistSource;
         return this.postLoad(callback);
@@ -931,13 +936,13 @@ TODO:
       resources = this.select(function(resource) {
         return !resource.loaded && filter(resource);
       });
-      if (resources.length === 0) {
+      resourcesToLoad = resources.length;
+      if (resourcesToLoad === 0) {
         if (typeof loaded === "function") {
           loaded([]);
         }
         return;
       }
-      resourcesToLoad = 0;
       resourceLoaded = (function(_this) {
         return function(resource) {
           resourcesToLoad--;
@@ -950,7 +955,6 @@ TODO:
       _results = [];
       for (_i = 0, _len = resources.length; _i < _len; _i++) {
         resource = resources[_i];
-        resourcesToLoad++;
         _results.push(resource.load(function() {
           return resourceLoaded(resource);
         }));
