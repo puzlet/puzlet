@@ -466,13 +466,14 @@ class CoffeeResource extends Resource
     setCompilerSpec: (spec) ->
         spec.id = @url
         @compiler = if @doEval or @spec.orig.doEval then $coffee.evaluator(spec) else $coffee.compiler(spec)
+        @extraLines = spec.extraLines ? (-> "")
             
     compile: ->
         $blab.evaluatingResource = this
         @compiler.compile @content
         @compiled = true
         @resultArray = @compiler.resultArray
-        @resultStr = @compiler.result?.join("\n")
+        @resultStr = @compiler.result?.join("\n") + @extraLines(@resultArray)
         $.event.trigger("compiledCoffeeScript", {url: @url})
     
     update: (@content) -> @compile()
@@ -482,6 +483,7 @@ class CoffeeResource extends Resource
         spec =
             compile: (code) -> $mathCoffee.compile(code)
             evaluate: (code, js) -> $mathCoffee.evaluate(code, js)
+            extraLines: (resultArray) -> $mathCoffee.extraLines(resultArray)
         @setCompilerSpec spec
 
 

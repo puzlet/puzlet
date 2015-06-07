@@ -637,8 +637,12 @@ TODO:
     };
 
     CoffeeResource.prototype.setCompilerSpec = function(spec) {
+      var _ref;
       spec.id = this.url;
-      return this.compiler = this.doEval || this.spec.orig.doEval ? $coffee.evaluator(spec) : $coffee.compiler(spec);
+      this.compiler = this.doEval || this.spec.orig.doEval ? $coffee.evaluator(spec) : $coffee.compiler(spec);
+      return this.extraLines = (_ref = spec.extraLines) != null ? _ref : (function() {
+        return "";
+      });
     };
 
     CoffeeResource.prototype.compile = function() {
@@ -647,7 +651,7 @@ TODO:
       this.compiler.compile(this.content);
       this.compiled = true;
       this.resultArray = this.compiler.resultArray;
-      this.resultStr = (_ref = this.compiler.result) != null ? _ref.join("\n") : void 0;
+      this.resultStr = ((_ref = this.compiler.result) != null ? _ref.join("\n") : void 0) + this.extraLines(this.resultArray);
       return $.event.trigger("compiledCoffeeScript", {
         url: this.url
       });
@@ -669,6 +673,9 @@ TODO:
         },
         evaluate: function(code, js) {
           return $mathCoffee.evaluate(code, js);
+        },
+        extraLines: function(resultArray) {
+          return $mathCoffee.extraLines(resultArray);
         }
       };
       return this.setCompilerSpec(spec);
