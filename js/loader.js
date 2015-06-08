@@ -626,6 +626,7 @@ TODO:
         return function() {
           _this.setEval(false);
           _this.setCompilerSpec({});
+          _this.mathSpecSet = false;
           _this.compiled = false;
           return typeof callback === "function" ? callback() : void 0;
         };
@@ -647,6 +648,7 @@ TODO:
 
     CoffeeResource.prototype.compile = function() {
       var _ref;
+      this.setMathSpec();
       $blab.evaluatingResource = this;
       this.compiler.compile(this.content);
       this.compiled = true;
@@ -663,22 +665,25 @@ TODO:
     };
 
     CoffeeResource.prototype.setMathSpec = function() {
-      var spec;
-      if (!$mathCoffee) {
+      var bare, isMain, spec;
+      if (!((typeof $mathCoffee !== "undefined" && $mathCoffee !== null) && !this.mathSpecSet)) {
         return;
       }
+      bare = false;
+      isMain = this.inBlab();
       spec = {
         compile: function(code) {
-          return $mathCoffee.compile(code);
+          return $mathCoffee.compile(code, bare, isMain);
         },
         evaluate: function(code, js) {
-          return $mathCoffee.evaluate(code, js);
+          return $mathCoffee.evaluate(code, js, isMain);
         },
         extraLines: function(resultArray) {
           return $mathCoffee.extraLines(resultArray);
         }
       };
-      return this.setCompilerSpec(spec);
+      this.setCompilerSpec(spec);
+      return this.mathSpecSet = true;
     };
 
     return CoffeeResource;

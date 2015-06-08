@@ -458,6 +458,7 @@ class CoffeeResource extends Resource
         super =>
             @setEval false
             @setCompilerSpec {}
+            @mathSpecSet = false
             @compiled = false
             callback?()
             
@@ -469,6 +470,7 @@ class CoffeeResource extends Resource
         @extraLines = spec.extraLines ? (-> "")
             
     compile: ->
+        @setMathSpec()
         $blab.evaluatingResource = this
         @compiler.compile @content
         @compiled = true
@@ -479,12 +481,15 @@ class CoffeeResource extends Resource
     update: (@content) -> @compile()
     
     setMathSpec: ->
-        return unless $mathCoffee
+        return unless $mathCoffee? and not @mathSpecSet
+        bare = false
+        isMain = @inBlab()
         spec =
-            compile: (code) -> $mathCoffee.compile(code)
-            evaluate: (code, js) -> $mathCoffee.evaluate(code, js)
+            compile: (code) -> $mathCoffee.compile(code, bare, isMain)
+            evaluate: (code, js) -> $mathCoffee.evaluate(code, js, isMain)
             extraLines: (resultArray) -> $mathCoffee.extraLines(resultArray)
         @setCompilerSpec spec
+        @mathSpecSet = true
 
 
 class JsonResource extends Resource
