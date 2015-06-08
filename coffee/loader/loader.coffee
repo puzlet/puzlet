@@ -471,7 +471,8 @@ class CoffeeResource extends Resource
             
     compile: ->
         @setMathSpec()
-        $blab.evaluatingResource = this
+        #$blab.evaluatingResource = this  # ZZZ to deprecate
+        $.event.trigger("preCompileCoffee", {resource: this})
         @compiler.compile @content
         @compiled = true
         @resultArray = @compiler.resultArray

@@ -649,7 +649,9 @@ TODO:
     CoffeeResource.prototype.compile = function() {
       var _ref;
       this.setMathSpec();
-      $blab.evaluatingResource = this;
+      $.event.trigger("preCompileCoffee", {
+        resource: this
+      });
       this.compiler.compile(this.content);
       this.compiled = true;
       this.resultArray = this.compiler.resultArray;
