@@ -653,12 +653,13 @@ TODO:
     };
 
     CoffeeResource.prototype.compile = function() {
-      var _ref;
+      var recompile, _ref;
       this.setMathSpec();
       $.event.trigger("preCompileCoffee", {
         resource: this
       });
-      this.compiler.compile(this.content);
+      recompile = false;
+      this.compiler.compile(this.content, recompile);
       this.compiled = true;
       this.resultArray = this.compiler.resultArray;
       this.resultStr = ((_ref = this.compiler.result) != null ? _ref.join("\n") : void 0) + this.extraLines(this.resultArray);
