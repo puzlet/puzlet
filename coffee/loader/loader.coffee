@@ -449,7 +449,16 @@ class JsResourceLinked extends Resource
 
 class CoffeeResource extends Resource
     
+    @preCompileCode: {}
+    
+    constructor: (@spec) ->
+      super @spec
+      @observers =
+        preCompile: []
+    
     load: (callback) ->
+        $.event.trigger("loadCoffeeResource", {resource: this})
+        
         super =>
             @setEval false
             @setCompilerSpec {}
@@ -476,16 +485,36 @@ class CoffeeResource extends Resource
     
     update: (@content) -> @compile()
     
+    on: (evt, observer) -> @observers[evt].push observer
+    
     setMathSpec: ->
         return unless $mathCoffee? and not @mathSpecSet
         bare = false
         isMain = @inBlab()
+        #preCompile = (code) =>  # ZZZ make this a method
+        #  preCompileCode = CoffeeResource.preCompileCode
+        #  pre = if @url of preCompileCode then preCompileCode[@url] else null
+        #  code = pre.preamble + code if pre
+        #  code = observer({code}) for observer in @observers.preCompile
+        #  console.log "Pre-compile code", @url, code
+        #  code
         spec =
-            compile: (code) -> $mathCoffee.compile(code, bare, isMain)
-            evaluate: (code, js) -> $mathCoffee.evaluate(code, js, isMain)
+            compile: (code) => $mathCoffee.compile(@preCompile(code), bare, isMain)
+            evaluate: (code, js) => $mathCoffee.evaluate(@preCompile(code), js, isMain)
             extraLines: (resultArray) -> $mathCoffee.extraLines(resultArray)
         @setCompilerSpec spec
         @mathSpecSet = true
+        
+    preCompile: (code) ->
+      preCompileCode = CoffeeResource.preCompileCode
+      pc = preCompileCode[@url]
+      console.log "PC", @url, pc
+      code = pc.preamble + code + pc.postamble if pc
+      code = observer({code}) for observer in @observers.preCompile
+      console.log "Pre-compile code", @url, code
+      code
+      
+    @registerPrecompileCode: (preCompileCode) -> CoffeeResource.preCompileCode = preCompileCode
 
 
 class JsonResource extends Resource
@@ -826,6 +855,8 @@ $blab.resources = resources
 $blab.load = (r, callback) -> resources.addAndLoad(r, callback)
 $blab.loadJSON = (url, callback) => resources.loadJSON(url, callback)
 $blab.resource = (id) => resources.getContent id
+
+$blab.CoffeeResource = CoffeeResource
 
 resources.init()
 

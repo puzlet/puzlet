@@ -614,11 +614,20 @@ TODO:
   CoffeeResource = (function(_super) {
     __extends(CoffeeResource, _super);
 
-    function CoffeeResource() {
-      return CoffeeResource.__super__.constructor.apply(this, arguments);
+    CoffeeResource.preCompileCode = {};
+
+    function CoffeeResource(spec) {
+      this.spec = spec;
+      CoffeeResource.__super__.constructor.call(this, this.spec);
+      this.observers = {
+        preCompile: []
+      };
     }
 
     CoffeeResource.prototype.load = function(callback) {
+      $.event.trigger("loadCoffeeResource", {
+        resource: this
+      });
       return CoffeeResource.__super__.load.call(this, (function(_this) {
         return function() {
           _this.setEval(false);
@@ -663,6 +672,10 @@ TODO:
       return this.compile();
     };
 
+    CoffeeResource.prototype.on = function(evt, observer) {
+      return this.observers[evt].push(observer);
+    };
+
     CoffeeResource.prototype.setMathSpec = function() {
       var bare, isMain, spec;
       if (!((typeof $mathCoffee !== "undefined" && $mathCoffee !== null) && !this.mathSpecSet)) {
@@ -671,18 +684,45 @@ TODO:
       bare = false;
       isMain = this.inBlab();
       spec = {
-        compile: function(code) {
-          return $mathCoffee.compile(code, bare, isMain);
-        },
-        evaluate: function(code, js) {
-          return $mathCoffee.evaluate(code, js, isMain);
-        },
+        compile: (function(_this) {
+          return function(code) {
+            return $mathCoffee.compile(_this.preCompile(code), bare, isMain);
+          };
+        })(this),
+        evaluate: (function(_this) {
+          return function(code, js) {
+            return $mathCoffee.evaluate(_this.preCompile(code), js, isMain);
+          };
+        })(this),
         extraLines: function(resultArray) {
           return $mathCoffee.extraLines(resultArray);
         }
       };
       this.setCompilerSpec(spec);
       return this.mathSpecSet = true;
+    };
+
+    CoffeeResource.prototype.preCompile = function(code) {
+      var observer, pc, preCompileCode, _i, _len, _ref;
+      preCompileCode = CoffeeResource.preCompileCode;
+      pc = preCompileCode[this.url];
+      console.log("PC", this.url, pc);
+      if (pc) {
+        code = pc.preamble + code + pc.postamble;
+      }
+      _ref = this.observers.preCompile;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        observer = _ref[_i];
+        code = observer({
+          code: code
+        });
+      }
+      console.log("Pre-compile code", this.url, code);
+      return code;
+    };
+
+    CoffeeResource.registerPrecompileCode = function(preCompileCode) {
+      return CoffeeResource.preCompileCode = preCompileCode;
     };
 
     return CoffeeResource;
@@ -1276,6 +1316,8 @@ TODO:
       return resources.getContent(id);
     };
   })(this);
+
+  $blab.CoffeeResource = CoffeeResource;
 
   resources.init();
 
