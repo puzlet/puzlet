@@ -1,0 +1,50 @@
+/*========= Dialog =========*/
+
+.ui-dialog .ui-state-error { 
+	padding: .3em;
+}
+
+.ui-dialog p {
+	color: #aaa;
+	font-size: 0.8em;
+}
+
+.ui-dialog label {
+	display: block;
+	color: #aaa;
+	margin-bottom: 0.1875em;
+}
+
+.ui-dialog input {
+	display: block;
+}
+
+/*input.text { margin-bottom:12px; width:95%; padding: .4em; }*/
+
+.ui-dialog input.text {
+	height: 1.2em;
+	margin-bottom: 7px;
+	padding: 0px 5px 0px 5px;
+	width: 95%;
+}
+
+/*fieldset {
+    border: 1px solid #c0c0c0;
+    margin: 0 2px;
+    padding: 0.35em 0.625em 0.75em;
+}*/
+
+/*fieldset { padding:0; border:0; margin-top:25px; }*/
+
+.ui-dialog fieldset {
+	margin-top: 5px;
+	margin-bottom: 10px;
+	padding: 5px 10px 5px 20px;
+	border: 1px #555 solid;
+}
+
+#save_button_container {
+	display: inline-block;
+	vertical-align: top;
+	margin-right: 20px
+}

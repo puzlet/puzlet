@@ -11,7 +11,7 @@ TODO:
  */
 
 (function() {
-  var BlabResourceLocation, CoffeeResource, CssResourceInline, CssResourceLinked, GitHub, GitHubApi, GitHubApiResourceLocation, HtmlResource, JsResourceInline, JsResourceLinked, JsonResource, Resource, ResourceFactory, ResourceInline, ResourceLocation, Resources, TO_ADD_loadGitHub, URL, WebResourceLocation, resourceLocation, resources, testBlabLocation,
+  var BlabResourceLocation, CoffeeResource, CssResourceInline, CssResourceLinked, GitHub, GitHubApi, GitHubApiResourceLocation, HtmlResource, JsResourceInline, JsResourceLinked, JsonResource, Resource, ResourceFactory, ResourceInline, ResourceLocation, Resources, URL, WebResourceLocation, resourceLocation, resources, testBlabLocation,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -417,13 +417,10 @@ TODO:
     }
 
     Resource.prototype.load = function(callback) {
-      if (this.spec.orig.source != null) {
-        this.content = this.spec.orig.source;
-        this.postLoad(callback);
-        return;
-      }
-      if (this.spec.gistSource) {
-        this.content = this.spec.gistSource;
+      var source, _ref;
+      source = (_ref = this.spec.orig.source) != null ? _ref : this.spec.source;
+      if (source != null) {
+        this.content = source;
         return this.postLoad(callback);
       } else {
         return this.location.load((function(_this) {
@@ -738,8 +735,8 @@ TODO:
       }
     };
 
-    function ResourceFactory(getGistSource) {
-      this.getGistSource = getGistSource;
+    function ResourceFactory(getSource) {
+      this.getSource = getSource;
     }
 
     ResourceFactory.prototype.create = function(spec) {
@@ -761,7 +758,7 @@ TODO:
         id: spec.id,
         location: location,
         fileExt: fileExt,
-        gistSource: this.getGistSource(url),
+        source: this.getSource(url),
         orig: spec
       };
       subTypes = this.resourceTypes[fileExt];
@@ -815,6 +812,8 @@ TODO:
       }, {
         url: "/puzlet/coffeescript/compiler.js"
       }, {
+        url: "/puzlet/puzlet/js/github.js"
+      }, {
         url: "/puzlet/puzlet/js/google_analytics.js"
       }
     ];
@@ -825,16 +824,19 @@ TODO:
       this.resources = [];
       this.factory = new ResourceFactory((function(_this) {
         return function(url) {
-          return _this.getGistSource(url);
+          return typeof _this.getSource === "function" ? _this.getSource(url) : void 0;
         };
       })(this));
       this.changed = false;
-      this.postLoadObservers = [];
-      this.readyObservers = [];
+      this.observers = {
+        preload: [],
+        postload: [],
+        ready: []
+      };
     }
 
     Resources.prototype.init = function(spec) {
-      var core, getResourcesUrl, postload, preload, ready, resources, _ref;
+      var core, getResourcesUrl, postload, preload, ready, resources;
       core = (function(_this) {
         return function(cb) {
           return _this.addAndLoad(_this.coreResources, cb);
@@ -862,17 +864,21 @@ TODO:
           });
         };
       })(this);
-      preload = (_ref = spec != null ? spec.preload : void 0) != null ? _ref : function(f) {
-        return f();
-      };
+      preload = (function(_this) {
+        return function(cb) {
+          return _this.triggerAndWait("preload", [], function() {
+            if (spec != null) {
+              if (typeof spec.preload === "function") {
+                spec.preload();
+              }
+            }
+            return cb();
+          });
+        };
+      })(this);
       postload = (function(_this) {
         return function(cb) {
-          var observer, _i, _len, _ref1;
-          _ref1 = _this.postLoadObservers;
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            observer = _ref1[_i];
-            observer();
-          }
+          _this.trigger("postload");
           if (spec != null) {
             if (typeof spec.postload === "function") {
               spec.postload();
@@ -883,15 +889,8 @@ TODO:
       })(this);
       ready = (function(_this) {
         return function() {
-          var observer, _i, _len, _ref1, _results;
           console.log("Loaded all resources specified in resources.coffee");
-          _ref1 = _this.readyObservers;
-          _results = [];
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            observer = _ref1[_i];
-            _results.push(observer());
-          }
-          return _results;
+          return _this.trigger("ready");
         };
       })(this);
       return core(function() {
@@ -1210,36 +1209,44 @@ TODO:
       }), "json");
     };
 
-    Resources.prototype.setGistResources = function(gistFiles) {
-      this.gistFiles = gistFiles;
+    Resources.prototype.sourceMethod = function(getSource) {
+      this.getSource = getSource;
     };
 
-    Resources.prototype.getGistSource = function(url) {
-      var _ref, _ref1, _ref2;
-      return (_ref = (_ref1 = this.gistFiles) != null ? (_ref2 = _ref1[url]) != null ? _ref2.content : void 0 : void 0) != null ? _ref : null;
+    Resources.prototype.on = function(evt, observer) {
+      return this.observers[evt].push(observer);
     };
 
-    Resources.prototype.updateFromContainers = function() {
-      var resource, _i, _len, _ref, _results;
-      _ref = this.resources;
+    Resources.prototype.trigger = function(evt, data) {
+      var observer, _i, _len, _ref, _results;
+      _ref = this.observers[evt];
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        resource = _ref[_i];
-        if (resource.edited) {
-          _results.push(resource.containers.updateResource());
-        } else {
-          _results.push(void 0);
-        }
+        observer = _ref[_i];
+        _results.push(observer(data));
       }
       return _results;
     };
 
-    Resources.prototype.onPostLoad = function(observer) {
-      return this.postLoadObservers.push(observer);
-    };
-
-    Resources.prototype.onReady = function(observer) {
-      return this.readyObservers.push(observer);
+    Resources.prototype.triggerAndWait = function(evt, data, cb) {
+      var done, n, observer, observers, _i, _len, _results;
+      observers = this.observers[evt];
+      n = observers.length;
+      if (n === 0) {
+        cb();
+      }
+      done = function() {
+        n--;
+        if (n === 0) {
+          return cb();
+        }
+      };
+      _results = [];
+      for (_i = 0, _len = observers.length; _i < _len; _i++) {
+        observer = observers[_i];
+        _results.push(observer(data, done));
+      }
+      return _results;
     };
 
     return Resources;
@@ -1254,6 +1261,10 @@ TODO:
 
   $blab.resources = resources;
 
+  $blab.load = function(r, callback) {
+    return resources.addAndLoad(r, callback);
+  };
+
   $blab.loadJSON = (function(_this) {
     return function(url, callback) {
       return resources.loadJSON(url, callback);
@@ -1267,11 +1278,6 @@ TODO:
   })(this);
 
   resources.init();
-
-  TO_ADD_loadGitHub = function(callback) {
-    this.github = new GitHub(this.resources);
-    return this.github.loadGist(callback);
-  };
 
   testBlabLocation = function() {
     var loc, r;

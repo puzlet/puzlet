@@ -1,6 +1,6 @@
 # Temporary rendering functions.  Will be moved into own repos as separate components.
 
-$blab?.resources?.onReady ->
+$blab?.resources?.on "ready", ->
     new MathJaxProcessor
     new Notes
 

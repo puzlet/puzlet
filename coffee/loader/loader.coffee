@@ -331,14 +331,9 @@ class Resource
         # Default file load method.
         # Uses jQuery.
         
-        if @spec.orig.source?
-            @content = @spec.orig.source
-            @postLoad callback
-            return
-        
-        if @spec.gistSource
-            # Load Gist
-            @content = @spec.gistSource
+        source = @spec.orig.source ? @spec.source
+        if source?
+            @content = source
             @postLoad callback
         else
             @location.load((@content) => @postLoad callback)
@@ -520,7 +515,7 @@ class ResourceFactory
         svg: {all: Resource}
         txt: {all: Resource}
     
-    constructor: (@getGistSource) ->
+    constructor: (@getSource) ->
     
     create: (spec) ->
         
@@ -541,7 +536,7 @@ class ResourceFactory
             id: spec.id
             location: location
             fileExt: fileExt
-            gistSource: @getGistSource(url)
+            source: @getSource(url)
             orig: spec  # TODO: hack
         
         subTypes = @resourceTypes[fileExt]
@@ -577,6 +572,7 @@ class Resources
     coreResources: [
         {url: "/puzlet/coffeescript/coffeescript.js"}
         {url: "/puzlet/coffeescript/compiler.js"}
+        {url: "/puzlet/puzlet/js/github.js"}
         {url: "/puzlet/puzlet/js/google_analytics.js"}  # TODO: does this need to be here?
     ]
     
@@ -584,10 +580,12 @@ class Resources
     
     constructor: (spec) ->
         @resources = []
-        @factory = new ResourceFactory (url) => @getGistSource url
+        @factory = new ResourceFactory (url) => @getSource?(url)
         @changed = false
-        @postLoadObservers = []
-        @readyObservers = []
+        @observers =
+          preload: []
+          postload: []
+          ready: []
         
     # Load coffeescript compiler and other core resources.
     # Supports preload and postload callbacks (before/after resources.coffee loaded).
@@ -604,16 +602,20 @@ class Resources
             @loadFromSpecFile
                 url: getResourcesUrl()
                 callback: => cb()
-        
-        preload = spec?.preload ? (f) -> f()
+                
+        preload = (cb) =>
+            @triggerAndWait "preload", [], ->
+              spec?.preload?()
+              cb()
+            
         postload = (cb) =>
-            observer() for observer in @postLoadObservers
+            @trigger "postload"
             spec?.postload?()
             cb?()
             
         ready = =>
             console.log "Loaded all resources specified in resources.coffee"
-            observer() for observer in @readyObservers
+            @trigger "ready"
         
         core -> preload -> resources -> postload -> ready()
     
@@ -796,19 +798,20 @@ class Resources
         return null unless resource
         resource.load (-> callback?(resource.content)), "json"
     
-    setGistResources: (@gistFiles) ->
+    sourceMethod: (@getSource) ->
     
-    getGistSource: (url) ->
-        @gistFiles?[url]?.content ? null
+    on: (evt, observer) -> @observers[evt].push observer
     
-    # Used by GitHub save - TODO: GitHub save should inline this code instead.  Or use event.
-    updateFromContainers: ->
-        for resource in @resources
-            resource.containers.updateResource() if resource.edited
+    trigger: (evt, data) -> observer(data) for observer in @observers[evt]
     
-    onPostLoad: (observer) -> @postLoadObservers.push observer
-    
-    onReady: (observer) -> @readyObservers.push observer
+    triggerAndWait: (evt, data, cb) ->
+      observers = @observers[evt]
+      n = observers.length
+      cb() if n is 0
+      done = ->
+        n--
+        cb() if n is 0
+      observer(data, done) for observer in observers
 
 
 #-----------------------------------------------------------------------------#
@@ -820,18 +823,11 @@ resources = new Resources
 console.log "$blab", $blab
 
 $blab.resources = resources
+$blab.load = (r, callback) -> resources.addAndLoad(r, callback)
 $blab.loadJSON = (url, callback) => resources.loadJSON(url, callback)
 $blab.resource = (id) => resources.getContent id
 
 resources.init()
-
-# TODO: gist source
-# Initiate GitHub object and load Gist files - these override blab files.
-TO_ADD_loadGitHub = (callback) ->
-    # Needs: {url: "/puzlet/puzlet/js/jquery.cookie.js"}
-    @github = new GitHub @resources  # ZZZ need different GitHub class (dup name)
-    @github.loadGist callback
-
 
 testBlabLocation = ->
     

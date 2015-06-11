@@ -4,7 +4,7 @@
 
   if (typeof $blab !== "undefined" && $blab !== null) {
     if ((_ref = $blab.resources) != null) {
-      _ref.onReady(function() {
+      _ref.on("ready", function() {
         new MathJaxProcessor;
         return new Notes;
       });
