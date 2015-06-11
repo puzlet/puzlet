@@ -491,13 +491,6 @@ class CoffeeResource extends Resource
         return unless $mathCoffee? and not @mathSpecSet
         bare = false
         isMain = @inBlab()
-        #preCompile = (code) =>  # ZZZ make this a method
-        #  preCompileCode = CoffeeResource.preCompileCode
-        #  pre = if @url of preCompileCode then preCompileCode[@url] else null
-        #  code = pre.preamble + code if pre
-        #  code = observer({code}) for observer in @observers.preCompile
-        #  console.log "Pre-compile code", @url, code
-        #  code
         spec =
             compile: (code) => $mathCoffee.compile(@preCompile(code), bare, isMain)
             evaluate: (code, js) => $mathCoffee.evaluate(@preCompile(code), js, isMain)
@@ -508,7 +501,6 @@ class CoffeeResource extends Resource
     preCompile: (code) ->
       preCompileCode = CoffeeResource.preCompileCode
       pc = preCompileCode[@url]
-      console.log "PC", @url, pc
       code = pc.preamble + code + pc.postamble if pc
       code = observer({code}) for observer in @observers.preCompile
       console.log "Pre-compile code", @url, code
@@ -857,6 +849,7 @@ $blab.loadJSON = (url, callback) => resources.loadJSON(url, callback)
 $blab.resource = (id) => resources.getContent id
 
 $blab.CoffeeResource = CoffeeResource
+$blab.precompile = (pc) -> CoffeeResource.registerPrecompileCode(pc)
 
 resources.init()
 

@@ -706,7 +706,6 @@ TODO:
       var observer, pc, preCompileCode, _i, _len, _ref;
       preCompileCode = CoffeeResource.preCompileCode;
       pc = preCompileCode[this.url];
-      console.log("PC", this.url, pc);
       if (pc) {
         code = pc.preamble + code + pc.postamble;
       }
@@ -1318,6 +1317,10 @@ TODO:
   })(this);
 
   $blab.CoffeeResource = CoffeeResource;
+
+  $blab.precompile = function(pc) {
+    return CoffeeResource.registerPrecompileCode(pc);
+  };
 
   resources.init();
 
