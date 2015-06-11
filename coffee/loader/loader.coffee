@@ -503,7 +503,7 @@ class CoffeeResource extends Resource
       pc = preCompileCode[@url]
       code = pc.preamble + code + pc.postamble if pc
       code = observer({code}) for observer in @observers.preCompile
-      console.log "Pre-compile code", @url, code
+      #console.log "Pre-compile code", @url, code
       code
       
     @registerPrecompileCode: (preCompileCode) -> CoffeeResource.preCompileCode = preCompileCode

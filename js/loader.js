@@ -716,7 +716,6 @@ TODO:
           code: code
         });
       }
-      console.log("Pre-compile code", this.url, code);
       return code;
     };
 
