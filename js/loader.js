@@ -652,13 +652,15 @@ TODO:
       });
     };
 
-    CoffeeResource.prototype.compile = function() {
-      var recompile, _ref;
+    CoffeeResource.prototype.compile = function(recompile) {
+      var _ref;
+      if (recompile == null) {
+        recompile = false;
+      }
       this.setMathSpec();
       $.event.trigger("preCompileCoffee", {
         resource: this
       });
-      recompile = false;
       this.compiler.compile(this.content, recompile);
       this.compiled = true;
       this.resultArray = this.compiler.resultArray;
@@ -669,8 +671,10 @@ TODO:
     };
 
     CoffeeResource.prototype.update = function(content) {
+      var recompile;
       this.content = content;
-      return this.compile();
+      recompile = true;
+      return this.compile(recompile);
     };
 
     CoffeeResource.prototype.on = function(evt, observer) {

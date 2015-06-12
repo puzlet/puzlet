@@ -473,18 +473,21 @@ class CoffeeResource extends Resource
         @compiler = if @doEval or @spec.orig.doEval then $coffee.evaluator(spec) else $coffee.compiler(spec)
         @extraLines = spec.extraLines ? (-> "")
             
-    compile: ->
+    compile: (recompile=false) ->
         @setMathSpec()
         #$blab.evaluatingResource = this  # ZZZ to deprecate
         $.event.trigger("preCompileCoffee", {resource: this})
-        recompile = false  # Used only for $coffee.evaluator
+        #recompile = false  # Used only for $coffee.evaluator
         @compiler.compile @content, recompile
         @compiled = true
         @resultArray = @compiler.resultArray
         @resultStr = @compiler.result?.join("\n") + @extraLines(@resultArray)
         $.event.trigger("compiledCoffeeScript", {url: @url})
     
-    update: (@content) -> @compile()
+    update: (@content) ->
+      #console.log "content", @content
+      recompile = true
+      @compile(recompile)
     
     on: (evt, observer) -> @observers[evt].push observer
     
