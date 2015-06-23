@@ -79,6 +79,7 @@
           };
         })(this)
       });
+      this.sourceLink();
       $(document).on("saveGitHub", (function(_this) {
         return function() {
           $.event.trigger("preSaveResources");
@@ -137,6 +138,18 @@
       }
       console.log("Set request header", this.auth);
       return xhr.setRequestHeader('Authorization', this.auth);
+    };
+
+    GitHub.prototype.sourceLink = function() {
+      var id, link;
+      id = this.gist.id;
+      if (!id) {
+        return;
+      }
+      link = $("#github-source-link");
+      if (link.length) {
+        return link.html("<a href='//gist.github.com/" + id + "' target='_blank'>GitHub source</a>");
+      }
     };
 
     return GitHub;

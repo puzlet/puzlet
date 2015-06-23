@@ -35,6 +35,8 @@ class GitHub
       getUsername: => if @auth then @username else null
       authBeforeSend: (xhr) => @authBeforeSend(xhr)
       
+    @sourceLink()
+      
     $(document).on "saveGitHub", =>
       $.event.trigger "preSaveResources"
       @save()
@@ -65,7 +67,13 @@ class GitHub
     return unless @auth
     console.log "Set request header", @auth
     xhr.setRequestHeader('Authorization', @auth)
-
+    
+  sourceLink: ->
+    id = @gist.id
+    return unless id
+    link = $ "#github-source-link"
+    if link.length
+      link.html "<a href='//gist.github.com/#{id}' target='_blank'>GitHub source</a>"
 
 class Gist
   
