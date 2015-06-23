@@ -97,7 +97,9 @@ class Gist
     
     resources = @resources.select (resource) -> resource.inBlab()
     @files = {}
-    @files[resource.url] = {content: resource.content} for resource in resources
+    for resource in resources
+      content = resource.content
+      @files[resource.url] = {content: content} if content and content isnt "\n"
     
     if @id and @username
       if @username is @gistOwner
@@ -173,6 +175,7 @@ class Gist
   description: ->
     description = document.title
     description += " [#{@blabUrl()}]" if @id  # This might use localhost in description
+    description
   
   redirect: ->
     window.location = @blabUrl()

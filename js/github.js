@@ -188,7 +188,7 @@
     };
 
     Gist.prototype.save = function(callback) {
-      var resource, resources, _i, _len, _ref2;
+      var content, resource, resources, _i, _len, _ref2;
       this.username = this.getUsername();
       console.log("Save as Gist (" + ((_ref2 = this.username) != null ? _ref2 : 'anonymous') + ")");
       resources = this.resources.select(function(resource) {
@@ -197,9 +197,12 @@
       this.files = {};
       for (_i = 0, _len = resources.length; _i < _len; _i++) {
         resource = resources[_i];
-        this.files[resource.url] = {
-          content: resource.content
-        };
+        content = resource.content;
+        if (content && content !== "\n") {
+          this.files[resource.url] = {
+            content: content
+          };
+        }
       }
       if (this.id && this.username) {
         if (this.username === this.gistOwner) {
@@ -327,8 +330,9 @@
       var description;
       description = document.title;
       if (this.id) {
-        return description += " [" + (this.blabUrl()) + "]";
+        description += " [" + (this.blabUrl()) + "]";
       }
+      return description;
     };
 
     Gist.prototype.redirect = function() {
