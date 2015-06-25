@@ -560,7 +560,7 @@ TODO:
       this.style = document.createElement("link");
       this.style.setAttribute("rel", "stylesheet");
       t = Date.now();
-      this.style.setAttribute("href", this.loadUrl);
+      this.style.setAttribute("href", this.loadUrl + ("?t=" + t));
       setTimeout(((function(_this) {
         return function() {
           return _this.postLoad(callback);

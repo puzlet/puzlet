@@ -411,7 +411,7 @@ class CssResourceLinked extends Resource
         #@style.setAttribute "type", "text/css"
         @style.setAttribute "rel", "stylesheet"
         t = Date.now()
-        @style.setAttribute "href", @loadUrl
+        @style.setAttribute "href", @loadUrl+"?t=#{t}"
 #        @style.setAttribute "href", @url  #+"?t=#{t}"
         #@style.setAttribute "data-url", @url
         
