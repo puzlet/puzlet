@@ -11,7 +11,7 @@ TODO:
  */
 
 (function() {
-  var BlabResourceLocation, CoffeeResource, CssResourceInline, CssResourceLinked, GitHub, GitHubApi, GitHubApiResourceLocation, HtmlResource, JsResourceInline, JsResourceLinked, JsonResource, Resource, ResourceFactory, ResourceInline, ResourceLocation, Resources, URL, WebResourceLocation, resourceLocation, resources, testBlabLocation,
+  var BlabResourceLocation, CoffeeResource, CssResourceInline, CssResourceLinked, GitHub, GitHubApi, GitHubApiResourceLocation, HtmlResource, JsResourceInline, JsResourceLinked, JsonResource, MarkdownResource, Resource, ResourceFactory, ResourceInline, ResourceLocation, Resources, URL, WebResourceLocation, resourceLocation, resources, testBlabLocation,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -487,6 +487,17 @@ TODO:
 
   })(Resource);
 
+  MarkdownResource = (function(_super) {
+    __extends(MarkdownResource, _super);
+
+    function MarkdownResource() {
+      return MarkdownResource.__super__.constructor.apply(this, arguments);
+    }
+
+    return MarkdownResource;
+
+  })(Resource);
+
   ResourceInline = (function(_super) {
     __extends(ResourceInline, _super);
 
@@ -775,6 +786,9 @@ TODO:
       },
       txt: {
         all: Resource
+      },
+      md: {
+        all: MarkdownResource
       }
     };
 
@@ -1070,7 +1084,7 @@ TODO:
     };
 
     Resources.prototype.loadHtmlCss = function(callback) {
-      return this.load(["html", "css"], (function(_this) {
+      return this.load(["html", "md", "css"], (function(_this) {
         return function() {
           return typeof callback === "function" ? callback() : void 0;
         };

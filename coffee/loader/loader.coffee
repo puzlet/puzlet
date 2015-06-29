@@ -371,6 +371,8 @@ class HtmlResource extends Resource
         $pz.renderHtml()
 
 
+class MarkdownResource extends Resource
+
 class ResourceInline extends Resource
     
     # Abstract class.
@@ -539,6 +541,7 @@ class ResourceFactory
         m: {all: Resource}
         svg: {all: Resource}
         txt: {all: Resource}
+        md: {all: MarkdownResource}
     
     constructor: (@getSource) ->
     
@@ -715,7 +718,7 @@ class Resources
     # After all html/css loaded, render html via Wiky.
     # html and blab css available as source to be edited in browser.
     loadHtmlCss: (callback) ->
-        @load ["html", "css"], =>
+        @load ["html", "md", "css"], =>
             # TODO: add render
             #@render html.content for html in @resources.select("html")  # TODO: callback for HTMLResource?
             callback?()
