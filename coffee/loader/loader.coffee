@@ -704,7 +704,19 @@ class Resources
         @load ((resource) -> resource.url is url), =>
             specFile.setCompilerSpec compile: compile
             specFile.compile()  # TODO: check valid coffee?
-            @loadHtmlCss => @loadScripts => spec.callback?()
+            
+            # ZZZ Temporary - to process defs.coffee
+            defs = @find "defs.coffee"
+            if defs
+              doCallback = true
+              $(document).on "allBlabDefinitionsLoaded", =>
+                spec.callback?() if doCallback
+                doCallback = false
+            cb = ->
+              spec.callback?() unless defs
+            @loadHtmlCss => @loadScripts => cb()
+            
+            #@loadHtmlCss => @loadScripts => spec.callback?()
 #            @loadHtmlCss => @loadPackages => @loadScripts => spec.callback?()
     
     # Process specification in resources.coffee.

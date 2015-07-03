@@ -1058,13 +1058,31 @@ TODO:
         return resource.url === url;
       }), (function(_this) {
         return function() {
+          var cb, defs, doCallback;
           specFile.setCompilerSpec({
             compile: compile
           });
           specFile.compile();
+          defs = _this.find("defs.coffee");
+          if (defs) {
+            doCallback = true;
+            $(document).on("allBlabDefinitionsLoaded", function() {
+              if (doCallback) {
+                if (typeof spec.callback === "function") {
+                  spec.callback();
+                }
+              }
+              return doCallback = false;
+            });
+          }
+          cb = function() {
+            if (!defs) {
+              return typeof spec.callback === "function" ? spec.callback() : void 0;
+            }
+          };
           return _this.loadHtmlCss(function() {
             return _this.loadScripts(function() {
-              return typeof spec.callback === "function" ? spec.callback() : void 0;
+              return cb();
             });
           });
         };
