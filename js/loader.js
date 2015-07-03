@@ -736,7 +736,13 @@ TODO:
     };
 
     CoffeeResource.registerPrecompileCode = function(preCompileCode) {
-      return CoffeeResource.preCompileCode = preCompileCode;
+      var pc, url, _results;
+      _results = [];
+      for (url in preCompileCode) {
+        pc = preCompileCode[url];
+        _results.push(CoffeeResource.preCompileCode[url] = pc);
+      }
+      return _results;
     };
 
     return CoffeeResource;

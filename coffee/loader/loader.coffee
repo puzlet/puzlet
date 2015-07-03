@@ -512,7 +512,9 @@ class CoffeeResource extends Resource
       #console.log "Pre-compile code", @url, code
       code
       
-    @registerPrecompileCode: (preCompileCode) -> CoffeeResource.preCompileCode = preCompileCode
+    @registerPrecompileCode: (preCompileCode) ->
+      for url, pc of preCompileCode
+        CoffeeResource.preCompileCode[url] = pc
 
 
 class JsonResource extends Resource
