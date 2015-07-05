@@ -423,7 +423,11 @@ TODO:
       source = (_ref = this.spec.orig.source) != null ? _ref : this.spec.source;
       if (source != null) {
         this.content = source;
-        return this.postLoad();
+        return setTimeout(((function(_this) {
+          return function() {
+            return _this.postLoad();
+          };
+        })(this)), 0);
       } else {
         return this.location.load((function(_this) {
           return function(content) {

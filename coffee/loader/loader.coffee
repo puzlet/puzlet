@@ -335,7 +335,9 @@ class Resource
         source = @spec.orig.source ? @spec.source
         if source?
             @content = source
-            @postLoad()
+            # Timeout needed to give same behavior as load.
+            # Else issue with @blockPostLoadFromSpecFile in Resources.
+            setTimeout (=> @postLoad()), 0
         else
             @location.load((@content) => @postLoad())
     
