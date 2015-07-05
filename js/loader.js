@@ -413,28 +413,33 @@ TODO:
       this.fileExt = (_ref1 = this.spec.fileExt) != null ? _ref1 : this.location.fileExt;
       this.id = this.spec.id;
       this.loaded = false;
+      this.blockPostLoad = false;
       this.head = document.head;
     }
 
-    Resource.prototype.load = function(callback) {
+    Resource.prototype.load = function(postLoadCallback) {
       var source, _ref;
+      this.postLoadCallback = postLoadCallback;
       source = (_ref = this.spec.orig.source) != null ? _ref : this.spec.source;
       if (source != null) {
         this.content = source;
-        return this.postLoad(callback);
+        return this.postLoad();
       } else {
         return this.location.load((function(_this) {
           return function(content) {
             _this.content = content;
-            return _this.postLoad(callback);
+            return _this.postLoad();
           };
         })(this));
       }
     };
 
-    Resource.prototype.postLoad = function(callback) {
+    Resource.prototype.postLoad = function() {
+      if (this.blockPostLoad) {
+        return;
+      }
       this.loaded = true;
-      return typeof callback === "function" ? callback() : void 0;
+      return typeof this.postLoadCallback === "function" ? this.postLoadCallback() : void 0;
     };
 
     Resource.prototype.isType = function(type) {
@@ -566,15 +571,16 @@ TODO:
       return CssResourceLinked.__super__.constructor.apply(this, arguments);
     }
 
-    CssResourceLinked.prototype.load = function(callback) {
+    CssResourceLinked.prototype.load = function(postLoadCallback) {
       var t;
+      this.postLoadCallback = postLoadCallback;
       this.style = document.createElement("link");
       this.style.setAttribute("rel", "stylesheet");
       t = Date.now();
       this.style.setAttribute("href", this.loadUrl + ("?t=" + t));
       setTimeout(((function(_this) {
         return function() {
-          return _this.postLoad(callback);
+          return _this.postLoad();
         };
       })(this)), 0);
       return this.head.appendChild(this.style);
@@ -604,13 +610,14 @@ TODO:
       return JsResourceLinked.__super__.constructor.apply(this, arguments);
     }
 
-    JsResourceLinked.prototype.load = function(callback) {
+    JsResourceLinked.prototype.load = function(postLoadCallback) {
       var src, t;
+      this.postLoadCallback = postLoadCallback;
       this.script = document.createElement("script");
       this.head.appendChild(this.script);
       this.script.onload = (function(_this) {
         return function() {
-          return _this.postLoad(callback);
+          return _this.postLoad();
         };
       })(this);
       src = this.loadUrl;
@@ -891,6 +898,7 @@ TODO:
         };
       })(this));
       this.changed = false;
+      this.blockPostLoadFromSpecFile = false;
       this.observers = {
         preload: [],
         postload: [],
@@ -999,6 +1007,9 @@ TODO:
         newResources.push(resource);
         this.resources.push(resource);
       }
+      $.event.trigger("resourcesAdded", {
+        resources: newResources
+      });
       if (newResources.length === 1) {
         return newResources[0];
       } else {
@@ -1050,6 +1061,9 @@ TODO:
       specFile = this.add({
         url: url
       });
+      this.postLoadFromSpecFile = function() {
+        return typeof spec.callback === "function" ? spec.callback() : void 0;
+      };
       compile = function(code) {
         code = "resources = (obj) -> $blab.resources.processSpec obj\n\n" + code;
         return $coffee.compile(code);
@@ -1058,31 +1072,15 @@ TODO:
         return resource.url === url;
       }), (function(_this) {
         return function() {
-          var cb, defs, doCallback;
           specFile.setCompilerSpec({
             compile: compile
           });
           specFile.compile();
-          defs = _this.find("defs.coffee");
-          if (defs) {
-            doCallback = true;
-            $(document).on("allBlabDefinitionsLoaded", function() {
-              if (doCallback) {
-                if (typeof spec.callback === "function") {
-                  spec.callback();
-                }
-              }
-              return doCallback = false;
-            });
-          }
-          cb = function() {
-            if (!defs) {
-              return typeof spec.callback === "function" ? spec.callback() : void 0;
-            }
-          };
           return _this.loadHtmlCss(function() {
             return _this.loadScripts(function() {
-              return cb();
+              if (!_this.blockPostLoadFromSpecFile) {
+                return _this.postLoadFromSpecFile();
+              }
             });
           });
         };

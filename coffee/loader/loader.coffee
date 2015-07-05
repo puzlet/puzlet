@@ -325,22 +325,25 @@ class Resource
         @fileExt = @spec.fileExt ? @location.fileExt
         @id = @spec.id
         @loaded = false
+        @blockPostLoad = false
         @head = document.head
         
-    load: (callback) ->
+    load: (@postLoadCallback) ->
         # Default file load method.
         # Uses jQuery.
         
         source = @spec.orig.source ? @spec.source
         if source?
             @content = source
-            @postLoad callback
+            @postLoad()
         else
-            @location.load((@content) => @postLoad callback)
+            @location.load((@content) => @postLoad())
     
-    postLoad: (callback) ->
+    postLoad: ->
+        return if @blockPostLoad
         @loaded = true
-        callback?()
+        @postLoadCallback?()
+        #callback?()
     
     isType: (type) -> @fileExt is type
     
@@ -372,6 +375,7 @@ class HtmlResource extends Resource
 
 
 class MarkdownResource extends Resource
+
 
 class ResourceInline extends Resource
     
@@ -408,7 +412,7 @@ class CssResourceInline extends ResourceInline
 
 class CssResourceLinked extends Resource
     
-    load: (callback) ->
+    load: (@postLoadCallback) ->
         @style = document.createElement "link"
         #@style.setAttribute "type", "text/css"
         @style.setAttribute "rel", "stylesheet"
@@ -420,7 +424,7 @@ class CssResourceLinked extends Resource
         # Old browsers (e.g., old iOS) don't support onload for CSS.
         # And so we force postLoad even before CSS loaded.
         # Forcing postLoad generally ok for CSS because won't affect downstream dependencies (unlike JS). 
-        setTimeout (=> @postLoad callback), 0
+        setTimeout (=> @postLoad()), 0
         #@style.onload = => @postLoad callback
         
         @head.appendChild @style
@@ -435,11 +439,11 @@ class JsResourceInline extends ResourceInline
 
 class JsResourceLinked extends Resource
     
-    load: (callback) ->
+    load: (@postLoadCallback) ->
         @script = document.createElement "script"
         #@script.setAttribute "type", "text/javascript"
         @head.appendChild @script
-        @script.onload = => @postLoad callback
+        @script.onload = => @postLoad()
         #@script.onerror = => console.log "Load error: #{@url}"
         
         src = @loadUrl  # TODO: if this fails, try loading from github
@@ -612,6 +616,7 @@ class Resources
         @resources = []
         @factory = new ResourceFactory (url) => @getSource?(url)
         @changed = false
+        @blockPostLoadFromSpecFile = false
         @observers =
           preload: []
           postload: []
@@ -667,8 +672,9 @@ class Resources
             continue unless resource
             newResources.push resource
             @resources.push resource
+        $.event.trigger "resourcesAdded", {resources: newResources}
         if newResources.length is 1 then newResources[0] else newResources
-    
+        
     load: (filter, loaded) ->
         # When are resources added to DOM?
         #   * Linked resources: as soon as they are loaded.
@@ -696,6 +702,7 @@ class Resources
     loadFromSpecFile: (spec) ->
         url = spec.url
         specFile = @add(url: url)
+        @postLoadFromSpecFile = -> spec.callback?()
         
         compile = (code) ->
             code = "resources = (obj) -> $blab.resources.processSpec obj\n\n"+code
@@ -704,21 +711,9 @@ class Resources
         @load ((resource) -> resource.url is url), =>
             specFile.setCompilerSpec compile: compile
             specFile.compile()  # TODO: check valid coffee?
-            
-            # ZZZ Temporary - to process defs.coffee
-            defs = @find "defs.coffee"
-            if defs
-              doCallback = true
-              $(document).on "allBlabDefinitionsLoaded", =>
-                spec.callback?() if doCallback
-                doCallback = false
-            cb = ->
-              spec.callback?() unless defs
-            @loadHtmlCss => @loadScripts => cb()
-            
-            #@loadHtmlCss => @loadScripts => spec.callback?()
-#            @loadHtmlCss => @loadPackages => @loadScripts => spec.callback?()
-    
+            @loadHtmlCss => @loadScripts =>
+              @postLoadFromSpecFile() unless @blockPostLoadFromSpecFile
+        
     # Process specification in resources.coffee.
     processSpec: (resources) ->
         console.log "----Process files in resources.coffee"
