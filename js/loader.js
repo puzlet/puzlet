@@ -652,7 +652,7 @@ TODO:
       });
       return CoffeeResource.__super__.load.call(this, (function(_this) {
         return function() {
-          _this.setEval(false);
+          _this.doEval = false;
           _this.setCompilerSpec({});
           _this.mathSpecSet = false;
           _this.compiled = false;
@@ -662,7 +662,14 @@ TODO:
     };
 
     CoffeeResource.prototype.setEval = function(doEval) {
+      if (this.doEval === doEval) {
+        return;
+      }
       this.doEval = doEval;
+      if (this.doEval) {
+        this.mathSpecSet = false;
+        return this.compile();
+      }
     };
 
     CoffeeResource.prototype.setCompilerSpec = function(spec) {

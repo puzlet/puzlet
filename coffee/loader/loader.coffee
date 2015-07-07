@@ -468,15 +468,21 @@ class CoffeeResource extends Resource
         $.event.trigger("loadCoffeeResource", {resource: this})
         
         super =>
-            @setEval false
+            @doEval = false
             @setCompilerSpec {}
             @mathSpecSet = false
             @compiled = false
             callback?()
             
-    setEval: (@doEval) ->
-            
+    setEval: (doEval) ->
+      return if @doEval is doEval
+      @doEval = doEval
+      if @doEval
+        @mathSpecSet = false
+        @compile()
+        
     setCompilerSpec: (spec) ->
+        #console.log "+++++++ CoffeeResource.setCompilerSpec", this
         spec.id = @url
         @compiler = if @doEval or @spec.orig.doEval then $coffee.evaluator(spec) else $coffee.compiler(spec)
         @extraLines = spec.extraLines ? (-> "")
