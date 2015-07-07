@@ -80,6 +80,7 @@
         })(this)
       });
       this.sourceLink();
+      this.saveAsNewButton();
       $(document).on("saveGitHub", (function(_this) {
         return function() {
           $.event.trigger("preSaveResources");
@@ -88,7 +89,10 @@
       })(this));
     }
 
-    GitHub.prototype.save = function(callback) {
+    GitHub.prototype.save = function(forceNew, callback) {
+      if (forceNew == null) {
+        forceNew = false;
+      }
       if (this.credentialsForm) {
         this.credentialsForm.open();
         return;
@@ -111,7 +115,7 @@
         })(this),
         saveAsGist: (function(_this) {
           return function(callback) {
-            return _this.gist.save(callback);
+            return _this.gist.save(forceNew, callback);
           };
         })(this)
       });
@@ -150,6 +154,25 @@
       if (link.length) {
         return link.html("<a href='//gist.github.com/" + id + "' target='_blank'>GitHub source</a>");
       }
+    };
+
+    GitHub.prototype.saveAsNewButton = function() {
+      var button, div;
+      div = $("#github-save-as-new-button");
+      if (!div.length) {
+        return;
+      }
+      button = $("<button>", {
+        text: "Save as new Gist",
+        click: (function(_this) {
+          return function() {
+            var forceNew;
+            forceNew = true;
+            return _this.save(forceNew);
+          };
+        })(this)
+      });
+      return div.append(button);
     };
 
     return GitHub;
@@ -200,12 +223,15 @@
       })(this));
     };
 
-    Gist.prototype.save = function(callback) {
+    Gist.prototype.save = function(forceNew, callback) {
       var content, resource, resources, _i, _len, _ref2;
+      if (forceNew == null) {
+        forceNew = false;
+      }
       this.username = this.getUsername();
       console.log("Save as Gist (" + ((_ref2 = this.username) != null ? _ref2 : 'anonymous') + ")");
       resources = this.resources.select(function(resource) {
-        return resource.inBlab();
+        return resource.inBlab() && resource.url !== "resources.coffee";
       });
       this.files = {};
       for (_i = 0, _len = resources.length; _i < _len; _i++) {
@@ -217,7 +243,7 @@
           };
         }
       }
-      if (this.id && this.username) {
+      if (this.id && this.username && !forceNew) {
         if (this.username === this.gistOwner) {
           return this.edit(callback);
         } else {
@@ -313,6 +339,7 @@
     };
 
     Gist.prototype.fork = function(callback) {
+      console.log("FORK", this.apiId());
       return $.ajax({
         type: "POST",
         url: "" + (this.apiId()) + "/forks",
@@ -750,8 +777,24 @@
       this.container.append(this.div);
       this.b.hide();
       this.savingMessage.hide();
+      this.firstChange = true;
       $(document).on("codeNodeChanged", (function(_this) {
         return function() {
+          var before;
+          before = function() {
+            return "*** UNSAVED CHANGES ***";
+          };
+          $(document).on("saveGitHub", function() {
+            return before = function() {
+              return null;
+            };
+          });
+          if (_this.firstChange) {
+            $(window).on("beforeunload", function() {
+              return before();
+            });
+            _this.firstChange = false;
+          }
           return _this.b.show();
         };
       })(this));

@@ -36,12 +36,13 @@ class GitHub
       authBeforeSend: (xhr) => @authBeforeSend(xhr)
       
     @sourceLink()
+    @saveAsNewButton()
       
     $(document).on "saveGitHub", =>
       $.event.trigger "preSaveResources"
       @save()
       
-  save: (callback) ->
+  save: (forceNew=false, callback) ->
     
     if @credentialsForm
       @credentialsForm.open()
@@ -51,7 +52,7 @@ class GitHub
       setCredentials: (username, key) => @setCredentials username, key
       isRepoMember: (cb) => @repo.isRepoMember cb
       updateRepo: (callback) => @repo.commitChangedResourcesToRepo(callback)
-      saveAsGist: (callback) => @gist.save(callback)
+      saveAsGist: (callback) => @gist.save(forceNew, callback)
   
   setCredentials: (@username, @key) ->
     
@@ -74,6 +75,17 @@ class GitHub
     link = $ "#github-source-link"
     if link.length
       link.html "<a href='//gist.github.com/#{id}' target='_blank'>GitHub source</a>"
+      
+  saveAsNewButton: ->
+    div = $ "#github-save-as-new-button"
+    return unless div.length
+    button = $ "<button>",
+      text: "Save as new Gist"
+      click: =>
+        forceNew = true
+        @save(forceNew)
+    div.append button
+
 
 class Gist
   
@@ -98,18 +110,18 @@ class Gist
       callback?()
     )
   
-  save: (callback) ->
+  save: (forceNew=false, callback) ->
     
     @username = @getUsername()
     console.log "Save as Gist (#{@username ? 'anonymous'})"
     
-    resources = @resources.select (resource) -> resource.inBlab()
+    resources = @resources.select (resource) -> resource.inBlab() and resource.url isnt "resources.coffee"
     @files = {}
     for resource in resources
       content = resource.content
       @files[resource.url] = {content: content} if content and content isnt "\n"
     
-    if @id and @username
+    if @id and @username and not forceNew
       if @username is @gistOwner
         # Edit current user's Gist.
         @edit(callback)
@@ -167,6 +179,7 @@ class Gist
       dataType: "json"
     
   fork: (callback) ->
+    console.log "FORK", @apiId()
     $.ajax
       type: "POST"
       url: "#{@apiId()}/forks"
@@ -470,7 +483,21 @@ class SaveButton
     @b.hide()
     @savingMessage.hide()
     
-    $(document).on "codeNodeChanged", => @b.show()
+    @firstChange = true
+    $(document).on "codeNodeChanged", =>
+      
+      before = ->
+        return "*** UNSAVED CHANGES ***"
+      
+      $(document).on "saveGitHub", ->
+        before = -> null
+      
+      if @firstChange
+        $(window).on "beforeunload", -> before()
+          
+        @firstChange = false
+        
+      @b.show()
     
     @b.button?(label: "Save")
     
