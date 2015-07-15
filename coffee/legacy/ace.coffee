@@ -288,6 +288,7 @@ class Ace.Editor
 		@enableChangeAction = false unless triggerChange
 		# ZZZ or setCode
 		return unless @editor
+		return unless code
 		@session().setValue code
 		if setEditorView
 			if @spec.viewPort
