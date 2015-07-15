@@ -194,7 +194,7 @@
       })(this);
       this.gistQuery = (function(_this) {
         return function() {
-          return "?gist=" + _this.id;
+          return "?" + _this.id;
         };
       })(this);
       this.load(this.callback);

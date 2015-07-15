@@ -95,7 +95,7 @@ class Gist
     {@resources, @getUsername, @authBeforeSend, @callback} = @spec
     @id = @getId()
     @apiId = => "#{@api}/#{@id}"
-    @gistQuery = => "?gist=#{@id}"
+    @gistQuery = => "?#{@id}"
     @load @callback
   
   load: (callback) ->
