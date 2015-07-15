@@ -393,7 +393,8 @@ class Ace.Languages
 		return name for name, language of Ace.Languages.list when language.ext is ext
 
 
-Ace.path = "http://ajaxorg.github.io/ace-builds/src-min-noconflict"
+Ace.path = "http://ajaxorg.github.io/ace-builds/src-min"
+#Ace.path = "http://ajaxorg.github.io/ace-builds/src-min-noconflict"
 #Ace.path = "/puzlet/js/ace5"  # ace5
 #Ace.path = "http://static.puzlet.com/ace5"
 #Ace.path = "http://static.puzlet.com/ace4"
