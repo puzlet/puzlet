@@ -204,7 +204,7 @@ class Gist
   blabUrl: ->
     l = window.location
     p = l.pathname.split("/")
-    pathname = p.join "/"
+    pathname = p[...-1].join "/"
     [l.protocol, '//', l.host, pathname, @gistQuery()].join('')
   
   getId: ->
