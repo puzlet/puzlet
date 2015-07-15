@@ -95,7 +95,7 @@ class Gist
     {@resources, @getUsername, @authBeforeSend, @callback} = @spec
     @id = @getId()
     @apiId = => "#{@api}/#{@id}"
-    @query = => "?gist=#{@id}"
+    @gistQuery = => "?gist=#{@id}"
     @load @callback
   
   load: (callback) ->
@@ -203,7 +203,7 @@ class Gist
     
   blabUrl: ->
     l = window.location
-    [l.protocol, '//', l.host, l.pathname, @query()].join('')
+    [l.protocol, '//', l.host, l.pathname, @gistQuery()].join('')
   
   getId: ->
     @a = document.createElement "a"
@@ -214,7 +214,8 @@ class Gist
     return null unless @query
     h = @query.split "&"
     p = h?[0].split "="
-    if p.length and p[0] is "gist" then p[1] else null    
+    #console.log "***** GIST (query/h/p)", @query, h, p
+    if p.length and p[0] is "gist" then p[1] else p[0]
 
 
 class Repo

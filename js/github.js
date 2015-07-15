@@ -192,7 +192,7 @@
           return "" + _this.api + "/" + _this.id;
         };
       })(this);
-      this.query = (function(_this) {
+      this.gistQuery = (function(_this) {
         return function() {
           return "?gist=" + _this.id;
         };
@@ -382,7 +382,7 @@
     Gist.prototype.blabUrl = function() {
       var l;
       l = window.location;
-      return [l.protocol, '//', l.host, l.pathname, this.query()].join('');
+      return [l.protocol, '//', l.host, l.pathname, this.gistQuery()].join('');
     };
 
     Gist.prototype.getId = function() {
@@ -399,7 +399,7 @@
       if (p.length && p[0] === "gist") {
         return p[1];
       } else {
-        return null;
+        return p[0];
       }
     };
 
