@@ -245,6 +245,7 @@ class GitHub
     
     knownGitHubOrgDomains: [
       {domain: "puzlet.org", org: "puzlet"}
+      {domain: "blabr.io", org: "puzlet"}
     ]
     
     branch: "gh-pages"  # Default
