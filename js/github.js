@@ -383,7 +383,7 @@
       var l, p, pathname;
       l = window.location;
       p = l.pathname.split("/");
-      pathname = p.slice(-1).join("/");
+      pathname = p.join("/");
       return [l.protocol, '//', l.host, pathname, this.gistQuery()].join('');
     };
 
