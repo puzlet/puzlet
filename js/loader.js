@@ -286,6 +286,9 @@ TODO:
       {
         domain: "puzlet.org",
         org: "puzlet"
+      }, {
+        domain: "blabr.io",
+        org: "puzlet"
       }
     ];
 
