@@ -203,7 +203,9 @@ class Gist
     
   blabUrl: ->
     l = window.location
-    [l.protocol, '//', l.host, l.pathname, @gistQuery()].join('')
+    p = l.pathname.split("/")
+    pathname = p[-1..].join "/"
+    [l.protocol, '//', l.host, pathname, @gistQuery()].join('')
   
   getId: ->
     @a = document.createElement "a"

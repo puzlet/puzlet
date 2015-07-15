@@ -380,9 +380,11 @@
     };
 
     Gist.prototype.blabUrl = function() {
-      var l;
+      var l, p, pathname;
       l = window.location;
-      return [l.protocol, '//', l.host, l.pathname, this.gistQuery()].join('');
+      p = l.pathname.split("/");
+      pathname = p.slice(-1).join("/");
+      return [l.protocol, '//', l.host, pathname, this.gistQuery()].join('');
     };
 
     Gist.prototype.getId = function() {
