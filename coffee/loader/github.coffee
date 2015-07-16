@@ -115,7 +115,8 @@ class Gist
     @username = @getUsername()
     console.log "Save as Gist (#{@username ? 'anonymous'})"
     
-    resources = @resources.select (resource) -> resource.inBlab() and resource.url isnt "resources.coffee"
+    resources = @resources.select (resource) -> resource.inBlab() and resource.containers?
+      #resource.inBlab() and resource.url isnt "resources.coffee"
     @files = {}
     for resource in resources
       content = resource.content

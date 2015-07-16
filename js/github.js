@@ -230,7 +230,7 @@
       this.username = this.getUsername();
       console.log("Save as Gist (" + ((_ref2 = this.username) != null ? _ref2 : 'anonymous') + ")");
       resources = this.resources.select(function(resource) {
-        return resource.inBlab() && resource.url !== "resources.coffee";
+        return resource.inBlab() && (resource.containers != null);
       });
       this.files = {};
       for (_i = 0, _len = resources.length; _i < _len; _i++) {
