@@ -212,7 +212,6 @@
         return function(data) {
           var _ref2;
           _this.data = data;
-          console.log("Gist loaded", _this.data);
           _this.gistOwner = (_ref2 = _this.data.owner) != null ? _ref2.login : void 0;
           _this.resources.sourceMethod(function(url) {
             var _ref3, _ref4, _ref5;

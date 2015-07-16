@@ -104,7 +104,7 @@ class Gist
       callback?()
       return
     $.get(@apiId(), (@data) =>
-      console.log "Gist loaded", @data
+      #console.log "Gist loaded", @data
       @gistOwner = @data.owner?.login
       @resources.sourceMethod (url) => @data.files?[url]?.content ? null
       callback?()
