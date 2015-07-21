@@ -495,8 +495,12 @@ class CoffeeResource extends Resource
         #recompile = false  # Used only for $coffee.evaluator
         @compiler.compile @content, recompile
         @compiled = true
-        @resultArray = @compiler.resultArray
-        @resultStr = @compiler.result?.join("\n") + @extraLines(@resultArray)
+        if @compiler.result?
+          @resultArray = @compiler.resultArray
+          @resultStr = @compiler.result?.join("\n") + @extraLines(@resultArray)
+        else
+          @resultArray = []
+          @resultStr = ""
         $.event.trigger("compiledCoffeeScript", {url: @url})
     
     update: (@content) ->

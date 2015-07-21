@@ -695,8 +695,13 @@ TODO:
       });
       this.compiler.compile(this.content, recompile);
       this.compiled = true;
-      this.resultArray = this.compiler.resultArray;
-      this.resultStr = ((_ref = this.compiler.result) != null ? _ref.join("\n") : void 0) + this.extraLines(this.resultArray);
+      if (this.compiler.result != null) {
+        this.resultArray = this.compiler.resultArray;
+        this.resultStr = ((_ref = this.compiler.result) != null ? _ref.join("\n") : void 0) + this.extraLines(this.resultArray);
+      } else {
+        this.resultArray = [];
+        this.resultStr = "";
+      }
       return $.event.trigger("compiledCoffeeScript", {
         url: this.url
       });
