@@ -487,21 +487,17 @@ class SaveButton
     @b.hide()
     @savingMessage.hide()
     
+    @beforeUnload = -> "*** UNSAVED CHANGES ***"
+    
+    $(document).on "saveGitHub", =>
+      @beforeUnload = ->
+    
     @firstChange = true
     $(document).on "codeNodeChanged", =>
-      
-      before = ->
-        return "*** UNSAVED CHANGES ***"
-      
-      $(document).on "saveGitHub", ->
-        before = -> null
-      
-      if @firstChange
-        $(window).on "beforeunload", -> before()
-          
-        @firstChange = false
-        
+      return unless @firstChange
+      $(window).on "beforeunload", => @beforeUnload()
       @b.show()
+      @firstChange = false
     
     @b.button?(label: "Save")
     

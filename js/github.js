@@ -778,25 +778,25 @@
       this.container.append(this.div);
       this.b.hide();
       this.savingMessage.hide();
+      this.beforeUnload = function() {
+        return "*** UNSAVED CHANGES ***";
+      };
+      $(document).on("saveGitHub", (function(_this) {
+        return function() {
+          return _this.beforeUnload = function() {};
+        };
+      })(this));
       this.firstChange = true;
       $(document).on("codeNodeChanged", (function(_this) {
         return function() {
-          var before;
-          before = function() {
-            return "*** UNSAVED CHANGES ***";
-          };
-          $(document).on("saveGitHub", function() {
-            return before = function() {
-              return null;
-            };
-          });
-          if (_this.firstChange) {
-            $(window).on("beforeunload", function() {
-              return before();
-            });
-            _this.firstChange = false;
+          if (!_this.firstChange) {
+            return;
           }
-          return _this.b.show();
+          $(window).on("beforeunload", function() {
+            return _this.beforeUnload();
+          });
+          _this.b.show();
+          return _this.firstChange = false;
         };
       })(this));
       if (typeof (_base = this.b).button === "function") {
