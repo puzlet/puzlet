@@ -350,8 +350,8 @@ class CredentialsForm
     
     @form = $ "<form>",
       id: "github_save_form"
-      submit: (evt) => evt.preventDefault()
-        
+      submit: (evt) =>
+        evt.preventDefault()
     @dialog.append @form
     
     @usernameField()
@@ -446,7 +446,9 @@ class CredentialsForm
       "Save as Gist": =>
         saveAction()
         @spec.saveAsGist -> done()
-      Cancel: => @dialog.dialog("close")
+      Cancel: =>
+        @dialog.dialog("close")
+        $.event.trigger "saveDialogCancel"
     
     sel = (n) ->
       o = {}
@@ -475,6 +477,7 @@ class SaveButton
       text: "Save"
       click: =>
         @b.hide?()
+        @firstChange = true
         @callback?()
       title: "When you're done editing, save your changes to GitHub."
     
@@ -504,6 +507,9 @@ class SaveButton
       $(window).on "beforeunload", => @beforeUnload()
       @b.show()
       @firstChange = false
+      
+    $(document).on "saveDialogCancel", =>
+      @b.show?()
     
     @b.button?(label: "Save")
     

@@ -716,7 +716,8 @@
         })(this),
         Cancel: (function(_this) {
           return function() {
-            return _this.dialog.dialog("close");
+            _this.dialog.dialog("close");
+            return $.event.trigger("saveDialogCancel");
           };
         })(this)
       };
@@ -772,6 +773,7 @@
             if (typeof (_base = _this.b).hide === "function") {
               _base.hide();
             }
+            _this.firstChange = true;
             return typeof _this.callback === "function" ? _this.callback() : void 0;
           };
         })(this),
@@ -808,6 +810,12 @@
           });
           _this.b.show();
           return _this.firstChange = false;
+        };
+      })(this));
+      $(document).on("saveDialogCancel", (function(_this) {
+        return function() {
+          var _base;
+          return typeof (_base = _this.b).show === "function" ? _base.show() : void 0;
         };
       })(this));
       if (typeof (_base = this.b).button === "function") {
