@@ -43,6 +43,7 @@
   GitHub = (function() {
     function GitHub(resources, callback) {
       this.resources = resources;
+      $blab.github = this;
       this.setCredentials();
       this.gist = new Gist({
         resources: this.resources,
@@ -79,7 +80,7 @@
           };
         })(this)
       });
-      this.sourceLink();
+      this.showSourceLink();
       this.saveAsNewButton();
       $(document).on("saveGitHub", (function(_this) {
         return function() {
@@ -144,15 +145,25 @@
       return xhr.setRequestHeader('Authorization', this.auth);
     };
 
-    GitHub.prototype.sourceLink = function() {
-      var id, link;
-      id = this.gist.id;
-      if (!id) {
+    GitHub.prototype.showSourceLink = function() {
+      var link, url;
+      url = this.sourceLink();
+      if (!url) {
         return;
       }
       link = $("#github-source-link");
       if (link.length) {
-        return link.html("<a href='//gist.github.com/" + id + "' target='_blank'>GitHub source</a>");
+        return link.html("<a href='" + url + "' target='_blank'>GitHub source</a>");
+      }
+    };
+
+    GitHub.prototype.sourceLink = function() {
+      var id;
+      id = this.gist.id;
+      if (id) {
+        return "//gist.github.com/" + id;
+      } else {
+        return null;
       }
     };
 

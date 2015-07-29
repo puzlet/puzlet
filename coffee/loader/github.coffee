@@ -22,6 +22,8 @@ class GitHub
   
   constructor: (@resources, callback) ->
     
+    $blab.github = this
+    
     @setCredentials()  # None initially
     
     @gist = new Gist
@@ -35,7 +37,7 @@ class GitHub
       getUsername: => if @auth then @username else null
       authBeforeSend: (xhr) => @authBeforeSend(xhr)
       
-    @sourceLink()
+    @showSourceLink()
     @saveAsNewButton()
       
     $(document).on "saveGitHub", =>
@@ -69,12 +71,16 @@ class GitHub
     console.log "Set request header", @auth
     xhr.setRequestHeader('Authorization', @auth)
     
-  sourceLink: ->
-    id = @gist.id
-    return unless id
+  showSourceLink: ->
+    url = @sourceLink()
+    return unless url
     link = $ "#github-source-link"
     if link.length
-      link.html "<a href='//gist.github.com/#{id}' target='_blank'>GitHub source</a>"
+      link.html "<a href='#{url}' target='_blank'>GitHub source</a>"
+      
+  sourceLink: ->
+    id = @gist.id
+    if id then "//gist.github.com/#{id}" else null
       
   saveAsNewButton: ->
     div = $ "#github-save-as-new-button"
