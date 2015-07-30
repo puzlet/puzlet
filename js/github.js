@@ -762,7 +762,8 @@
         css: {
           position: "fixed",
           top: 10,
-          right: 10
+          right: 10,
+          zIndex: 300
         }
       });
       this.b = $("<button>", {
