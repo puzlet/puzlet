@@ -19,7 +19,7 @@
     function MathJaxProcessor() {
       var configScript, container, hasBodyContainer, mathjax;
       container = $("#container");
-      hasBodyContainer = container.length && container.parent().is("body");
+      hasBodyContainer = container.length && container.parent().is("body") || container.parent().attr("id") === "outer-container";
       this.outputId = hasBodyContainer ? "container" : "blab_container";
       $blab.mathjaxConfig = (function(_this) {
         return function() {
