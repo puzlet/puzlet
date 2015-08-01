@@ -28,7 +28,8 @@
             jax: ["input/TeX", "output/" + _this.mode],
             tex2jax: {
               inlineMath: [["$", "$"], ["\\(", "\\)"]],
-              ignoreClass: "tex2jax_ignore"
+              ignoreClass: "tex2jax_ignore",
+              processEscapes: true
             },
             TeX: {
               equationNumbers: {
