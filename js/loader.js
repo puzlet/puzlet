@@ -902,14 +902,17 @@ TODO:
         url: "/puzlet/coffeescript/compiler.js"
       }, {
         url: "/puzlet/puzlet/js/github.js"
-      }, {
-        url: "/puzlet/puzlet/js/google_analytics.js"
       }
     ];
 
     Resources.prototype.resourcesSpec = "/puzlet/puzlet/resources.coffee";
 
     function Resources(spec) {
+      if (!googleAnalyticsSet) {
+        coreResources.push({
+          url: "/puzlet/puzlet/js/google_analytics.js"
+        });
+      }
       this.resources = [];
       this.factory = new ResourceFactory((function(_this) {
         return function(url) {

@@ -620,12 +620,13 @@ class Resources
         {url: "/puzlet/coffeescript/coffeescript.js"}
         {url: "/puzlet/coffeescript/compiler.js"}
         {url: "/puzlet/puzlet/js/github.js"}
-        {url: "/puzlet/puzlet/js/google_analytics.js"}  # TODO: does this need to be here?
     ]
     
     resourcesSpec: "/puzlet/puzlet/resources.coffee"  # Default
     
     constructor: (spec) ->
+        unless googleAnalyticsSet
+          coreResources.push {url: "/puzlet/puzlet/js/google_analytics.js"}
         @resources = []
         @factory = new ResourceFactory (url) => @getSource?(url)
         @changed = false
