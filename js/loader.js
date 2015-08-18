@@ -908,7 +908,7 @@ TODO:
     Resources.prototype.resourcesSpec = "/puzlet/puzlet/resources.coffee";
 
     function Resources(spec) {
-      if (!googleAnalyticsSet) {
+      if (!window.googleAnalyticsSet) {
         coreResources.push({
           url: "/puzlet/puzlet/js/google_analytics.js"
         });
