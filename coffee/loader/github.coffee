@@ -155,6 +155,7 @@ class Gist
       success: (data) =>
         console.log "Created Gist", data
         @id = data.id
+        $.event.trigger "createBlab", data
         if @username
           @setDescription => @redirect()
         else
@@ -164,7 +165,8 @@ class Gist
   forkAndEdit: ->
     console.log "Fork..."
     @fork (data) => 
-      @id = data.id 
+      @id = data.id
+      $.event.trigger "forkBlab", data
       @patch @ajaxData(), (=> @redirect())
 #      setTimeout (=> @patch @ajaxData(), (=> @redirect())), 100  # Fix bug?
       

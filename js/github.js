@@ -288,6 +288,7 @@
           return function(data) {
             console.log("Created Gist", data);
             _this.id = data.id;
+            $.event.trigger("createBlab", data);
             if (_this.username) {
               return _this.setDescription(function() {
                 return _this.redirect();
@@ -306,6 +307,7 @@
       return this.fork((function(_this) {
         return function(data) {
           _this.id = data.id;
+          $.event.trigger("forkBlab", data);
           return _this.patch(_this.ajaxData(), (function() {
             return _this.redirect();
           }));
