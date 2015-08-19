@@ -407,6 +407,16 @@ class CredentialsForm
     @form.append(label).append(@keyInput)
     
   infoText: ->
+    
+    publicWarning = ""
+    unless $blab.github.gist.id
+      publicWarning = """
+        <p>
+        The blab will be saved as a public Gist.  To change it to a secret Gist, edit the saved Gist in GitHub.
+        (Once the blab is saved, you'll see a link to the Gist at the bottom of the blab page.)
+        </p>
+      """
+    
     @dialog.append """
     <br>
     <p>To save under your GitHub account, enter your GitHub username and personal access token.
@@ -415,10 +425,7 @@ class CredentialsForm
     <p>
     To save as <i>anonymous</i> Gist, continue without credentials.
     </p>
-    <p>
-    The blab will be saved as a public Gist.  To change it to a secret Gist, edit the saved Gist in GitHub.
-    (Once a blab has an id, there's a link to the Gist at the bottom of the blab page.)
-    </p>
+    #{publicWarning}
     <p>
     Your GitHub username and personal access token will be saved as cookies for future saves.
     To remove these cookies, clear the credentials above.
