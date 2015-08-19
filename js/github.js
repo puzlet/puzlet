@@ -91,8 +91,19 @@
     }
 
     GitHub.prototype.save = function(forceNew, callback) {
+      var key, username;
       if (forceNew == null) {
         forceNew = false;
+      }
+      username = $.cookie("gh_user");
+      key = $.cookie("gh_key");
+      if (this.gist.id && username && key && (username === this.gist.gistOwner) && !forceNew) {
+        this.setCredentials(username, key);
+        this.gist.save(forceNew, function() {
+          $.event.trigger("successfulGistPatch");
+          return typeof callback === "function" ? callback() : void 0;
+        });
+        return;
       }
       if (this.credentialsForm) {
         this.credentialsForm.open();
@@ -787,18 +798,20 @@
         })(this),
         title: "When you're done editing, save your changes to GitHub."
       });
-      this.savingMessage = $("<span>", {
+      this.saveMessage = $("<div>", {
         css: {
-          top: 20,
+          position: "absolute",
+          top: 10,
+          right: 10,
           color: "#2a2",
           cursor: "default"
         },
-        text: "Saving..."
+        text: "Saved"
       });
-      this.div.append(this.b).append(this.savingMessage);
+      this.div.append(this.b).append(this.saveMessage);
       this.container.append(this.div);
       this.b.hide();
-      this.savingMessage.hide();
+      this.saveMessage.hide();
       this.beforeUnload = function() {
         return "*** UNSAVED CHANGES ***";
       };
@@ -824,6 +837,14 @@
         return function() {
           var _base;
           return typeof (_base = _this.b).show === "function" ? _base.show() : void 0;
+        };
+      })(this));
+      $(document).on("successfulGistPatch", (function(_this) {
+        return function() {
+          _this.saveMessage.show();
+          return setTimeout((function() {
+            return _this.saveMessage.hide();
+          }), 1000);
         };
       })(this));
       if (typeof (_base = this.b).button === "function") {

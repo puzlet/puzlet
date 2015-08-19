@@ -46,6 +46,17 @@ class GitHub
       
   save: (forceNew=false, callback) ->
     
+    # See if just a patch - no need to open credentials form.
+    # Dup code here (cookies).
+    username = $.cookie("gh_user")
+    key = $.cookie("gh_key")
+    if @gist.id and username and key and (username is @gist.gistOwner) and not forceNew
+      @setCredentials username, key
+      @gist.save forceNew, ->
+        $.event.trigger "successfulGistPatch"
+        callback?()
+      return
+    
     if @credentialsForm
       @credentialsForm.open()
       return
@@ -496,19 +507,21 @@ class SaveButton
       title: "When you're done editing, save your changes to GitHub."
     
     # ZZZ no longer used
-    @savingMessage = $ "<span>",
+    @saveMessage = $ "<div>",
       css:
-        top: 20
+        position: "absolute"
+        top: 10
+        right: 10
         color: "#2a2"
         cursor: "default"
-      text: "Saving..."
+      text: "Saved"
     
-    @div.append(@b).append(@savingMessage)
+    @div.append(@b).append(@saveMessage)
     @container.append @div
     
     # Hide initially
     @b.hide()
-    @savingMessage.hide()
+    @saveMessage.hide()
     
     @beforeUnload = -> "*** UNSAVED CHANGES ***"
     
@@ -524,6 +537,10 @@ class SaveButton
       
     $(document).on "saveDialogCancel", =>
       @b.show?()
+      
+    $(document).on "successfulGistPatch", =>
+      @saveMessage.show()
+      setTimeout (=> @saveMessage.hide()), 1000
     
     @b.button?(label: "Save")
     
