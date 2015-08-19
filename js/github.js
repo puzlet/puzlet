@@ -596,7 +596,7 @@
       });
       this.dialog.dialog({
         autoOpen: false,
-        height: 520,
+        height: 580,
         width: 500,
         modal: true,
         close: (function(_this) {

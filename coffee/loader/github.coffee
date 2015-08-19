@@ -353,7 +353,7 @@ class CredentialsForm
     
     @dialog.dialog
       autoOpen: false
-      height: 520
+      height: 580
       width: 500
       modal: true
       close: => @form[0].reset()
