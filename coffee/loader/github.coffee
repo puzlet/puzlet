@@ -499,6 +499,7 @@ class SaveButton
     @b = $ "<button>",
       text: "Save"
       click: =>
+        setTimeout (=> @b.removeAttr "title"), 500  # Need delay to ensure title deleted.
         @b.hide?()
         @firstChange = true
         @callback?()

@@ -786,6 +786,9 @@
         click: (function(_this) {
           return function() {
             var _base;
+            setTimeout((function() {
+              return _this.b.removeAttr("title");
+            }), 500);
             if (typeof (_base = _this.b).hide === "function") {
               _base.hide();
             }
