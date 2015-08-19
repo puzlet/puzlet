@@ -268,7 +268,7 @@
       var ajaxData, ajaxDataObj;
       ajaxDataObj = {
         description: this.description(),
-        "public": false,
+        "public": true,
         files: this.files
       };
       return ajaxData = JSON.stringify(ajaxDataObj);
@@ -585,7 +585,7 @@
       });
       this.dialog.dialog({
         autoOpen: false,
-        height: 500,
+        height: 520,
         width: 500,
         modal: true,
         close: (function(_this) {
@@ -671,7 +671,7 @@
     };
 
     CredentialsForm.prototype.infoText = function() {
-      return this.dialog.append("<br>\n<p>To save under your GitHub account, enter your GitHub username and personal access token.\nYou can generate your personal access token <a href='https://github.com/settings/applications' target='_blank'>here</a>.\n</p>\n<p>\nTo save as <i>anonymous</i> Gist, continue without credentials.\n</p>\n<p>\nYour GitHub username and personal access token will be saved as cookies for future saves.\nTo remove these cookies, clear the credentials above.\n</p>");
+      return this.dialog.append("<br>\n<p>To save under your GitHub account, enter your GitHub username and personal access token.\nYou can generate your personal access token <a href='https://github.com/settings/applications' target='_blank'>here</a>.\n</p>\n<p>\nTo save as <i>anonymous</i> Gist, continue without credentials.\n</p>\n<p>\nThe blab will be saved as a public Gist.  To change it to a secret Gist, edit the saved Gist in GitHub.\n(Once a blab has an id, there's a link to the Gist at the bottom of the blab page.)\n</p>\n<p>\nYour GitHub username and personal access token will be saved as cookies for future saves.\nTo remove these cookies, clear the credentials above.\n</p>");
     };
 
     CredentialsForm.prototype.setCredentials = function() {
@@ -708,7 +708,7 @@
             });
           };
         })(this),
-        "Save as Gist": (function(_this) {
+        "Save as Public Gist": (function(_this) {
           return function() {
             saveAction();
             return _this.spec.saveAsGist(function() {

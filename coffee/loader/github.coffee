@@ -142,7 +142,7 @@ class Gist
   ajaxData: ->
     ajaxDataObj =
       description: @description()
-      public: false
+      public: true
       files: @files
     ajaxData = JSON.stringify(ajaxDataObj)
   
@@ -342,7 +342,7 @@ class CredentialsForm
     
     @dialog.dialog
       autoOpen: false
-      height: 500
+      height: 520
       width: 500
       modal: true
       close: => @form[0].reset()
@@ -416,6 +416,10 @@ class CredentialsForm
     To save as <i>anonymous</i> Gist, continue without credentials.
     </p>
     <p>
+    The blab will be saved as a public Gist.  To change it to a secret Gist, edit the saved Gist in GitHub.
+    (Once a blab has an id, there's a link to the Gist at the bottom of the blab page.)
+    </p>
+    <p>
     Your GitHub username and personal access token will be saved as cookies for future saves.
     To remove these cookies, clear the credentials above.
     </p>
@@ -445,7 +449,7 @@ class CredentialsForm
       "Update repo": =>
         saveAction()
         @spec.updateRepo -> done()
-      "Save as Gist": =>
+      "Save as Public Gist": =>
         saveAction()
         @spec.saveAsGist -> done()
       Cancel: =>
