@@ -419,14 +419,12 @@ class CredentialsForm
     
   infoText: ->
     
-    publicWarning = ""
-    unless $blab.github.gist.id
-      publicWarning = """
-        <p>
-        The blab will be saved as a public Gist.  To change it to a secret Gist, edit the saved Gist in GitHub.
-        (Once the blab is saved, you'll see a link to the Gist at the bottom of the blab page.)
-        </p>
-      """
+    publicWarning = """
+      <p>
+      The blab will be saved as a public Gist.  To change it to a secret Gist, edit the saved Gist in GitHub.
+      (Once the blab is saved, you'll see a link to the Gist at the bottom of the blab page.)
+      </p>
+    """
     
     @dialog.append """
     <br>

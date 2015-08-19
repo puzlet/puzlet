@@ -683,10 +683,7 @@
 
     CredentialsForm.prototype.infoText = function() {
       var publicWarning;
-      publicWarning = "";
-      if (!$blab.github.gist.id) {
-        publicWarning = "<p>\nThe blab will be saved as a public Gist.  To change it to a secret Gist, edit the saved Gist in GitHub.\n(Once the blab is saved, you'll see a link to the Gist at the bottom of the blab page.)\n</p>";
-      }
+      publicWarning = "<p>\nThe blab will be saved as a public Gist.  To change it to a secret Gist, edit the saved Gist in GitHub.\n(Once the blab is saved, you'll see a link to the Gist at the bottom of the blab page.)\n</p>";
       return this.dialog.append("<br>\n<p>To save under your GitHub account, enter your GitHub username and personal access token.\nYou can generate your personal access token <a href='https://github.com/settings/applications' target='_blank'>here</a>.\n</p>\n<p>\nTo save as <i>anonymous</i> Gist, continue without credentials.\n</p>\n" + publicWarning + "\n<p>\nYour GitHub username and personal access token will be saved as cookies for future saves.\nTo remove these cookies, clear the credentials above.\n</p>");
     };
 
