@@ -92,7 +92,7 @@ class URL
         @pathname = "/" if @pathname is "."  # IE fix
         idx = if @pathname.indexOf("/") is 0 then 1 else 0  # IE removes first / from pathname.
         @path = if @pathname then @pathname.split("/")[idx..] else []
-        console.log "====PATH", @url, @pathname, @pathname.split("/"), @path
+        #console.log "====PATH", @url, @pathname, @pathname.split("/"), @path
         
         @hasPath = @path.length>0
         
@@ -173,7 +173,7 @@ class BlabResourceLocation extends ResourceLocation
             @filepath = @filePath()
             @inBlab = true  # TODO: what if ../relative/path ?
             
-        console.log "%%%%% owner/path/blabOwner/url", @owner, @path, @blabOwner, @url
+        #console.log "%%%%% owner/path/blabOwner/url", @owner, @path, @blabOwner, @url
         
         @localOrgPath = $blab.gitHub?.localConfig?.orgs?[@owner]
         path = @filepath
@@ -272,7 +272,7 @@ class GitHub
         known = @knownGitHubOrgDomains.filter((d) => @owner is d.org)
 #        host = "#{@owner}.github.io"  # Causes 301 response -> puzlet.org
         host = if known.length then known[0].domain else "#{@owner}.github.io"
-        console.log "-------linkedUrl (@owner/known/host)", @owner, known, host 
+        #console.log "-------linkedUrl (@owner/known/host)", @owner, known, host 
         "http://#{host}/#{@repo}/#{@path}"
 #        "https://#{host}/#{@repo}/#{@path}"
         

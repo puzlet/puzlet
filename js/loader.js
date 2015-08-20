@@ -92,7 +92,6 @@ TODO:
       }
       idx = this.pathname.indexOf("/") === 0 ? 1 : 0;
       this.path = this.pathname ? this.pathname.split("/").slice(idx) : [];
-      console.log("====PATH", this.url, this.pathname, this.pathname.split("/"), this.path);
       this.hasPath = this.path.length > 0;
       match = this.hasPath ? this.pathname.match(/\.[0-9a-z]+$/i) : null;
       this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
@@ -206,7 +205,6 @@ TODO:
         this.filepath = this.filePath();
         this.inBlab = true;
       }
-      console.log("%%%%% owner/path/blabOwner/url", this.owner, this.path, this.blabOwner, this.url);
       this.localOrgPath = (_ref = $blab.gitHub) != null ? (_ref1 = _ref.localConfig) != null ? (_ref2 = _ref1.orgs) != null ? _ref2[this.owner] : void 0 : void 0 : void 0;
       path = this.filepath;
       this.gitHub = new GitHub({
@@ -331,7 +329,6 @@ TODO:
         };
       })(this));
       host = known.length ? known[0].domain : "" + this.owner + ".github.io";
-      console.log("-------linkedUrl (@owner/known/host)", this.owner, known, host);
       return "http://" + host + "/" + this.repo + "/" + this.path;
     };
 
