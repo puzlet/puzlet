@@ -625,6 +625,7 @@ class Resources
     resourcesSpec: "/puzlet/puzlet/resources.coffee"  # Default
     
     constructor: (spec) ->
+        console.log "LOADER - Resources"
         #unless window.googleAnalyticsSet
         #  coreResources.push {url: "/puzlet/puzlet/js/google_analytics.js"}
         @resources = []

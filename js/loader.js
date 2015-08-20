@@ -908,6 +908,7 @@ TODO:
     Resources.prototype.resourcesSpec = "/puzlet/puzlet/resources.coffee";
 
     function Resources(spec) {
+      console.log("LOADER - Resources");
       this.resources = [];
       this.factory = new ResourceFactory((function(_this) {
         return function(url) {
