@@ -79,7 +79,7 @@ TODO:
 
   URL = (function() {
     function URL(url) {
-      var match;
+      var idx, match;
       this.url = url;
       this.a = document.createElement("a");
       this.a.href = this.url;
@@ -87,7 +87,8 @@ TODO:
       this.pathname = this.a.pathname;
       this.search = this.a.search;
       this.host = this.hostname.split(".");
-      this.path = this.pathname ? this.pathname.split("/").slice(1) : [];
+      idx = this.pathname.indexOf("/") === 0 ? 1 : 0;
+      this.path = this.pathname ? this.pathname.split("/").slice(idx) : [];
       console.log("====PATH", this.url, this.pathname, this.pathname.split("/"), this.path);
       this.hasPath = this.path.length > 0;
       match = this.hasPath ? this.pathname.match(/\.[0-9a-z]+$/i) : null;
