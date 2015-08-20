@@ -87,6 +87,9 @@ TODO:
       this.pathname = this.a.pathname;
       this.search = this.a.search;
       this.host = this.hostname.split(".");
+      if (this.pathname === ".") {
+        this.pathname = "/";
+      }
       idx = this.pathname.indexOf("/") === 0 ? 1 : 0;
       this.path = this.pathname ? this.pathname.split("/").slice(idx) : [];
       console.log("====PATH", this.url, this.pathname, this.pathname.split("/"), this.path);

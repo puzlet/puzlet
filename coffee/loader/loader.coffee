@@ -89,6 +89,7 @@ class URL
         @search = @a.search 
         
         @host = @hostname.split "."
+        @pathname = "/" if @pathname is "."  # IE fix
         idx = if @pathname.indexOf("/") is 0 then 1 else 0  # IE removes first / from pathname.
         @path = if @pathname then @pathname.split("/")[idx..] else []
         console.log "====PATH", @url, @pathname, @pathname.split("/"), @path
