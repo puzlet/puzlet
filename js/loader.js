@@ -620,6 +620,7 @@ TODO:
     JsResourceLinked.prototype.load = function(postLoadCallback) {
       var src, t;
       this.postLoadCallback = postLoadCallback;
+      console.log("++++++++++++++++ LOAD JS", this.url);
       this.script = document.createElement("script");
       this.head.appendChild(this.script);
       this.script.onload = (function(_this) {

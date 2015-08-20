@@ -443,6 +443,7 @@ class JsResourceInline extends ResourceInline
 class JsResourceLinked extends Resource
     
     load: (@postLoadCallback) ->
+        console.log "++++++++++++++++ LOAD JS", @url
         @script = document.createElement "script"
         #@script.setAttribute "type", "text/javascript"
         @head.appendChild @script
