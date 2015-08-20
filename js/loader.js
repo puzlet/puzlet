@@ -628,6 +628,11 @@ TODO:
           return _this.postLoad();
         };
       })(this);
+      this.script.onerror = (function(_this) {
+        return function() {
+          return console.log("Load error: " + _this.url);
+        };
+      })(this);
       src = this.loadUrl;
       t = this.location.cache ? "" : "?t=" + (Date.now());
       return this.script.setAttribute("src", src + t);
