@@ -177,6 +177,7 @@ class BlabResourceLocation extends ResourceLocation
         if @inBlab
             @loadUrl = @filepath
         else
+            console.log "%%%%% LOAD URL", @localOrgPath, @gitHub.linkedUrl()
             @loadUrl = if @localOrgPath then "#{@localOrgPath}/#{@repo}/#{@filepath}" else @gitHub.linkedUrl()
         
         # loadType is used only to JS/CSS resources.

@@ -211,6 +211,7 @@ TODO:
       if (this.inBlab) {
         this.loadUrl = this.filepath;
       } else {
+        console.log("%%%%% LOAD URL", this.localOrgPath, this.gitHub.linkedUrl());
         this.loadUrl = this.localOrgPath ? "" + this.localOrgPath + "/" + this.repo + "/" + this.filepath : this.gitHub.linkedUrl();
       }
       this.loadType = this.inBlab ? "blab" : "ext";
