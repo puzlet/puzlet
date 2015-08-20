@@ -90,7 +90,7 @@ class URL
         
         @host = @hostname.split "."
         @path = if @pathname then @pathname.split("/")[1..] else []
-        console.log "====PATH", @pathname, @path
+        console.log "====PATH", @pathname, @pathname.split("/"), @path
         
         @hasPath = @path.length>0
         
