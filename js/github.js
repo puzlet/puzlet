@@ -2,7 +2,7 @@
 (function() {
   var CredentialsForm, Gist, GitHub, Repo, SaveButton, dependencies, _ref, _ref1;
 
-  return;
+  console.log("GitHub/Gist");
 
   dependencies = [
     {

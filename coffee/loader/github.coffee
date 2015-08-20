@@ -1,7 +1,6 @@
 #--- GitHub/Gist ---#
 
-#console.log "GitHub/Gist"
-return
+console.log "GitHub/Gist"
 
 dependencies = [
   {url: "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css"}
