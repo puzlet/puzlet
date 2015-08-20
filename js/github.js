@@ -2,6 +2,8 @@
 (function() {
   var CredentialsForm, Gist, GitHub, Repo, SaveButton, dependencies, _ref, _ref1;
 
+  return;
+
   dependencies = [
     {
       url: "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css"
