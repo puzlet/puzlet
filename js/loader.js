@@ -630,7 +630,7 @@ TODO:
       })(this);
       this.script.onerror = (function(_this) {
         return function() {
-          return console.log("Load error: " + _this.url);
+          return console.log("Load error: " + _this.url + " " + _this.loadUrl + ", " + (_this.script.getAttribute('src')));
         };
       })(this);
       src = this.loadUrl;

@@ -448,7 +448,7 @@ class JsResourceLinked extends Resource
         #@script.setAttribute "type", "text/javascript"
         @head.appendChild @script
         @script.onload = => @postLoad()
-        @script.onerror = => console.log "Load error: #{@url}"
+        @script.onerror = => console.log "Load error: #{@url} #{@loadUrl}, #{@script.getAttribute 'src'}"
         
         src = @loadUrl  # TODO: if this fails, try loading from github
 #        src = @url  # TODO: if this fails, try loading from github
