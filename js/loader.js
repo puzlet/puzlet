@@ -908,11 +908,6 @@ TODO:
     Resources.prototype.resourcesSpec = "/puzlet/puzlet/resources.coffee";
 
     function Resources(spec) {
-      if (!window.googleAnalyticsSet) {
-        coreResources.push({
-          url: "/puzlet/puzlet/js/google_analytics.js"
-        });
-      }
       this.resources = [];
       this.factory = new ResourceFactory((function(_this) {
         return function(url) {

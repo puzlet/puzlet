@@ -625,8 +625,8 @@ class Resources
     resourcesSpec: "/puzlet/puzlet/resources.coffee"  # Default
     
     constructor: (spec) ->
-        unless window.googleAnalyticsSet
-          coreResources.push {url: "/puzlet/puzlet/js/google_analytics.js"}
+        #unless window.googleAnalyticsSet
+        #  coreResources.push {url: "/puzlet/puzlet/js/google_analytics.js"}
         @resources = []
         @factory = new ResourceFactory (url) => @getSource?(url)
         @changed = false
