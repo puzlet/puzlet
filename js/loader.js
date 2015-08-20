@@ -900,8 +900,6 @@ TODO:
         url: "/puzlet/coffeescript/coffeescript.js"
       }, {
         url: "/puzlet/coffeescript/compiler.js"
-      }, {
-        url: "/puzlet/puzlet/js/github.js"
       }
     ];
 
