@@ -625,9 +625,8 @@ class Resources
     resourcesSpec: "/puzlet/puzlet/resources.coffee"  # Default
     
     constructor: (spec) ->
-        console.log "LOADER - Resources"
-        #unless window.googleAnalyticsSet
-        #  coreResources.push {url: "/puzlet/puzlet/js/google_analytics.js"}
+        unless window.googleAnalyticsSet
+          coreResources.push {url: "/puzlet/puzlet/js/google_analytics.js"}
         @resources = []
         @factory = new ResourceFactory (url) => @getSource?(url)
         @changed = false
@@ -701,6 +700,7 @@ class Resources
             loaded?([])
             return
         resourceLoaded = (resource) =>
+            console.log "*** resource loaded", resource
             resourcesToLoad--
             if resourcesToLoad is 0
                 @appendToHead filter  # Append to head if the appendToHead method exists for a resource, and if not aleady appended.

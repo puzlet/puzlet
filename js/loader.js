@@ -908,7 +908,11 @@ TODO:
     Resources.prototype.resourcesSpec = "/puzlet/puzlet/resources.coffee";
 
     function Resources(spec) {
-      console.log("LOADER - Resources");
+      if (!window.googleAnalyticsSet) {
+        coreResources.push({
+          url: "/puzlet/puzlet/js/google_analytics.js"
+        });
+      }
       this.resources = [];
       this.factory = new ResourceFactory((function(_this) {
         return function(url) {
@@ -1050,6 +1054,7 @@ TODO:
       }
       resourceLoaded = (function(_this) {
         return function(resource) {
+          console.log("*** resource loaded", resource);
           resourcesToLoad--;
           if (resourcesToLoad === 0) {
             _this.appendToHead(filter);
