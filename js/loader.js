@@ -201,7 +201,7 @@ TODO:
         this.filepath = this.filePath();
         this.inBlab = true;
       }
-      console.log("%%%%% owner", this.owner);
+      console.log("%%%%% owner/path/blabOwner/url", this.owner, this.path, this.blabOwner, this.url);
       this.localOrgPath = (_ref = $blab.gitHub) != null ? (_ref1 = _ref.localConfig) != null ? (_ref2 = _ref1.orgs) != null ? _ref2[this.owner] : void 0 : void 0 : void 0;
       path = this.filepath;
       this.gitHub = new GitHub({

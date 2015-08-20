@@ -170,7 +170,7 @@ class BlabResourceLocation extends ResourceLocation
             @filepath = @filePath()
             @inBlab = true  # TODO: what if ../relative/path ?
             
-        console.log "%%%%% owner", @owner
+        console.log "%%%%% owner/path/blabOwner/url", @owner, @path, @blabOwner, @url
         
         @localOrgPath = $blab.gitHub?.localConfig?.orgs?[@owner]
         path = @filepath
