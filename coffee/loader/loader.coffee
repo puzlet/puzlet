@@ -619,7 +619,7 @@ class Resources
     coreResources: [
         {url: "/puzlet/coffeescript/coffeescript.js"}
         {url: "/puzlet/coffeescript/compiler.js"}
-        # {url: "/puzlet/puzlet/js/github.js"}
+        {url: "/puzlet/puzlet/js/github.js"}
     ]
     
     resourcesSpec: "/puzlet/puzlet/resources.coffee"  # Default
