@@ -177,7 +177,6 @@ class BlabResourceLocation extends ResourceLocation
         if @inBlab
             @loadUrl = @filepath
         else
-            console.log "%%%%% LOAD URL", @localOrgPath, @gitHub.linkedUrl()
             @loadUrl = if @localOrgPath then "#{@localOrgPath}/#{@repo}/#{@filepath}" else @gitHub.linkedUrl()
         
         # loadType is used only to JS/CSS resources.
@@ -268,6 +267,7 @@ class GitHub
         known = @knownGitHubOrgDomains.filter((d) => @owner is d.org)
 #        host = "#{@owner}.github.io"  # Causes 301 response -> puzlet.org
         host = if known.length then known[0].domain else "#{@owner}.github.io"
+        console.log "-------linkedUrl (@owner/known/host)", @owner, known, host 
         "http://#{host}/#{@repo}/#{@path}"
 #        "https://#{host}/#{@repo}/#{@path}"
         
@@ -444,7 +444,6 @@ class JsResourceInline extends ResourceInline
 class JsResourceLinked extends Resource
     
     load: (@postLoadCallback) ->
-        console.log "++++++++++++++++ LOAD JS", @loadUrl
         @script = document.createElement "script"
         #@script.setAttribute "type", "text/javascript"
         @head.appendChild @script
@@ -702,7 +701,6 @@ class Resources
             loaded?([])
             return
         resourceLoaded = (resource) =>
-            console.log "*** resource loaded", resource
             resourcesToLoad--
             if resourcesToLoad is 0
                 @appendToHead filter  # Append to head if the appendToHead method exists for a resource, and if not aleady appended.

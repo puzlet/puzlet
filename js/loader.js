@@ -211,7 +211,6 @@ TODO:
       if (this.inBlab) {
         this.loadUrl = this.filepath;
       } else {
-        console.log("%%%%% LOAD URL", this.localOrgPath, this.gitHub.linkedUrl());
         this.loadUrl = this.localOrgPath ? "" + this.localOrgPath + "/" + this.repo + "/" + this.filepath : this.gitHub.linkedUrl();
       }
       this.loadType = this.inBlab ? "blab" : "ext";
@@ -326,6 +325,7 @@ TODO:
         };
       })(this));
       host = known.length ? known[0].domain : "" + this.owner + ".github.io";
+      console.log("-------linkedUrl (@owner/known/host)", this.owner, known, host);
       return "http://" + host + "/" + this.repo + "/" + this.path;
     };
 
@@ -621,7 +621,6 @@ TODO:
     JsResourceLinked.prototype.load = function(postLoadCallback) {
       var src, t;
       this.postLoadCallback = postLoadCallback;
-      console.log("++++++++++++++++ LOAD JS", this.loadUrl);
       this.script = document.createElement("script");
       this.head.appendChild(this.script);
       this.script.onload = (function(_this) {
@@ -1061,7 +1060,6 @@ TODO:
       }
       resourceLoaded = (function(_this) {
         return function(resource) {
-          console.log("*** resource loaded", resource);
           resourcesToLoad--;
           if (resourcesToLoad === 0) {
             _this.appendToHead(filter);
