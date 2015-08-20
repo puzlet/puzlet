@@ -88,6 +88,7 @@ TODO:
       this.search = this.a.search;
       this.host = this.hostname.split(".");
       this.path = this.pathname ? this.pathname.split("/").slice(1) : [];
+      console.log("====PATH", this.pathname, this.path);
       this.hasPath = this.path.length > 0;
       match = this.hasPath ? this.pathname.match(/\.[0-9a-z]+$/i) : null;
       this.fileExt = (match != null ? match.length : void 0) ? match[0].slice(1) : null;
