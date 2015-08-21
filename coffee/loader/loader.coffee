@@ -622,7 +622,7 @@ class ResourceFactory
 class Resources
     
     # jQuery and puzlet.json (if local/deployment) are loaded in Puzlet bootstrap script (//puzlet.org/puzlet.js).
-    coreResources: [
+    coreResourcesList: [
         {url: "/puzlet/coffeescript/coffeescript.js"}
         {url: "/puzlet/coffeescript/compiler.js"}
         {url: "/puzlet/puzlet/js/github.js"}
@@ -631,8 +631,12 @@ class Resources
     resourcesSpec: "/puzlet/puzlet/resources.coffee"  # Default
     
     constructor: (spec) ->
+        @coreResources = []
+        @core "/puzlet/coffeescript/coffeescript.js", CoffeeScript?
+        @core "/puzlet/coffeescript/compiler.js"  #, $coffee?
+        @core "/puzlet/puzlet/js/github.js"
         unless window.googleAnalyticsSet
-          coreResources.push {url: "/puzlet/puzlet/js/google_analytics.js"}
+          @coreResources.push {url: "/puzlet/puzlet/js/google_analytics.js"}
         @resources = []
         @factory = new ResourceFactory (url) => @getSource?(url)
         @changed = false
@@ -641,6 +645,9 @@ class Resources
           preload: []
           postload: []
           ready: []
+          
+    core: (resource, loaded=false) ->
+      @coreResources.push(url: resource) unless loaded
         
     # Load coffeescript compiler and other core resources.
     # Supports preload and postload callbacks (before/after resources.coffee loaded).

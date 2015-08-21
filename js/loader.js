@@ -904,7 +904,7 @@ TODO:
   })();
 
   Resources = (function() {
-    Resources.prototype.coreResources = [
+    Resources.prototype.coreResourcesList = [
       {
         url: "/puzlet/coffeescript/coffeescript.js"
       }, {
@@ -917,8 +917,12 @@ TODO:
     Resources.prototype.resourcesSpec = "/puzlet/puzlet/resources.coffee";
 
     function Resources(spec) {
+      this.coreResources = [];
+      this.core("/puzlet/coffeescript/coffeescript.js", typeof CoffeeScript !== "undefined" && CoffeeScript !== null);
+      this.core("/puzlet/coffeescript/compiler.js");
+      this.core("/puzlet/puzlet/js/github.js");
       if (!window.googleAnalyticsSet) {
-        coreResources.push({
+        this.coreResources.push({
           url: "/puzlet/puzlet/js/google_analytics.js"
         });
       }
@@ -936,6 +940,17 @@ TODO:
         ready: []
       };
     }
+
+    Resources.prototype.core = function(resource, loaded) {
+      if (loaded == null) {
+        loaded = false;
+      }
+      if (!loaded) {
+        return this.coreResources.push({
+          url: resource
+        });
+      }
+    };
 
     Resources.prototype.init = function(spec) {
       var core, getResourcesUrl, postload, preload, ready, resources;

@@ -2,11 +2,12 @@
 
 console.log "GitHub/Gist"
 
+# Put some in index.html
 dependencies = [
-  {url: "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css"}
-  {url: "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"}
+#  {url: "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css"}
+#  {url: "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"}
   {url: "/puzlet/puzlet/css/github.css"}
-  {url: "/puzlet/puzlet/js/jquery.cookie.js"}
+#  {url: "/puzlet/puzlet/js/jquery.cookie.js"}
 ]
 
 $blab?.resources?.on "preload", (data, done) ->
