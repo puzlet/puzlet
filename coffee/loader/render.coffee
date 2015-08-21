@@ -113,7 +113,7 @@ class Notes
         tip.on "mouseenter", (-> clear())
         tip.on "mouseleave", (-> set())
       )
-
+      
   processText: (method) -> method($ txt) for txt in $ ".pz_text"
   
   init: (t) ->
