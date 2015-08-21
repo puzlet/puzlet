@@ -153,7 +153,7 @@ TODO:
 
     ResourceLocation.prototype.load = function(callback) {
       var url;
-      url = this.url + ("?t=" + (Date.now()));
+      url = this.url;
       console.log("LOAD " + url);
       return $.get(url, (function(data) {
         return callback(data);
@@ -218,13 +218,13 @@ TODO:
         this.loadUrl = this.localOrgPath ? "" + this.localOrgPath + "/" + this.repo + "/" + this.filepath : this.gitHub.linkedUrl();
       }
       this.loadType = this.inBlab ? "blab" : "ext";
-      this.cache = false;
+      this.cache = true;
       this.source = this.gitHub.sourcePageUrl();
     }
 
     BlabResourceLocation.prototype.load = function(callback) {
       var url;
-      url = this.loadUrl + ("?t=" + (Date.now()));
+      url = this.loadUrl;
       return $.get(url, (function(data) {
         return callback(data);
       }), "text");
@@ -244,7 +244,7 @@ TODO:
 
     GitHubApiResourceLocation.prototype.loadType = "api";
 
-    GitHubApiResourceLocation.prototype.cache = false;
+    GitHubApiResourceLocation.prototype.cache = true;
 
     function GitHubApiResourceLocation(url) {
       this.url = url;
@@ -588,7 +588,7 @@ TODO:
       this.style = document.createElement("link");
       this.style.setAttribute("rel", "stylesheet");
       t = Date.now();
-      this.style.setAttribute("href", this.loadUrl + ("?t=" + t));
+      this.style.setAttribute("href", this.loadUrl);
       setTimeout(((function(_this) {
         return function() {
           return _this.postLoad();

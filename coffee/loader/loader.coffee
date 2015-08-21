@@ -136,7 +136,7 @@ class ResourceLocation extends URL
         
     load: (callback) ->
         # Ajax-load method.  TODO: continue if load error.
-        url = @url+"?t=#{Date.now()}"
+        url = @url  #+"?t=#{Date.now()}"
         console.log "LOAD #{url}"
         $.get(url, ((data) -> callback(data)), "text")
 
@@ -187,7 +187,7 @@ class BlabResourceLocation extends ResourceLocation
         # loadType is used only to JS/CSS resources.
         # if loadType="ext" and is on GitHub then resource must be accessible via github.io.
         @loadType = if @inBlab then "blab" else "ext"
-        @cache = false #not @inBlab and @owner is "puzlet"  # TODO: better way?
+        @cache = true #not @inBlab and @owner is "puzlet"  # TODO: better way?
         
         #console.log @owner, @repo, @filepath, @loadUrl
         #console.log @gitHub.linkedUrl()
@@ -196,7 +196,7 @@ class BlabResourceLocation extends ResourceLocation
     
     load: (callback) ->
         #console.log "Blab load #{@url} => #{@loadUrl}"
-        url = @loadUrl + "?t=#{Date.now()}"  # No cache
+        url = @loadUrl #+ "?t=#{Date.now()}"  # No cache
         # Ajax-load method.  TODO: continue if load error.  OR try guthub if localpath load fail
         $.get(url, ((data) -> callback(data)), "text")
     
@@ -208,7 +208,7 @@ class BlabResourceLocation extends ResourceLocation
 class GitHubApiResourceLocation extends ResourceLocation
     
     loadType: "api"
-    cache: false
+    cache: true
     
     constructor: (@url) ->
         
@@ -426,7 +426,7 @@ class CssResourceLinked extends Resource
         #@style.setAttribute "type", "text/css"
         @style.setAttribute "rel", "stylesheet"
         t = Date.now()
-        @style.setAttribute "href", @loadUrl+"?t=#{t}"
+        @style.setAttribute "href", @loadUrl  #+"?t=#{t}"
 #        @style.setAttribute "href", @url  #+"?t=#{t}"
         #@style.setAttribute "data-url", @url
         
