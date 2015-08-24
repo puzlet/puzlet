@@ -1218,6 +1218,7 @@ TODO:
     Resources.prototype.loadScripts = function(callback) {
       return this.load(["json", "js", "coffee", "py", "m", "svg", "txt"], (function(_this) {
         return function() {
+          console.log("SCRIPTS LOADED", _this);
           _this.compileCoffee();
           return typeof callback === "function" ? callback() : void 0;
         };
