@@ -671,7 +671,6 @@ class Resources
               cb()
             
         postload = (cb) =>
-            console.log "%%%%%%%%% postload"
             @trigger "postload"
             spec?.postload?()
             cb?()
@@ -812,7 +811,6 @@ class Resources
     # Note: for large JS file (even 3rd party), put in repo without gh-pages (web page).
     loadScripts: (callback) ->
         @load ["json", "js", "coffee", "py", "m", "svg", "txt"], =>
-            console.log "SCRIPTS LOADED", this
             # Before Ace loaded, compile any CoffeeScript.
             # Note that this can cause a double compile/eval if resource is in resources.coffee and specified in <div>.
             @compileCoffee() # (coffee) -> not(coffee.spec.orig.doEval or coffee.compiled)
