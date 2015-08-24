@@ -995,6 +995,7 @@ TODO:
       })(this);
       postload = (function(_this) {
         return function(cb) {
+          console.log("%%%%%%%%% postload");
           _this.trigger("postload");
           if (spec != null) {
             if (typeof spec.postload === "function") {

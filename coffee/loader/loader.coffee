@@ -671,6 +671,7 @@ class Resources
               cb()
             
         postload = (cb) =>
+            console.log "%%%%%%%%% postload"
             @trigger "postload"
             spec?.postload?()
             cb?()
