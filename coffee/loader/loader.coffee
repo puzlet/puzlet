@@ -85,7 +85,10 @@ class URL
         
         # URL components
         @hostname = @a.hostname
-        @pathname = @a.pathname
+        if @url.indexOf("gist:") is 0
+          @pathname = @url.slice(5)  # FF fix
+        else
+          @pathname = @a.pathname
         @search = @a.search 
         
         @host = @hostname.split "."
@@ -326,7 +329,7 @@ class Resource
     
     constructor: (@spec) ->
         # ZZZ option to pass string for url
-        @location = @spec.location ? resourceLocation @spec.url
+        @location = @spec.location ? resourceLocation(@spec.url)
         @url = @location.url
         @loadUrl = @location.loadUrl
         @fileExt = @spec.fileExt ? @location.fileExt

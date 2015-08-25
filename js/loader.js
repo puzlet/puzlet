@@ -84,7 +84,11 @@ TODO:
       this.a = document.createElement("a");
       this.a.href = this.url;
       this.hostname = this.a.hostname;
-      this.pathname = this.a.pathname;
+      if (this.url.indexOf("gist:") === 0) {
+        this.pathname = this.url.slice(5);
+      } else {
+        this.pathname = this.a.pathname;
+      }
       this.search = this.a.search;
       this.host = this.hostname.split(".");
       if (this.pathname === ".") {
