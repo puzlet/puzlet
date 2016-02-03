@@ -5015,6 +5015,9 @@
       };
       queue(["PreProcess", Hub, this.id]);
       queue(["Process", Hub, this.id]);
+      queue (function() {
+          $('.math>span').css("border-left-color", "transparent");
+      });
       configElements = function() {
         return Hub.config.elements = [_this.id];
       };
