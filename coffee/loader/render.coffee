@@ -59,9 +59,9 @@ class MathJaxProcessor
     queue = (x) -> Hub.Queue x
     queue ["PreProcess", Hub, @id]
     queue ["Process", Hub, @id]
-    #queue (->
-    #  $.event.trigger "mathjaxProcessed"
-    #)
+    queue (->
+      $.event.trigger "mathjaxProcessed"
+    )
     configElements = => Hub.config.elements = [@id]
     queue configElements
 

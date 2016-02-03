@@ -75,6 +75,9 @@
       };
       queue(["PreProcess", Hub, this.id]);
       queue(["Process", Hub, this.id]);
+      queue((function() {
+        return $.event.trigger("mathjaxProcessed");
+      }));
       configElements = (function(_this) {
         return function() {
           return Hub.config.elements = [_this.id];
