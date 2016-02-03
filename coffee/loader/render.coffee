@@ -60,6 +60,10 @@ class MathJaxProcessor
     queue ["PreProcess", Hub, @id]
     queue ["Process", Hub, @id]
     queue (->
+      # Fix MathJax 2.4 issue - vertical border on right side on math
+      $('.math>span').css("border-left-color", "transparent")
+    )
+    queue (->
       $.event.trigger "mathjaxProcessed"
     )
     configElements = => Hub.config.elements = [@id]

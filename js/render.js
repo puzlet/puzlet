@@ -76,6 +76,9 @@
       queue(["PreProcess", Hub, this.id]);
       queue(["Process", Hub, this.id]);
       queue((function() {
+        return $('.math>span').css("border-left-color", "transparent");
+      }));
+      queue((function() {
         return $.event.trigger("mathjaxProcessed");
       }));
       configElements = (function(_this) {
