@@ -4984,6 +4984,11 @@
             showRenderer: true
           }
         });
+        
+        MathJax.Hub.Register.StartupHook("End",function () {
+          $('.math>span').css("border-left-color", "transparent");
+        });
+        
         return window.MathJax.HTML.Cookie.Set("menu", {
           renderer: _this.mode
         });
