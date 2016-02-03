@@ -4955,7 +4955,7 @@
 
   MathJaxProcessor = (function() {
 
-    MathJaxProcessor.prototype.source = "http://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=default";
+    MathJaxProcessor.prototype.source = "http://cdn.mathjax.org/mathjax/2.6-latest/MathJax.js?config=default";
 
     MathJaxProcessor.prototype.mode = "HTML-CSS";
 
