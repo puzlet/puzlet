@@ -309,7 +309,7 @@ class GithubRibbon
 
 class MathJaxProcessor
 	
-	source: "http://cdn.mathjax.org/mathjax/2.5-latest/MathJax.js?config=default"
+	source: "http://cdn.mathjax.org/mathjax/2.4-latest/MathJax.js?config=default"
 #	source: "http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"
 		# default, TeX-AMS-MML_SVG, TeX-AMS-MML_HTMLorMML
 	#outputSelector: ".code_node_html_output"
