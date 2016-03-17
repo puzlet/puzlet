@@ -42,8 +42,11 @@
               showRenderer: true
             }
           });
-          return window.MathJax.HTML.Cookie.Set("menu", {
+          window.MathJax.HTML.Cookie.Set("menu", {
             renderer: _this.mode
+          });
+          return MathJax.Hub.Register.StartupHook("End", function() {
+            return $('.math>span').css("border-left-color", "transparent");
           });
         };
       })(this);

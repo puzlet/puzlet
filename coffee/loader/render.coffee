@@ -40,6 +40,11 @@ class MathJaxProcessor
           showRenderer: true
       window.MathJax.HTML.Cookie.Set "menu", renderer: @mode
       #console.log "mathjax", window.MathJax.Hub
+      
+      # Fix for chrome/mathjax vertical line at end of math.
+      MathJax.Hub.Register.StartupHook("End", ->
+        $('.math>span').css("border-left-color", "transparent")
+      )
     
     configScript = $ "<script>",
       type: "text/x-mathjax-config"
