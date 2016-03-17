@@ -222,13 +222,13 @@ TODO:
         this.loadUrl = this.localOrgPath ? "" + this.localOrgPath + "/" + this.repo + "/" + this.filepath : this.gitHub.linkedUrl();
       }
       this.loadType = this.inBlab ? "blab" : "ext";
-      this.cache = true;
+      this.cache = false;
       this.source = this.gitHub.sourcePageUrl();
     }
 
     BlabResourceLocation.prototype.load = function(callback) {
       var url;
-      url = this.loadUrl;
+      url = this.loadUrl + ("?t=" + (Date.now()));
       return $.get(url, (function(data) {
         return callback(data);
       }), "text");
@@ -592,7 +592,7 @@ TODO:
       this.style = document.createElement("link");
       this.style.setAttribute("rel", "stylesheet");
       t = Date.now();
-      this.style.setAttribute("href", this.loadUrl);
+      this.style.setAttribute("href", this.loadUrl + ("?t=" + t));
       setTimeout(((function(_this) {
         return function() {
           return _this.postLoad();
