@@ -429,8 +429,9 @@ class CssResourceLinked extends Resource
         @style = document.createElement "link"
         #@style.setAttribute "type", "text/css"
         @style.setAttribute "rel", "stylesheet"
-        t = Date.now()
-        @style.setAttribute "href", @loadUrl + "?t=#{t}"
+        @setHref()
+        #t = Date.now()
+        #@style.setAttribute "href", @loadUrl + "?t=#{t}"
 #        @style.setAttribute "href", @url  #+"?t=#{t}"
         #@style.setAttribute "data-url", @url
         
@@ -441,6 +442,14 @@ class CssResourceLinked extends Resource
         #@style.onload = => @postLoad callback
         
         @head.appendChild @style
+        
+    reload: ->
+      @setHref()
+      
+    setHref: ->
+      t = Date.now()
+      @style.setAttribute "href", @loadUrl + "?t=#{t}"
+      
 
 
 class JsResourceInline extends ResourceInline
@@ -880,6 +889,14 @@ class Resources
         n--
         cb() if n is 0
       observer(data, done) for observer in observers
+      
+    # Utility method for blab CSS
+    fetch: (url) ->
+      resource = @find url
+      if resource?.loaded
+        resource.reload?()
+      else
+        @addAndLoad {url}
 
 
 #-----------------------------------------------------------------------------#

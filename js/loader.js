@@ -587,18 +587,26 @@ TODO:
     }
 
     CssResourceLinked.prototype.load = function(postLoadCallback) {
-      var t;
       this.postLoadCallback = postLoadCallback;
       this.style = document.createElement("link");
       this.style.setAttribute("rel", "stylesheet");
-      t = Date.now();
-      this.style.setAttribute("href", this.loadUrl + ("?t=" + t));
+      this.setHref();
       setTimeout(((function(_this) {
         return function() {
           return _this.postLoad();
         };
       })(this)), 0);
       return this.head.appendChild(this.style);
+    };
+
+    CssResourceLinked.prototype.reload = function() {
+      return this.setHref();
+    };
+
+    CssResourceLinked.prototype.setHref = function() {
+      var t;
+      t = Date.now();
+      return this.style.setAttribute("href", this.loadUrl + ("?t=" + t));
     };
 
     return CssResourceLinked;
@@ -1376,6 +1384,18 @@ TODO:
         _results.push(observer(data, done));
       }
       return _results;
+    };
+
+    Resources.prototype.fetch = function(url) {
+      var resource;
+      resource = this.find(url);
+      if (resource != null ? resource.loaded : void 0) {
+        return typeof resource.reload === "function" ? resource.reload() : void 0;
+      } else {
+        return this.addAndLoad({
+          url: url
+        });
+      }
     };
 
     return Resources;
