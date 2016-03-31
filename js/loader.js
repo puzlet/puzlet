@@ -850,15 +850,15 @@ TODO:
     }
 
     ResourceFactory.prototype.create = function(spec) {
-      var fileExt, location, resource, subTypes, subtype, url, _ref;
-      console.log("LOAD", spec.url);
+      var fileExt, location, resource, subTypes, subtype, url, _ref, _ref1;
+      console.log("LOAD", (_ref = spec.url) != null ? _ref : spec);
       if (this.checkExists(spec)) {
         return null;
       }
       if (spec.url) {
         url = spec.url;
       } else {
-        _ref = this.extractUrl(spec), url = _ref.url, fileExt = _ref.fileExt;
+        _ref1 = this.extractUrl(spec), url = _ref1.url, fileExt = _ref1.fileExt;
       }
       location = resourceLocation(url);
       if (fileExt == null) {

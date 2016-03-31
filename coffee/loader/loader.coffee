@@ -585,7 +585,7 @@ class ResourceFactory
     
     create: (spec) ->
         
-        console.log "LOAD", spec.url
+        console.log "LOAD", (spec.url ? spec)
         
         return null if @checkExists spec
         
