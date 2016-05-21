@@ -16,6 +16,8 @@ numArgs:0},function(e){return{type:"op",limits:true,symbol:true,body:e.funcName}
 //var splitAtDelimiters = require("./splitAtDelimiters");
 
 /* eslint no-constant-condition:0 */
+(function() {
+
 var findEndOfMath = function(delimiter, text, startIndex) {
     // Adapted from
     // https://github.com/Khan/perseus/blob/master/src/perseus-markdown.jsx
@@ -128,7 +130,7 @@ var splitWithDelimiters = function(text, delimiters) {
     return data;
 };
 
-var renderMathInText = function(text, delimiters) {
+var renderMathInText = function(text, delimiters, error) {
     var data = splitWithDelimiters(text, delimiters);
 
     var fragment = document.createDocumentFragment();
@@ -144,15 +146,19 @@ var renderMathInText = function(text, delimiters) {
                     displayMode: data[i].display,
                 });
             } catch (e) {
-                if (!(e instanceof katex.ParseError)) {
-                    throw e;
+                if (error) {
+                  error(e, fragment, data[i]);
+                } else {
+                  if (!(e instanceof katex.ParseError)) {
+                      throw e;
+                  }
+                  console.log(
+                      "KaTeX auto-render: Failed to parse `" + data[i].data +
+                      "` with ",
+                      e
+                  );
+                  fragment.appendChild(document.createTextNode(data[i].rawData));
                 }
-                console.error(
-                    "KaTeX auto-render: Failed to parse `" + data[i].data +
-                    "` with ",
-                    e
-                );
-                fragment.appendChild(document.createTextNode(data[i].rawData));
                 continue;
             }
             fragment.appendChild(span);
@@ -162,21 +168,24 @@ var renderMathInText = function(text, delimiters) {
     return fragment;
 };
 
-var renderElem = function(elem, delimiters, ignoredTags) {
+var renderElem = function(elem, delimiters, ignoredTags, ignoreClass, error) {
     for (var i = 0; i < elem.childNodes.length; i++) {
         var childNode = elem.childNodes[i];
+        if (childNode.className===ignoreClass) {
+          continue;
+        }
         if (childNode.nodeType === 3) {
             // Text node
-            var frag = renderMathInText(childNode.textContent, delimiters);
+            var frag = renderMathInText(childNode.textContent, delimiters, error);
             i += frag.childNodes.length - 1;
             elem.replaceChild(frag, childNode);
         } else if (childNode.nodeType === 1) {
             // Element node
             var shouldRender = ignoredTags.indexOf(
                 childNode.nodeName.toLowerCase()) === -1;
-
+                
             if (shouldRender) {
-                renderElem(childNode, delimiters, ignoredTags);
+                renderElem(childNode, delimiters, ignoredTags, ignoreClass, error);
             }
         }
         // Otherwise, it's something else, and ignore it.
@@ -191,10 +200,11 @@ var defaultOptions = {
         // LaTeX uses this, but it ruins the display of normal `$` in text:
         // {left: "$", right: "$", display: false},
     ],
-
     ignoredTags: [
         "script", "noscript", "style", "textarea", "pre", "code",
     ],
+    ignoreClass: null,
+    error: function() {}
 };
 
 var extend = function(obj) {
@@ -219,8 +229,10 @@ var renderMathInElement = function(elem, options) {
 
     options = extend({}, defaultOptions, options);
 
-    renderElem(elem, options.delimiters, options.ignoredTags);
+    renderElem(elem, options.delimiters, options.ignoredTags, options.ignoreClass, options.error);
 };
 
 //module.exports = renderMathInElement;
 window.renderMathInElement = renderMathInElement;
+
+})();
